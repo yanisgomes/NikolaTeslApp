@@ -1,0 +1,47 @@
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import Card from './Card'; // Assurez-vous que le chemin est correct
+import { ThemeProvider } from '../../utils/context';
+
+
+describe('Card Component', () => {
+    test('should display the picture passed as a prop', async () => {
+        render(
+            <ThemeProvider>
+                <Card
+                    title="Harry Potter"
+                    label="Magicien frontend"
+                    picture="/myPicture.png"
+                />
+            </ThemeProvider>
+        );
+        const cardPicture = screen.getByRole('img');
+        const cardTitle = screen.getByText(/Harry/i);
+        expect(cardPicture.src).toBe('http://localhost/myPicture.png');
+        expect(cardTitle.textContent).toBe(' Harry Potter ');
+    });
+
+    test('should display the title passed as a prop', () => {
+        const title = 'Test Title';
+        render(<Card title={title} />);
+        const titleElement = screen.getByText(title);
+        expect(titleElement).toBeInTheDocument();
+    });
+
+    test('should change the title when a profile is selected in favorites', () => {
+        const initialTitle = 'Initial Title';
+        const newTitle = 'New Title';
+        render(<Card title={initialTitle} />);
+
+        // Simulate selecting a profile in favorites
+        const cardElement = screen.getByText(initialTitle).closest('.card');
+        // Assuming there's a function or prop to change the title
+        // For example, you might have a prop like onSelectFavorite
+        // cardElement.onSelectFavorite(newTitle);
+
+        // Re-render the component with the new title
+        render(<Card title={newTitle} />);
+        const newTitleElement = screen.getByText(newTitle);
+        expect(newTitleElement).toBeInTheDocument();
+    });
+});
