@@ -7,12 +7,92 @@ The solver is designed to produce transfer functions using Sympy for equation ma
 Classes:
     Component: Represents an electronic component in the circuit.
     Circuit: Represents the entire electronic circuit and provides methods to analyze and solve it.
-
+TODO : le résultat renvoyé est faux
 """
 
 import sympy
 from collections import defaultdict
 from abc import ABC, abstractmethod
+import re
+
+class Parser:
+    """
+    Parses a netlist string and returns a Circuit object with the components.
+    Currently supports Resistors and Voltage Sources.
+    """
+
+    def __init__(self, netlist):
+        self.netlist = netlist
+        self.circuit = Circuit()
+        self.parse_netlist()
+
+    def parse_netlist(self):
+        lines = self.netlist.strip().split('\n')
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('*') or line.startswith('.'):
+                continue  # Skip comments and directives
+            tokens = line.split()
+            if not tokens:
+                continue
+            component_type = tokens[0][0].upper()  # First letter indicates component type
+            name = tokens[0]
+            nodes = tokens[1:3]
+
+            if component_type == 'R':
+                value = tokens[3]
+                resistance = self.parse_value(value)
+                self.circuit.addComponent(Resistor(name, resistance, nodes))
+            elif component_type == 'V':
+                # Handle voltage source
+                value = self.extract_voltage_value(tokens)
+                voltage = self.parse_value(value)
+                self.circuit.addComponent(VoltageSource(name, voltage, nodes))
+
+    def parse_value(self, value_str):
+        """
+        Parses the value string, handling units, and returns a numerical value.
+        """
+        units = {
+            'T': 1e12,
+            'G': 1e9,
+            'MEG': 1e6,
+            'K': 1e3,
+            'M': 1e-3,
+            'MIL': 25.4e-6,
+            'U': 1e-6,
+            'N': 1e-9,
+            'P': 1e-12,
+            'F': 1e-15,
+        }
+        match = re.match(r"([0-9\.]+)([A-Za-z]*)", value_str)
+        if match:
+            value, unit = match.groups()
+            value = float(value)
+            unit = unit.upper()
+            multiplier = units.get(unit, 1)
+            return value * multiplier
+        else:
+            return float(value_str)
+
+    def extract_voltage_value(self, tokens):
+        """
+        Extracts the voltage value from the tokens for a voltage source.
+        """
+        if 'DC' in tokens:
+            idx = tokens.index('DC')
+            return tokens[idx + 1]
+        elif 'AC' in tokens:
+            idx = tokens.index('AC')
+            return tokens[idx + 1]
+        else:
+            # Assume the value is in the third position
+            return tokens[3]
+
+    @staticmethod
+    def get_circuit(self, netlist):
+        self.parse_netlist(netlist)
+        return self.circuit
 
 class Component:
     """
@@ -66,7 +146,7 @@ class Resistor(Component):
         Return the Voltage-Current equation for the resistor.
         """
         other_node = self.nodes[0] if self.nodes[1] == node else self.nodes[1]
-        return nodeVoltages[node] - nodeVoltages[other_node] / knownParameters[self.name]
+        return (nodeVoltages[node] - nodeVoltages[other_node]) / knownParameters[self.name]
     
 class VoltageSource(Component):
     """
@@ -185,6 +265,25 @@ class Solver:
         self.knownParameters = {} # Dictionary of known values (e.g., resistors, input voltages, etc.)
         self.equations = []
 
+        # Populate the knownParameters dictionary with component
+        for component in circuit.components:
+            if isinstance(component, Resistor):
+                self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
+            elif isinstance(component, VoltageSource):
+                self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
+
+        # Populate the nodeVoltages dictionary with node names
+        for node in circuit.nodes:
+            if node != 'n0':
+                self.nodeVoltages[node] = sympy.symbols(f'v_{node}')
+            else :
+                self.nodeVoltages['n0'] = 0 # TODO améliorer cette partie, ce n'est pas très rigoureux de mettre la masse dans nodeVoltages
+
+        # Populate the unknownCurrents dictionary with branch names
+        for component in circuit.components:
+            if isinstance(component, VoltageSource):
+                self.unknownCurrents[component.nodes[0]] = sympy.symbols(f'i_{component.nodes[0]}')
+
 
     def getEqSys(self):
         """
@@ -200,7 +299,8 @@ class Solver:
                 expr = 0
                 for component in self.circuit.connections[node]:
                     expr += component.getEquation(node, self.nodeVoltages, self.unknownCurrents, self.knownParameters)
-                self.equations.append(sympy.Eq(expr, 0))
+                equation = sympy.Eq(expr, 0)
+                self.equations.append(equation) # TODO il manque un terme dans l'équation pour le noeud 2 de l'ex
 
         # Ajout des equations pour les composants spéciaux (sources de tension, courant, etc.)
         for component in self.circuit.components:
@@ -217,3 +317,80 @@ class Solver:
         """
         unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
         return sympy.solve(self.equations, unknowns)
+
+class Parser:
+    """
+    Parses a netlist string and returns a Circuit object with the components.
+    Currently supports Resistors and Voltage Sources.
+    """
+
+    def __init__(self, netlist):
+        self.netlist = netlist
+        self.circuit = Circuit()
+        self.parse_netlist()
+
+    def parse_netlist(self):
+        lines = self.netlist.strip().split('\n')
+        for line in lines:
+            line = line.strip().upper()
+            if not line or line.startswith('*') or line.startswith('.'):
+                continue  # Skip comments and directives
+            tokens = line.split()
+            if not tokens:
+                continue
+            component_type = tokens[0][0].upper()  # First letter indicates component type
+            name = tokens[0]
+            nodes = tokens[1:3]
+
+            if component_type == 'R':
+                value = tokens[3]
+                resistance = self.parse_value(value)
+                self.circuit.addComponent(Resistor(name, nodes))
+            elif component_type == 'V':
+                # Handle voltage source
+                value = self.extract_voltage_value(tokens)
+                voltage = self.parse_value(value)
+                self.circuit.addComponent(VoltageSource(name, nodes))
+
+    def parse_value(self, value_str):
+        """
+        Parses the value string, handling units, and returns a numerical value.
+        """
+        units = {
+            'T': 1e12,
+            'G': 1e9,
+            'MEG': 1e6,
+            'K': 1e3,
+            'M': 1e-3,
+            'MIL': 25.4e-6,
+            'U': 1e-6,
+            'N': 1e-9,
+            'P': 1e-12,
+            'F': 1e-15,
+        }
+        match = re.match(r"([0-9\.]+)([A-Za-z]*)", value_str)
+        if match:
+            value, unit = match.groups()
+            value = float(value)
+            unit = unit.upper()
+            multiplier = units.get(unit, 1)
+            return value * multiplier
+        else:
+            return float(value_str)
+
+    def extract_voltage_value(self, tokens):
+        """
+        Extracts the voltage value from the tokens for a voltage source.
+        """
+        if 'DC' in tokens:
+            idx = tokens.index('DC')
+            return tokens[idx + 1]
+        elif 'AC' in tokens:
+            idx = tokens.index('AC')
+            return tokens[idx + 1]
+        else:
+            # Assume the value is in the third position
+            return tokens[3]
+
+    def get_circuit(self):
+        return self.circuit
