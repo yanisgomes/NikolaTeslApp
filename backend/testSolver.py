@@ -1,4 +1,4 @@
-from solver import Component, Circuit, Resistor, VoltageSource, Solver
+from solver import Component, Circuit, Resistor, VoltageSource, Solver, Inductor, Capacitor
 from collections import defaultdict
 import sympy
 from flask import Flask, request, jsonify
@@ -6,11 +6,11 @@ from flask_cors import CORS  # Pour gérer les requêtes CORS
 import json
 
 circuit = Circuit()
-circuit.addComponent(Resistor('R1', ['n1', 'n2']))
-circuit.addComponent(Resistor('R2', ['n2', 'n3']))
-circuit.addComponent(Resistor('R3', ['n2', 'n0']))
-circuit.addComponent(VoltageSource('U1', ['n1', 'n0']))
-circuit.addComponent(VoltageSource('U2', ['n3', 'n0']))
+# Filtre RLC
+circuit.addComponent(Resistor('R1', ['n3', 'n0']))
+circuit.addComponent(Inductor('L1', ['n2', 'n3']))
+circuit.addComponent(Capacitor('C1', ['n1', 'n2']))
+circuit.addComponent(VoltageSource('Uin', ['n1', 'n0']))
 
 nodes = ['n0', 'n1', 'n2', 'n3']
 
@@ -24,10 +24,12 @@ knownParameters = {}
 
 # Populate the knownParameters dictionary with component
 for component in circuit.components:
-    if isinstance(component, Resistor):
+    if isinstance(component, Resistor) or isinstance(component, Inductor) or isinstance(component, Capacitor):
         knownParameters[component.name] = sympy.symbols(f'{component.name}')
     elif isinstance(component, VoltageSource):
         knownParameters[component.name] = sympy.symbols(f'{component.name}')
+
+knownParameters['p'] = sympy.symbols('p') # Laplace variable
 
 # Populate the nodeVoltages dictionary with node names
 for node in circuit.nodes:

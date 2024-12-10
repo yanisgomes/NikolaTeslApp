@@ -112,7 +112,7 @@ class Component:
         self.needsAdditionalEquation = False
     
     def __str__(self):
-        return f"{self.name} ({self.value}) [{self.nodes}]"
+        return f"{self.name}[{self.nodes}]"
     
     @abstractmethod
     def getEquation(self, nodeVoltages, unknownCurrents, knownParameters):
@@ -173,6 +173,42 @@ class VoltageSource(Component):
         """
         return sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], knownParameters[self.name])
 
+class Inductor(Component):
+    """
+    Represents an inductor component in the circuit.
+
+    Attributes:
+        name (str): The name of the inductor (e.g., 'L1').
+        nodes (list): The list of nodes this inductor is connected to.
+    """
+    def __init__(self, name, nodes):
+        super().__init__(name, nodes)
+    
+    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the Voltage-Current equation for the inductor.
+        """
+        other_node = self.nodes[0] if self.nodes[1] == node else self.nodes[1]
+        return (nodeVoltages[node] - nodeVoltages[other_node]) / (knownParameters[self.name]*knownParameters["p"])
+
+class Capacitor(Component):
+    """
+    Represents a capacitor component in the circuit.
+
+    Attributes:
+        name (str): The name of the capacitor (e.g., 'C1').
+        nodes (list): The list of nodes this capacitor is connected to.
+    """
+    def __init__(self, name, nodes):
+        super().__init__(name, nodes)
+    
+    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the Voltage-Current equation for the capacitor.
+        """
+        other_node = self.nodes[0] if self.nodes[1] == node else self.nodes[1]
+        return (nodeVoltages[node] - nodeVoltages[other_node]) * knownParameters["p"] * knownParameters[self.name]
+    
 class Circuit:
     """
     Represents the entire electronic circuit and provides methods to analyze and solve it.
@@ -265,6 +301,8 @@ class Solver:
         self.knownParameters = {} # Dictionary of known values (e.g., resistors, input voltages, etc.)
         self.equations = []
 
+        self.knownParameters["p"] = sympy.symbols('p') # Laplace variable
+
         # Populate the knownParameters dictionary with component
         for component in circuit.components:
             if isinstance(component, Resistor):
@@ -347,10 +385,17 @@ class Parser:
                 resistance = self.parse_value(value)
                 self.circuit.addComponent(Resistor(name, nodes))
             elif component_type == 'V':
-                # Handle voltage source
                 value = self.extract_voltage_value(tokens)
                 voltage = self.parse_value(value)
                 self.circuit.addComponent(VoltageSource(name, nodes))
+            elif component_type == 'L':
+                value = tokens[3]
+                inductance = self.parse_value(value)
+                self.circuit.addComponent(Inductor(name, nodes))
+            elif component_type == 'C':
+                value = tokens[3]
+                capacitance = self.parse_value(value)
+                self.circuit.addComponent(Capacitor(name, nodes))
 
     def parse_value(self, value_str):
         """

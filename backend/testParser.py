@@ -5,10 +5,9 @@ from solver import Parser
 netlist = '''
 * Simple Resistor and Voltage Source Circuit
 v1 1 0 dc 24 
-v2 3 0 dc 15 
-r1 1 2 10k 
-r2 2 3 8.1k 
-r3 2 0 4.7k 
+C1 1 2 10k 
+L1 2 3 8.1k 
+r 3 0 4.7k 
 .end
 '''
 
