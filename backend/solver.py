@@ -209,6 +209,23 @@ class Capacitor(Component):
         other_node = self.nodes[0] if self.nodes[1] == node else self.nodes[1]
         return (nodeVoltages[node] - nodeVoltages[other_node]) * knownParameters["p"] * knownParameters[self.name]
     
+class opamp(Component):
+    """
+    Represents an opamp component in the circuit.
+
+    Attributes:
+        name (str): The name of the opamp (e.g., 'opamp1').
+        nodes (list): The list of nodes this opamp is connected to.
+    """
+    def __init__(self, name, nodes):
+        super().__init__(name, nodes)
+    
+    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        TODO
+        """
+        
+    
 class Circuit:
     """
     Represents the entire electronic circuit and provides methods to analyze and solve it.
