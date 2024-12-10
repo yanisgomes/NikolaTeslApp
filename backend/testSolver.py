@@ -8,7 +8,7 @@ import json
 circuit = Circuit()
 circuit.addComponent(Resistor('R1', ['n1', 'n2']))
 circuit.addComponent(Resistor('R2', ['n2', 'n3']))
-circuit.addComponent(Resistor('R3', ['n3', 'n0']))
+circuit.addComponent(Resistor('R3', ['n2', 'n0']))
 circuit.addComponent(VoltageSource('U1', ['n1', 'n0']))
 circuit.addComponent(VoltageSource('U2', ['n3', 'n0']))
 
