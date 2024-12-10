@@ -107,6 +107,7 @@ class Component:
         self.name = name  # Component name (e.g., 'R1', 'C1')
         self.nodes = nodes  # List of nodes this component is connected to
         self.motherComponent = None  # Reference to the mother component (e.g., for linearized elements)
+        self.isLinear = True
         self.isVirtual = False  # Boolean indicating if the component is virtual (e.g., for linearized elements)
         self.equation = None  # The Voltage-Current equation for the component
         self.needsAdditionalEquation = False
@@ -209,9 +210,33 @@ class Capacitor(Component):
         other_node = self.nodes[0] if self.nodes[1] == node else self.nodes[1]
         return (nodeVoltages[node] - nodeVoltages[other_node]) * knownParameters["p"] * knownParameters[self.name]
     
-class opamp(Component):
+class Wire(VoltageSource):
+    """
+    Represents a wire component in the circuit.
+
+    Attributes:
+        name (str): The name of the wire (e.g., 'wire1').
+        nodes (list): The list of nodes this wire is connected to.
+    """
+    def __init__(self, name, nodes):
+        super().__init__(name, nodes)
+        self.isVirtual = True
+
+    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the Voltage-Current equation for the wire.
+        """
+        return 0
+
+    def getAdditionalEquation(self, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the additional equation for the wire.
+        """
+        return sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], 0)
+class Opamp(Component):
     """
     Represents an opamp component in the circuit.
+    Nodes need to be connected in the following order: inverting input, non-inverting input, output.
 
     Attributes:
         name (str): The name of the opamp (e.g., 'opamp1').
@@ -219,11 +244,18 @@ class opamp(Component):
     """
     def __init__(self, name, nodes):
         super().__init__(name, nodes)
-    
-    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        self.isLinear = False
+
+    def getLinearizedVersion(self):
         """
-        TODO
+        TODO Linearize the opamp to handle nonlinear elements.
         """
+        wire = Wire(f'{self.name}_wire', [self.nodes[0], self.nodes[1]])
+        wire.motherComponent = self
+        voltageSource = VoltageSource(f'{self.name}_voltage', [self.nodes[2],'n0'])
+        voltageSource.motherComponent = self
+        return [wire, voltageSource]
+
         
     
 class Circuit:
@@ -269,10 +301,11 @@ class Circuit:
         Fill the connections dictionary with components connected to each node.
         """
         for component in self.components:
-            for node in component.nodes:
-                self.connections[node].append(component)
-                if node not in self.nodes:
-                    self.nodes.append(node)
+            if component.isLinear :
+                for node in component.nodes:
+                    self.connections[node].append(component)
+                    if node not in self.nodes:
+                        self.nodes.append(node)
         self.isConnexionListBuilt = True
 
     def componentConnectedTo(self, node):
