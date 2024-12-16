@@ -29,7 +29,7 @@ class Parser:
     def parse_netlist(self):
         lines = self.netlist.strip().split('\n')
         for line in lines:
-            line = line.strip()
+            line = line.strip().upper()
             if not line or line.startswith('*') or line.startswith('.'):
                 continue  # Skip comments and directives
             tokens = line.split()
@@ -37,17 +37,33 @@ class Parser:
                 continue
             component_type = tokens[0][0].upper()  # First letter indicates component type
             name = tokens[0]
-            nodes = tokens[1:3]
 
-            if component_type == 'R':
+            if component_type == 'R': # Resistor
+                nodes = tokens[1:3]
                 value = tokens[3]
-                resistance = self.parse_value(value)
-                self.circuit.addComponent(Resistor(name, resistance, nodes))
-            elif component_type == 'V':
-                # Handle voltage source
+                #resistance = self.parse_value(value)
+                self.circuit.addComponent(Resistor(name, nodes))
+            elif component_type == 'V': # Voltage source
+                nodes = tokens[1:3]
                 value = self.extract_voltage_value(tokens)
-                voltage = self.parse_value(value)
-                self.circuit.addComponent(VoltageSource(name, voltage, nodes))
+                #voltage = self.parse_value(value)
+                self.circuit.addComponent(VoltageSource(name, nodes))
+            elif component_type == 'L': # Inductor
+                nodes = tokens[1:3]
+                value = tokens[3]
+                #inductance = self.parse_value(value)
+                self.circuit.addComponent(Inductor(name, nodes))
+            elif component_type == 'C': # Capacitor
+                nodes = tokens[1:3]
+                value = tokens[3]
+                #capacitance = self.parse_value(value)
+                self.circuit.addComponent(Capacitor(name, nodes))
+            elif component_type == 'O': # Opamp
+                nodes = tokens[1:4]
+                self.circuit.addComponent(Opamp(name, nodes))
+            for node in nodes:
+                if node not in self.circuit.nodes:
+                    self.circuit.nodes.append(node) 
 
     def parse_value(self, value_str):
         """
@@ -89,9 +105,7 @@ class Parser:
             # Assume the value is in the third position
             return tokens[3]
 
-    @staticmethod
-    def get_circuit(self, netlist):
-        self.parse_netlist(netlist)
+    def get_circuit(self):
         return self.circuit
 
 class Component:
@@ -107,6 +121,7 @@ class Component:
         self.name = name  # Component name (e.g., 'R1', 'C1')
         self.nodes = nodes  # List of nodes this component is connected to
         self.motherComponent = None  # Reference to the mother component (e.g., for linearized elements)
+        self.isLinear = True
         self.isVirtual = False  # Boolean indicating if the component is virtual (e.g., for linearized elements)
         self.equation = None  # The Voltage-Current equation for the component
         self.needsAdditionalEquation = False
@@ -209,6 +224,57 @@ class Capacitor(Component):
         other_node = self.nodes[0] if self.nodes[1] == node else self.nodes[1]
         return (nodeVoltages[node] - nodeVoltages[other_node]) * knownParameters["p"] * knownParameters[self.name]
     
+class Wire(Component):
+    """
+    Represents a wire component in the circuit.
+
+    Attributes:
+        name (str): The name of the wire (e.g., 'wire1').
+        nodes (list): The list of nodes this wire is connected to.
+    """
+    def __init__(self, name, nodes):
+        super().__init__(name, nodes)
+        self.needsAdditionalEquation = True
+
+    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the Voltage-Current equation for the wire.
+        """
+        return 0
+
+    def getAdditionalEquation(self, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the additional equation for the wire.
+        """
+        return sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], 0)
+class Opamp(Component):
+    """
+    Represents an opamp component in the circuit.
+    Nodes need to be connected in the following order: inverting input, non-inverting input, output.
+
+    Attributes:
+        name (str): The name of the opamp (e.g., 'opamp1').
+        nodes (list): The list of nodes this opamp is connected to.
+    """
+    def __init__(self, name, nodes):
+        super().__init__(name, nodes)
+        self.isLinear = False
+
+    def getLinearizedVersion(self):
+        """
+        TODO Linearize the opamp to handle nonlinear elements.
+        """
+        wire = Wire(f'{self.name}_wire', [self.nodes[0], self.nodes[1]])
+        wire.motherComponent = self # Reference to the mother component
+        wire.isVirtual = True # Indicates that the component is virtual (not in the original netlist)
+        voltageSource = VoltageSource(f'{self.name}_voltage', [self.nodes[2],'0'])
+        voltageSource.motherComponent = self
+        voltageSource.isVirtual = True
+        voltageSource.needsAdditionalEquation = False # Do not need the usual additional equation for voltage sources : this voltage source is of unkonwn value
+        return [wire, voltageSource]
+
+        
+    
 class Circuit:
     """
     Represents the entire electronic circuit and provides methods to analyze and solve it.
@@ -227,6 +293,7 @@ class Circuit:
         self.connections = defaultdict(list)  # Dictionary mapping nodes to components
         self.isConnexionListBuilt = False  # Boolean indicating if the connection list is built
         self.isEqSysEstablished = False  # Boolean indicating if the equation system is established
+        self.isCircuitLinear = False  # Boolean indicating if the circuit has been linearized
         self.equations = []  # List of Sympy Equation objects
 
     def addComponent(self, component):
@@ -237,25 +304,31 @@ class Circuit:
             component (Component): The component to add to the circuit.
         """
         self.components.append(component)
-        self.isConnexionListBuilt = False
-        self.isEqSysEstablished = False
 
     def linearizeCircuit(self):
         """
         Handle the linearization of nonlinear circuit elements.
         """
-        # TODO: Implement the method to linearize nonlinear circuit elements
+        for component in self.components:
+            if not component.isLinear:
+                linearizedComponents = component.getLinearizedVersion()
+                for linearizedComponent in linearizedComponents:
+                    self.components.append(linearizedComponent)
+        self.isCircuitLinear = True
         pass
 
     def buildConnexionList(self):
         """
-        Fill the connections dictionary with components connected to each node.
+        Fill the connections dictionary with components connected to each node. Only linear components are considered.
         """
+        if not self.isCircuitLinear:
+            self.linearizeCircuit()
         for component in self.components:
-            for node in component.nodes:
-                self.connections[node].append(component)
-                if node not in self.nodes:
-                    self.nodes.append(node)
+            if component.isLinear :
+                for node in component.nodes:
+                    self.connections[node].append(component)
+                    if node not in self.nodes:
+                        self.nodes.append(node)
         self.isConnexionListBuilt = True
 
     def componentConnectedTo(self, node):
@@ -296,6 +369,9 @@ class Solver:
             circuit (Circuit): The circuit to be solved.
         """
         self.circuit = circuit
+        # First linearize the circuit
+        if not self.circuit.isCircuitLinear:
+            self.circuit.linearizeCircuit()
         self.nodeVoltages = {} # Dictionary of unknown node voltages
         self.unknownCurrents = {} # Dictionary of unknown branch currents
         self.knownParameters = {} # Dictionary of known values (e.g., resistors, input voltages, etc.)
@@ -305,17 +381,19 @@ class Solver:
 
         # Populate the knownParameters dictionary with component
         for component in circuit.components:
-            if isinstance(component, Resistor):
-                self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
-            elif isinstance(component, VoltageSource):
-                self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
+            if component.isLinear:
+                if component.isVirtual==False:
+                    if isinstance(component, Resistor) or isinstance(component, Inductor) or isinstance(component, Capacitor):
+                        self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
+                    elif isinstance(component, VoltageSource):
+                        self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
 
         # Populate the nodeVoltages dictionary with node names
         for node in circuit.nodes:
-            if node != 'n0':
+            if node != '0':
                 self.nodeVoltages[node] = sympy.symbols(f'v_{node}')
             else :
-                self.nodeVoltages['n0'] = 0 # TODO améliorer cette partie, ce n'est pas très rigoureux de mettre la masse dans nodeVoltages
+                self.nodeVoltages['0'] = 0 # TODO améliorer cette partie, ce n'est pas très rigoureux de mettre la masse dans nodeVoltages
 
         # Populate the unknownCurrents dictionary with branch names
         for component in circuit.components:
@@ -332,18 +410,21 @@ class Solver:
         """
         # Analyse nodale classique
         for node in self.circuit.nodes:
-            if node != 'n0':
+            if node != '0':
                 # Equation de noeud
                 expr = 0
                 for component in self.circuit.connections[node]:
-                    expr += component.getEquation(node, self.nodeVoltages, self.unknownCurrents, self.knownParameters)
+                    if component.isLinear: # Only linear components have equations
+                        expr += component.getEquation(node, self.nodeVoltages, self.unknownCurrents, self.knownParameters)
                 equation = sympy.Eq(expr, 0)
                 self.equations.append(equation) # TODO il manque un terme dans l'équation pour le noeud 2 de l'ex
 
         # Ajout des equations pour les composants spéciaux (sources de tension, courant, etc.)
         for component in self.circuit.components:
-            if component.needsAdditionalEquation:
-                self.equations.append(component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters))
+            if component.isLinear:
+                if component.needsAdditionalEquation:
+                    equ=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
+                    self.equations.append(equ)
 
 
     def solveEqSys(self):
@@ -356,86 +437,3 @@ class Solver:
         unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
         return sympy.solve(self.equations, unknowns)
 
-class Parser:
-    """
-    Parses a netlist string and returns a Circuit object with the components.
-    Currently supports Resistors and Voltage Sources.
-    """
-
-    def __init__(self, netlist):
-        self.netlist = netlist
-        self.circuit = Circuit()
-        self.parse_netlist()
-
-    def parse_netlist(self):
-        lines = self.netlist.strip().split('\n')
-        for line in lines:
-            line = line.strip().upper()
-            if not line or line.startswith('*') or line.startswith('.'):
-                continue  # Skip comments and directives
-            tokens = line.split()
-            if not tokens:
-                continue
-            component_type = tokens[0][0].upper()  # First letter indicates component type
-            name = tokens[0]
-            nodes = tokens[1:3]
-
-            if component_type == 'R':
-                value = tokens[3]
-                resistance = self.parse_value(value)
-                self.circuit.addComponent(Resistor(name, nodes))
-            elif component_type == 'V':
-                value = self.extract_voltage_value(tokens)
-                voltage = self.parse_value(value)
-                self.circuit.addComponent(VoltageSource(name, nodes))
-            elif component_type == 'L':
-                value = tokens[3]
-                inductance = self.parse_value(value)
-                self.circuit.addComponent(Inductor(name, nodes))
-            elif component_type == 'C':
-                value = tokens[3]
-                capacitance = self.parse_value(value)
-                self.circuit.addComponent(Capacitor(name, nodes))
-
-    def parse_value(self, value_str):
-        """
-        Parses the value string, handling units, and returns a numerical value.
-        """
-        units = {
-            'T': 1e12,
-            'G': 1e9,
-            'MEG': 1e6,
-            'K': 1e3,
-            'M': 1e-3,
-            'MIL': 25.4e-6,
-            'U': 1e-6,
-            'N': 1e-9,
-            'P': 1e-12,
-            'F': 1e-15,
-        }
-        match = re.match(r"([0-9\.]+)([A-Za-z]*)", value_str)
-        if match:
-            value, unit = match.groups()
-            value = float(value)
-            unit = unit.upper()
-            multiplier = units.get(unit, 1)
-            return value * multiplier
-        else:
-            return float(value_str)
-
-    def extract_voltage_value(self, tokens):
-        """
-        Extracts the voltage value from the tokens for a voltage source.
-        """
-        if 'DC' in tokens:
-            idx = tokens.index('DC')
-            return tokens[idx + 1]
-        elif 'AC' in tokens:
-            idx = tokens.index('AC')
-            return tokens[idx + 1]
-        else:
-            # Assume the value is in the third position
-            return tokens[3]
-
-    def get_circuit(self):
-        return self.circuit
