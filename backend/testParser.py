@@ -3,11 +3,11 @@
 from solver import Parser
 
 netlist = '''
-* Simple Resistor and Voltage Source Circuit
-v1 1 0 dc 24 
-C1 1 2 10k 
-L1 2 3 8.1k 
-r 3 0 4.7k 
+* Opamp inverter : https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
+Vin 3 0 Symbolic      
+R1 1 3 Symbolic
+R2 2 1 Symbolic
+OAmp 0 1 2
 .end
 '''
 
