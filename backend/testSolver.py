@@ -17,11 +17,8 @@ OAmp 0 1 2
 .end
 '''
 
-# Create a Parser instance with the netlist
-parser = Parser(netlist)
-
 # Get the Circuit object
-circuit = parser.get_circuit()
+circuit = Parser.parse_netlist(netlist, compute_numeric=False)
 
 # Print the components in the circuit
 for component in circuit.components:

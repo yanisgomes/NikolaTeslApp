@@ -24,17 +24,12 @@ api_key = os.getenv('OPENROUTER_API_KEY')
 
 class Parser:
     """
-    Parses a netlist string and returns a Circuit object with the components.
-    Currently supports Resistors and Voltage Sources.
+    The parse_netlist static method parses a netlist string and returns a Circuit object with the components.
     """
-
-    def __init__(self, netlist):
-        self.netlist = netlist
-        self.circuit = Circuit()
-        self.parse_netlist()
-
-    def parse_netlist(self):
-        lines = self.netlist.strip().split('\n')
+    @staticmethod
+    def parse_netlist(netlist, compute_numeric=True):
+        circuit = Circuit()
+        lines = netlist.strip().split('\n')
         for line in lines:
             line = line.strip().upper()
             if not line or line.startswith('*') or line.startswith('.'):
@@ -44,37 +39,44 @@ class Parser:
                 continue
             component_type = tokens[0][0].upper()  # First letter indicates component type
             name = tokens[0]
+            if 'SYMBOLIC' in tokens and compute_numeric == True:
+                raise ValueError("Cannot mix symbolic and numeric values in the netlist.")
 
             if component_type == 'R': # Resistor
                 nodes = tokens[1:3]
-                if tokens[3] != 'SYMBOLIC':
+                if compute_numeric:
                     value = tokens[3]
-                    resistance = self.parse_value(value)
-                self.circuit.addComponent(Resistor(name, nodes))
+                    resistance = Parser.parse_value(value)
+                circuit.addComponent(Resistor(name, nodes))
             elif component_type == 'V': # Voltage source
                 nodes = tokens[1:3]
-                value = self.extract_voltage_value(tokens)
-                #voltage = self.parse_value(value)
-                self.circuit.addComponent(VoltageSource(name, nodes))
+                if compute_numeric:
+                    value = Parser.extract_voltage_value(tokens)
+                    voltage = Parser.parse_value(value)
+                circuit.addComponent(VoltageSource(name, nodes))
             elif component_type == 'L': # Inductor
                 nodes = tokens[1:3]
-                value = tokens[3]
-                #inductance = self.parse_value(value)
-                self.circuit.addComponent(Inductor(name, nodes))
+                if compute_numeric:
+                    value = tokens[3]
+                    inductance = Parser.parse_value(value)
+                circuit.addComponent(Inductor(name, nodes))
             elif component_type == 'C': # Capacitor
                 nodes = tokens[1:3]
-                value = tokens[3]
-                #capacitance = self.parse_value(value)
-                self.circuit.addComponent(Capacitor(name, nodes))
+                if compute_numeric:
+                    value = tokens[3]
+                    capacitance = Parser.parse_value(value)
+                circuit.addComponent(Capacitor(name, nodes))
             elif component_type == 'O': # Opamp
                 nodes = tokens[1:4]
-                self.circuit.addComponent(Opamp(name, nodes))
+                circuit.addComponent(Opamp(name, nodes))
             for node in nodes:
-                if node not in self.circuit.nodes:
-                    self.circuit.nodes.append(node) 
-        self.circuit.nodes.sort()
+                if node not in circuit.nodes:
+                    circuit.nodes.append(node) 
+        circuit.nodes.sort()
+        return circuit
 
-    def parse_value(self, value_str):
+    @staticmethod
+    def parse_value(value_str):
         """
         Parses the value string, handling units, and returns a numerical value.
         """
@@ -100,7 +102,8 @@ class Parser:
         else:
             return float(value_str)
 
-    def extract_voltage_value(self, tokens):
+    @staticmethod
+    def extract_voltage_value(tokens):
         """
         Extracts the voltage value from the tokens for a voltage source.
         """
@@ -113,9 +116,6 @@ class Parser:
         else:
             # Assume the value is in the third position
             return tokens[3]
-
-    def get_circuit(self):
-        return self.circuit
 
 class Component:
     """
