@@ -66,6 +66,7 @@ function Header() {
             <nav>
                 <ButtonWrapper>
                     <StyledLink to="/">Accueil</StyledLink>
+                    <StyledLink to="/freelances/">Galerie</StyledLink>
                     {/*<StyledLink to="/freelances">Profils</StyledLink>*/}
                     <StyledLink to="/survey/1" $isFullLink>
                         Créer un circuit

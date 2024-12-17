@@ -7,7 +7,7 @@ import Header from './components/Header/';
 import Footer from './components/Footer/';
 import Error from './components/Error/';
 import Results from './pages/Results/';
-import Freelances from './pages/Freelances/';
+import Gallery from './pages/Gallery';
 import GlobalStyle from './utils/style/GlobalStyle';
 import ProfileContainer from './components/ProfileContainer/';
 
@@ -40,10 +40,7 @@ root.render(
                                 element={<Survey />}
                             />
                             <Route path="/results/" element={<Results />} />
-                            <Route
-                                path="/freelances/"
-                                element={<Freelances />}
-                            />
+                            <Route path="/freelances/" element={<Gallery />} />
                             <Route
                                 path="/profile/:id"
                                 element={<ProfileContainer />}
