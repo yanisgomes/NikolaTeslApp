@@ -40,7 +40,9 @@ print("Unknown Currents:", solver.unknownCurrents)
 solver.getEqSys()
 
 # Print the system of equations
-print(solver.eqSys)
+for equ,expl in solver.equations:
+    print(f"Equ : {equ} - {expl}")
+
 
 # Solve the system of equations
 solutions = solver.solveEqSys()

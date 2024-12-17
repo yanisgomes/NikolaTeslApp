@@ -186,7 +186,7 @@ class VoltageSource(Component):
         """
         Return the additional equation for the voltage source.
         """
-        return sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], knownParameters[self.name])
+        return (sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], knownParameters[self.name]), f"valeur de la source de tension {self.name}")
 
 class Inductor(Component):
     """
@@ -246,7 +246,7 @@ class Wire(Component):
         """
         Return the additional equation for the wire.
         """
-        return sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], 0)
+        return (sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], 0), f"hypothèse {self.motherComponent.name} parfait : V+ = V-")
 class Opamp(Component):
     """
     Represents an opamp component in the circuit.
@@ -417,14 +417,15 @@ class Solver:
                     if component.isLinear: # Only linear components have equations
                         expr += component.getEquation(node, self.nodeVoltages, self.unknownCurrents, self.knownParameters)
                 equation = sympy.Eq(expr, 0)
-                self.equations.append(equation) # TODO il manque un terme dans l'équation pour le noeud 2 de l'ex
+                explanation = f"Loi des noeuds pour le noeud {node}"
+                self.equations.append((equation,explanation)) 
 
         # Ajout des equations pour les composants spéciaux (sources de tension, courant, etc.)
         for component in self.circuit.components:
             if component.isLinear:
                 if component.needsAdditionalEquation:
-                    equ=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
-                    self.equations.append(equ)
+                    (equ,explanation)=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
+                    self.equations.append((equ, explanation))
 
 
     def solveEqSys(self):
@@ -435,5 +436,5 @@ class Solver:
             dict: A dictionary of solutions for the variables in the circuit. TODO : remove() modifie la liste en place, ne renvoie rien ERROR
         """
         unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
-        return sympy.solve(self.equations, unknowns)
+        return sympy.solve([equ for equ,expl in self.equations], unknowns)
 
