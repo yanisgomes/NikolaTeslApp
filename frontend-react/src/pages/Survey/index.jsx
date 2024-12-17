@@ -15,13 +15,13 @@ const PlacedItemContainer = styled.div`
 
 const SidebarContent = styled.div`
     width: 100%;
-    margin-top: 20px;
+    margin-top: 60px;
     text-align: center;
 `;
 
 const Sidebar = styled.div`
-    position: fixed;
-    top: 0;
+    position: absolute;
+    top: 60;
     right: 0;
     height: 100%;
     width: ${(props) => (props.isOpen ? '300px' : '0')};
@@ -37,7 +37,7 @@ const Sidebar = styled.div`
 `;
 
 const ToggleButton = styled.button`
-    position: fixed;
+    position: absolute;
     top: 50%;
     right: ${(props) => (props.isOpen ? '300px' : '0')};
     transform: translateY(-50%);
