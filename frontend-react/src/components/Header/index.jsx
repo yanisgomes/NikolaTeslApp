@@ -3,14 +3,24 @@ import { ThemeContext } from '../../utils/context/';
 
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import lightLogo from '../../assets/logo_ENS1.png';
-import darkLogo from '../../assets/logo_ENS1.png';
 import colors from '../../utils/style/colors';
+import imgTesla from '../../assets/nikola-tesla-cartoon.png';
+
+const StyledHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+`;
 
 const StyledImage = styled.img`
     object-fit: cover;
     border-radius: 5%;
-    height: 180px;
+    width: 10%;
+    transition: transform 0.2s ease-in-out;
+    &:hover {
+        transform: scale(1.15);
+    }
 `;
 
 const StyledLink = styled(Link)`
@@ -23,38 +33,40 @@ const StyledLink = styled(Link)`
         `color: white; border-radius: 30px; background-color: #5843E4;`}
 `;
 
-const StyledHeader = styled.div`
+const TitleWrapper = styled.div`
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    display-direction: row;
-    padding: 50px;
-    gap: 50px;
-    transition: 300ms;
-    & img:hover {
-        cursor: pointer;
-        box-shadow: 3px 3px 10px ${colors.secondary};
-    }
+    gap: 10px;
+    width: fit-content;
 `;
 
 const ButtonWrapper = styled.div`
     display: flex;
     justify-content: center;
-    gap: 20px;
+    height: auto;
 `;
 
 function Header() {
     const { theme, toggleTheme } = useContext(ThemeContext);
     return (
         <StyledHeader>
-            <StyledImage
-                src={theme === 'dark' ? darkLogo : lightLogo}
-                alt="doleances-logo"
-            />
-
+            <TitleWrapper style={{ marginRigth: 'auto' }}>
+                <StyledImage src={imgTesla} alt="nikola-tesla-logo" />
+                <h2
+                    style={{
+                        color:
+                            theme === 'light'
+                                ? colors.darkBackground
+                                : colors.lightBackground,
+                    }}
+                >
+                    NikolaTeslApp
+                </h2>
+            </TitleWrapper>
             <nav>
                 <ButtonWrapper>
                     <StyledLink to="/">Accueil</StyledLink>
+                    <StyledLink to="/freelances/">Galerie</StyledLink>
                     {/*<StyledLink to="/freelances">Profils</StyledLink>*/}
                     <StyledLink to="/survey/1" $isFullLink>
                         Créer un circuit

@@ -13,7 +13,7 @@ const CardWrapper = styled.div`
 
     background-color: ${({ isDarkMode }) =>
         isDarkMode === 'dark' ? colors.darkSecondary : colors.backgroundLight};
-    border-radius: 30px;
+    border-radius: 20px;
     width: 350px;
 
     transition: 300ms;
@@ -23,6 +23,8 @@ const CardWrapper = styled.div`
     &:hover {
         cursor: pointer;
         box-shadow: 3px 3px 10px ${colors.primary};
+        transform: rotate(-3deg);
+        transform: rotate(-3deg) translate(0px, -10px);
     }
 `;
 
