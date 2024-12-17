@@ -13,6 +13,49 @@ const PlacedItemContainer = styled.div`
     align-items: center;
 `;
 
+const SidebarContent = styled.div`
+    width: 100%;
+    margin-top: 20px;
+    text-align: center;
+`;
+
+const Sidebar = styled.div`
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: ${(props) => (props.isOpen ? '300px' : '0')};
+    background-color: ${colors.backgroundLight};
+    box-shadow: ${(props) =>
+        props.isOpen ? '0 0 10px rgba(0, 0, 0, 0.5)' : 'none'};
+    transition: width 0.3s ease-in-out;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: ${(props) => (props.isOpen ? '20px' : '0')};
+`;
+
+const ToggleButton = styled.button`
+    position: fixed;
+    top: 50%;
+    right: ${(props) => (props.isOpen ? '300px' : '0')};
+    transform: translateY(-50%);
+    background-color: ${colors.primary};
+    color: white;
+    border: none;
+    border-radius: 5px 0 0 5px;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    transition: right 0.3s ease-in-out;
+    z-index: 1000;
+
+    &:hover {
+        background-color: ${colors.secondary};
+    }
+`;
+
 const PoleButton = styled.button`
     background-color: ${colors.backgroundLight};
     border: 1px solid ${colors.primary};
@@ -71,10 +114,14 @@ const Workspace = styled.div`
     position: relative;
     border: 2px dashed ${colors.primary};
     border-radius: 10px;
-    width: 80%;
+    width: 80%; /* Fixe la largeur à un pourcentage constant */
+    max-width: 1200px; /* Optionnel : limite maximale */
     height: 400px;
     margin: 20px 0;
+    margin-right: ${(props) =>
+        props.isSidebarOpen ? '300px' : '0'}; /* Ajoute un espace à droite */
     background-color: ${colors.backgroundLight};
+    transition: margin-right 0.3s ease-in-out; /* Transition uniquement sur la marge */
 `;
 
 const PlacedImage = styled.img`
@@ -136,6 +183,8 @@ function useNetlist() {
 }
 
 function DragAndDrop() {
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
     const { netlist, addComponent, removeComponentById, setNetlist } =
         useNetlist();
     const [items] = useState([
@@ -155,6 +204,8 @@ function DragAndDrop() {
     const handleDrop = (e) => {
         e.preventDefault();
         const workspaceBounds = e.target.getBoundingClientRect();
+        const x0 = (workspaceBounds.left + workspaceBounds.right) / 2;
+        const y0 = (workspaceBounds.top + workspaceBounds.bottom) / 2;
         const x = e.clientX - workspaceBounds.left;
         const y = e.clientY - workspaceBounds.top;
         const idplus = null;
@@ -243,6 +294,10 @@ function DragAndDrop() {
         }
     };
 
+    const toggleSidebar = () => {
+        setSidebarOpen((prev) => !prev);
+    };
+
     return (
         <DragAndDropContainer>
             <Header>Créé ton circuit</Header>
@@ -256,7 +311,11 @@ function DragAndDrop() {
                     />
                 ))}
             </Toolbox>
-            <Workspace onDrop={handleDrop} onDragOver={handleDragOver}>
+            <Workspace
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                isSidebarOpen={isSidebarOpen}
+            >
                 {placedItems.map((item) => (
                     <PlacedItemContainer
                         key={item.id}
@@ -283,6 +342,24 @@ function DragAndDrop() {
                     </PlacedItemContainer>
                 ))}
             </Workspace>
+            {/* Sidebar and Toggle Button */}
+            <Sidebar isOpen={isSidebarOpen}>
+                <SidebarContent>
+                    <h3>Informations</h3>
+                    <p>Ajoutez ici des éléments ou des options.</p>
+                </SidebarContent>
+            </Sidebar>
+
+            <ToggleButton
+                isOpen={isSidebarOpen}
+                onClick={toggleSidebar}
+                aria-label={
+                    isSidebarOpen ? 'Fermer le panneau' : 'Ouvrir le panneau'
+                }
+            >
+                {isSidebarOpen ? '→' : '←'}
+            </ToggleButton>
+
             <TrashBin onDrop={handleDropInTrash} onDragOver={handleDragOver}>
                 Déposez ici pour supprimer
             </TrashBin>
