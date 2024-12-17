@@ -17,6 +17,9 @@ import re
 import requests
 from dotenv import load_dotenv
 import os
+from scipy.signal import TransferFunction, bode, step, lti
+import numpy as np
+
 
 load_dotenv()
 api_key = os.getenv('OPENROUTER_API_KEY')
@@ -24,17 +27,13 @@ api_key = os.getenv('OPENROUTER_API_KEY')
 
 class Parser:
     """
-    Parses a netlist string and returns a Circuit object with the components.
-    Currently supports Resistors and Voltage Sources.
+    The parse_netlist static method parses a netlist string and returns a Circuit object with the components.
     """
-
-    def __init__(self, netlist):
-        self.netlist = netlist
-        self.circuit = Circuit()
-        self.parse_netlist()
-
-    def parse_netlist(self):
-        lines = self.netlist.strip().split('\n')
+    @staticmethod
+    def parse_netlist(netlist, compute_numeric=True):
+        circuit = Circuit()
+        lines = netlist.strip().split('\n')
+        value = None
         for line in lines:
             line = line.strip().upper()
             if not line or line.startswith('*') or line.startswith('.'):
@@ -42,39 +41,38 @@ class Parser:
             tokens = line.split()
             if not tokens:
                 continue
+
             component_type = tokens[0][0].upper()  # First letter indicates component type
             name = tokens[0]
-
+            nodes = Parser.extract_node_tokens(tokens, component_type)
+            
+            if compute_numeric:
+                value_token = Parser.extract_value_token(component_type, tokens)
+                if value_token != 'SYMBOLIC': # Symbolic is used to indicate that the value is not known (input variable for instance)
+                    value = Parser.parse_value(value_token)
+            
             if component_type == 'R': # Resistor
-                nodes = tokens[1:3]
-                if tokens[3] != 'SYMBOLIC':
-                    value = tokens[3]
-                    resistance = self.parse_value(value)
-                self.circuit.addComponent(Resistor(name, nodes))
+                component = Resistor(name, nodes, value)
             elif component_type == 'V': # Voltage source
-                nodes = tokens[1:3]
-                value = self.extract_voltage_value(tokens)
-                #voltage = self.parse_value(value)
-                self.circuit.addComponent(VoltageSource(name, nodes))
+                component = VoltageSource(name, nodes, value)
             elif component_type == 'L': # Inductor
-                nodes = tokens[1:3]
-                value = tokens[3]
-                #inductance = self.parse_value(value)
-                self.circuit.addComponent(Inductor(name, nodes))
+                component = Inductor(name, nodes, value)
             elif component_type == 'C': # Capacitor
-                nodes = tokens[1:3]
-                value = tokens[3]
-                #capacitance = self.parse_value(value)
-                self.circuit.addComponent(Capacitor(name, nodes))
+                component = Capacitor(name, nodes, value)
             elif component_type == 'O': # Opamp
-                nodes = tokens[1:4]
-                self.circuit.addComponent(Opamp(name, nodes))
-            for node in nodes:
-                if node not in self.circuit.nodes:
-                    self.circuit.nodes.append(node) 
-        self.circuit.nodes.sort()
+                component = Opamp(name, nodes)
+            
+            circuit.addComponent(component)
 
-    def parse_value(self, value_str):
+            for node in nodes:
+                if node not in circuit.nodes:
+                    circuit.nodes.append(node) # add new nodes the circuit.nodes list
+
+        circuit.nodes.sort()
+        return circuit
+
+    @staticmethod
+    def parse_value(value_str):
         """
         Parses the value string, handling units, and returns a numerical value.
         """
@@ -100,22 +98,32 @@ class Parser:
         else:
             return float(value_str)
 
-    def extract_voltage_value(self, tokens):
+    @staticmethod
+    def extract_value_token(component_type, tokens):
         """
-        Extracts the voltage value from the tokens for a voltage source.
+        Extracts the voltage token from the tokens. The value token may be at different positions depending on the component
         """
-        if 'DC' in tokens:
-            idx = tokens.index('DC')
-            return tokens[idx + 1]
-        elif 'AC' in tokens:
-            idx = tokens.index('AC')
-            return tokens[idx + 1]
+        if component_type == 'V':
+            if 'DC' in tokens:
+                idx = tokens.index('DC')
+                return tokens[idx + 1]
+            elif 'AC' in tokens: # TODO numeric computation of AC is not handled
+                raise ValueError("AC voltage sources are not supported.")
+            else:
+                # Assume the value is in the third position
+                return tokens[3]
         else:
-            # Assume the value is in the third position
             return tokens[3]
-
-    def get_circuit(self):
-        return self.circuit
+    
+    @staticmethod
+    def extract_node_tokens(tokens, component_type):
+        """
+        Extracts the node tokens from the tokens. Depending on the component, there may be more than two nodes
+        """
+        if component_type == 'O':
+            return tokens[1:4]
+        else :
+            return tokens[1:3]
 
 class Component:
     """
@@ -126,9 +134,10 @@ class Component:
         value (float): The value of the component (e.g., resistance, capacitance).
         nodes (list): The list of nodes this component is connected to.
     """
-    def __init__(self, name, nodes):
+    def __init__(self, name, nodes, value=None):
         self.name = name  # Component name (e.g., 'R1', 'C1')
         self.nodes = nodes  # List of nodes this component is connected to
+        self.value = value
         self.motherComponent = None  # Reference to the mother component (e.g., for linearized elements)
         self.isLinear = True
         self.isVirtual = False  # Boolean indicating if the component is virtual (e.g., for linearized elements)
@@ -144,7 +153,7 @@ class Component:
         TODO Return the Voltage-Current equation for the component.
         """
         
-
+    @abstractmethod
     def linearize(self): 
         """ 
         TODO Linearize the component to handle nonlinear elements.
@@ -161,8 +170,8 @@ class Resistor(Component):
         value (float): The resistance value in Ohms.
         nodes (list): The list of nodes this resistor is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -181,8 +190,8 @@ class VoltageSource(Component):
         value (float): The voltage value in Volts.
         nodes (list): The list of nodes this voltage source is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
         self.needsAdditionalEquation = True # Indicates that an additional equation is needed for this component
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
@@ -205,8 +214,8 @@ class Inductor(Component):
         name (str): The name of the inductor (e.g., 'L1').
         nodes (list): The list of nodes this inductor is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -223,8 +232,8 @@ class Capacitor(Component):
         name (str): The name of the capacitor (e.g., 'C1').
         nodes (list): The list of nodes this capacitor is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -385,6 +394,8 @@ class Solver:
         self.unknownCurrents = {} # Dictionary of unknown branch currents
         self.knownParameters = {} # Dictionary of known values (e.g., resistors, input voltages, etc.)
         self.equations = []
+        self.solutions = None
+        self.transferFunction = None
 
         self.knownParameters["p"] = sympy.symbols('p') # Laplace variable
 
@@ -436,24 +447,83 @@ class Solver:
                     (equ,explanation)=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
                     self.equations.append((equ, explanation))
 
-
     def solveEqSys(self):
         """
         Solve the system of equations to find the transfer function.
 
         Returns:
-            dict: A dictionary of solutions for the variables in the circuit. TODO : remove() modifie la liste en place, ne renvoie rien ERROR
+            dict: A dictionary of solutions for the variables in the circuit.
         """
         unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
-        return sympy.solve([equ for equ,expl in self.equations], unknowns)
+        self.solutions = sympy.solve([equ for equ,expl in self.equations], unknowns)
+        return self.solutions
+    
+    def getTransferFunction(self, inputNode, outputNode):
+        """
+        Get the transfer function of the circuit.
 
-def build_prompt(netlist, solutions, equations):
+        Args:
+            inputNode (str): The node where the input voltage is applied.
+            outputNode (str): The node where the output voltage is measured.
+
+        Returns:
+            sympy.Expr: The transfer function of the circuit.
+        """
+        self.transferFunction = sympy.simplify(self.solutions[self.nodeVoltages[outputNode]] / self.solutions[self.nodeVoltages[inputNode]])
+        return self.transferFunction
+
+
+class Simulator:
+    """
+    Handles the numerical simulation of the circuit.
+    """
+    def __init__(self, circuit, analyticTransferFunction, laplaceVariable = sympy.symbols('p')):
+        self.circuit = circuit  
+        self.laplaceVariable = laplaceVariable
+        self.paramValues = {} # Dictionary to replace the symbolic parameters with numerical values
+        self.analyticTransferFunction = analyticTransferFunction
+        self.num, self.denom = self.getNumericalTransferFunction()
+        self.sys = lti(self.num, self.denom)
+
+    def getNumericalTransferFunction(self):
+        p = self.laplaceVariable
+        for component in self.circuit.components:
+            if component.value != None:
+                self.paramValues[component.name] = component.value
+
+        # Replace the symbolic parameters with numerical values
+        self.transferFunction = self.analyticTransferFunction.subs(self.paramValues)
+
+        # Extract numerator and denominator coefficients
+        numerator, denominator = sympy.fraction(self.transferFunction)
+        num_coeffs = [float(c) for c in numerator.as_poly(p).all_coeffs()]
+        den_coeffs = [float(c) for c in denominator.as_poly(p).all_coeffs()]
+
+        return num_coeffs, den_coeffs
+    
+    def getStepResponse(self):
+        t, y = step(self.sys)
+        x = np.ones(len(t))
+        # Insert t=0, y=0 and x=0 to have plotting beginning at zero
+        t = np.insert(t, 0, 0)
+        y = np.insert(y, 0, 0)
+        x = np.insert(x, 0, 0)
+        return t, x, y
+
+    def getFrequencyResponse(self):
+        w, mag, phase = bode(self.sys)
+        return w, mag, phase              
+    
+
+def build_prompt(netlist, solutions, transferFunction, equations):
     prompt = f"Voici la netlist d'un circuit d'électornique \n --- {netlist} \n ---Les équations sont \n ---"
     for equ,expl in equations:
         prompt+= str((f"{expl} : {sympy.latex(equ)}")) + "\n"
     prompt += "Voici les résultats de la résolution \n ---"
     for sol in solutions:
         prompt += str(f"{sympy.latex(sol)} = {sympy.latex(solutions[sol])}") + "\n"
+    prompt += " --- Voici la fonction de transfert du circuit \n ---"
+    prompt += str(f"Transfer Function: {sympy.latex(transferFunction)}") + "\n"
     prompt += " --- Si tu reconnais le circuit étudié, donne en une explication en une phrase et donne (latex) les paramètres les plus importants. Sinon dit que tu ne reconnais pas le circuit. Ne t'exprime pas avec 'je'"
     return prompt
 
@@ -471,6 +541,7 @@ def query_LLM(prompt):
         'max_tokens': 150
     }
     response = requests.post(url, headers=headers, json=data)
-    return response.json()['choices'][0]['text']
+    text = response.json()['choices'][0]['text']
+    return text
     
 
