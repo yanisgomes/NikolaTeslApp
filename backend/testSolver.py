@@ -10,15 +10,15 @@ from solver import Parser
 
 netlist = '''
 * Opamp inverter : https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
-Vin 3 0 Symbolic      
-R1 1 3 Symbolic
-R2 2 1 Symbolic
+Vin 3 0 10V      
+R1 1 3 10k
+R2 2 1 600
 OAmp 0 1 2
 .end
 '''
 
 # Get the Circuit object
-circuit = Parser.parse_netlist(netlist, compute_numeric=False)
+circuit = Parser.parse_netlist(netlist, compute_numeric=True)
 
 # Print the components in the circuit
 for component in circuit.components:

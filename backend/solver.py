@@ -30,6 +30,7 @@ class Parser:
     def parse_netlist(netlist, compute_numeric=True):
         circuit = Circuit()
         lines = netlist.strip().split('\n')
+        value = None
         for line in lines:
             line = line.strip().upper()
             if not line or line.startswith('*') or line.startswith('.'):
@@ -37,41 +38,35 @@ class Parser:
             tokens = line.split()
             if not tokens:
                 continue
+
             component_type = tokens[0][0].upper()  # First letter indicates component type
             name = tokens[0]
+            nodes = Parser.extract_node_tokens(tokens, component_type)
+
             if 'SYMBOLIC' in tokens and compute_numeric == True:
                 raise ValueError("Cannot mix symbolic and numeric values in the netlist.")
-
+            
+            if compute_numeric:
+                value_token = Parser.extract_value_token(component_type, tokens)
+                value = Parser.parse_value(value_token)
+            
             if component_type == 'R': # Resistor
-                nodes = tokens[1:3]
-                if compute_numeric:
-                    value = tokens[3]
-                    resistance = Parser.parse_value(value)
-                circuit.addComponent(Resistor(name, nodes))
+                component = Resistor(name, nodes, value)
             elif component_type == 'V': # Voltage source
-                nodes = tokens[1:3]
-                if compute_numeric:
-                    value = Parser.extract_voltage_value(tokens)
-                    voltage = Parser.parse_value(value)
-                circuit.addComponent(VoltageSource(name, nodes))
+                component = VoltageSource(name, nodes, value)
             elif component_type == 'L': # Inductor
-                nodes = tokens[1:3]
-                if compute_numeric:
-                    value = tokens[3]
-                    inductance = Parser.parse_value(value)
-                circuit.addComponent(Inductor(name, nodes))
+                component = Inductor(name, nodes, value)
             elif component_type == 'C': # Capacitor
-                nodes = tokens[1:3]
-                if compute_numeric:
-                    value = tokens[3]
-                    capacitance = Parser.parse_value(value)
-                circuit.addComponent(Capacitor(name, nodes))
+                component = Capacitor(name, nodes, value)
             elif component_type == 'O': # Opamp
-                nodes = tokens[1:4]
-                circuit.addComponent(Opamp(name, nodes))
+                component = Opamp(name, nodes)
+            
+            circuit.addComponent(component)
+
             for node in nodes:
                 if node not in circuit.nodes:
-                    circuit.nodes.append(node) 
+                    circuit.nodes.append(node) # add new nodes the circuit.nodes list
+
         circuit.nodes.sort()
         return circuit
 
@@ -103,19 +98,31 @@ class Parser:
             return float(value_str)
 
     @staticmethod
-    def extract_voltage_value(tokens):
+    def extract_value_token(component_type, tokens):
         """
-        Extracts the voltage value from the tokens for a voltage source.
+        Extracts the voltage token from the tokens. The value token may be at different positions depending on the component
         """
-        if 'DC' in tokens:
-            idx = tokens.index('DC')
-            return tokens[idx + 1]
-        elif 'AC' in tokens:
-            idx = tokens.index('AC')
-            return tokens[idx + 1]
+        if component_type == 'V':
+            if 'DC' in tokens:
+                idx = tokens.index('DC')
+                return tokens[idx + 1]
+            elif 'AC' in tokens: # TODO numeric computation of AC is not handled
+                raise ValueError("AC voltage sources are not supported.")
+            else:
+                # Assume the value is in the third position
+                return tokens[3]
         else:
-            # Assume the value is in the third position
             return tokens[3]
+    
+    @staticmethod
+    def extract_node_tokens(tokens, component_type):
+        """
+        Extracts the node tokens from the tokens. Depending on the component, there may be more than two nodes
+        """
+        if component_type == 'O':
+            return tokens[1:4]
+        else :
+            return tokens[1:3]
 
 class Component:
     """
@@ -126,9 +133,10 @@ class Component:
         value (float): The value of the component (e.g., resistance, capacitance).
         nodes (list): The list of nodes this component is connected to.
     """
-    def __init__(self, name, nodes):
+    def __init__(self, name, nodes, value=None):
         self.name = name  # Component name (e.g., 'R1', 'C1')
         self.nodes = nodes  # List of nodes this component is connected to
+        self.value = value
         self.motherComponent = None  # Reference to the mother component (e.g., for linearized elements)
         self.isLinear = True
         self.isVirtual = False  # Boolean indicating if the component is virtual (e.g., for linearized elements)
@@ -161,8 +169,8 @@ class Resistor(Component):
         value (float): The resistance value in Ohms.
         nodes (list): The list of nodes this resistor is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -181,8 +189,8 @@ class VoltageSource(Component):
         value (float): The voltage value in Volts.
         nodes (list): The list of nodes this voltage source is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
         self.needsAdditionalEquation = True # Indicates that an additional equation is needed for this component
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
@@ -205,8 +213,8 @@ class Inductor(Component):
         name (str): The name of the inductor (e.g., 'L1').
         nodes (list): The list of nodes this inductor is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -223,8 +231,8 @@ class Capacitor(Component):
         name (str): The name of the capacitor (e.g., 'C1').
         nodes (list): The list of nodes this capacitor is connected to.
     """
-    def __init__(self, name, nodes):
-        super().__init__(name, nodes)
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
