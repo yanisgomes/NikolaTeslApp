@@ -1,10 +1,12 @@
-from solver import Component, Circuit, Resistor, VoltageSource, Solver, Inductor, Capacitor, Opamp
+from solver import Solver
+from solver import query_LLM, build_prompt
 from collections import defaultdict
 import sympy
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Pour gérer les requêtes CORS
 import json
 from solver import Parser
+
 
 netlist = '''
 * Opamp inverter : https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
@@ -40,10 +42,21 @@ print("Unknown Currents:", solver.unknownCurrents)
 solver.getEqSys()
 
 # Print the system of equations
-print(solver.eqSys)
+for equ,expl in solver.equations:
+    print(f"{expl} : {sympy.latex(equ)}")
+
 
 # Solve the system of equations
 solutions = solver.solveEqSys()
 
 # Print the solutions
-print(solutions)
+for sol in solutions:
+    print(f"{sympy.latex(sol)} = {sympy.latex(solutions[sol])}")
+
+prompt = build_prompt(netlist, solutions, solver.equations)
+
+# Call the API
+response = query_LLM(prompt)
+print(response)
+
+

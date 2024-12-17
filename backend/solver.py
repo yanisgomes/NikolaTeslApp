@@ -14,6 +14,13 @@ import sympy
 from collections import defaultdict
 from abc import ABC, abstractmethod
 import re
+import requests
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+api_key = os.getenv('OPENROUTER_API_KEY')
+
 
 class Parser:
     """
@@ -40,8 +47,9 @@ class Parser:
 
             if component_type == 'R': # Resistor
                 nodes = tokens[1:3]
-                value = tokens[3]
-                #resistance = self.parse_value(value)
+                if tokens[3] != 'SYMBOLIC':
+                    value = tokens[3]
+                    resistance = self.parse_value(value)
                 self.circuit.addComponent(Resistor(name, nodes))
             elif component_type == 'V': # Voltage source
                 nodes = tokens[1:3]
@@ -64,6 +72,7 @@ class Parser:
             for node in nodes:
                 if node not in self.circuit.nodes:
                     self.circuit.nodes.append(node) 
+        self.circuit.nodes.sort()
 
     def parse_value(self, value_str):
         """
@@ -186,7 +195,7 @@ class VoltageSource(Component):
         """
         Return the additional equation for the voltage source.
         """
-        return sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], knownParameters[self.name])
+        return (sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], knownParameters[self.name]), f"valeur de la source de tension {self.name}")
 
 class Inductor(Component):
     """
@@ -246,11 +255,11 @@ class Wire(Component):
         """
         Return the additional equation for the wire.
         """
-        return sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], 0)
+        return (sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], 0), f"hypothèse {self.motherComponent.name} parfait : V+ = V-")
 class Opamp(Component):
     """
     Represents an opamp component in the circuit.
-    Nodes need to be connected in the following order: inverting input, non-inverting input, output.
+    Nodes need to be connected in the following order: non-inverting input, inverting input,output.
 
     Attributes:
         name (str): The name of the opamp (e.g., 'opamp1').
@@ -417,14 +426,15 @@ class Solver:
                     if component.isLinear: # Only linear components have equations
                         expr += component.getEquation(node, self.nodeVoltages, self.unknownCurrents, self.knownParameters)
                 equation = sympy.Eq(expr, 0)
-                self.equations.append(equation) # TODO il manque un terme dans l'équation pour le noeud 2 de l'ex
+                explanation = f"Loi des noeuds pour le noeud {node}"
+                self.equations.append((equation,explanation)) 
 
         # Ajout des equations pour les composants spéciaux (sources de tension, courant, etc.)
         for component in self.circuit.components:
             if component.isLinear:
                 if component.needsAdditionalEquation:
-                    equ=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
-                    self.equations.append(equ)
+                    (equ,explanation)=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
+                    self.equations.append((equ, explanation))
 
 
     def solveEqSys(self):
@@ -435,5 +445,32 @@ class Solver:
             dict: A dictionary of solutions for the variables in the circuit. TODO : remove() modifie la liste en place, ne renvoie rien ERROR
         """
         unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
-        return sympy.solve(self.equations, unknowns)
+        return sympy.solve([equ for equ,expl in self.equations], unknowns)
+
+def build_prompt(netlist, solutions, equations):
+    prompt = f"Voici la netlist d'un circuit d'électornique \n --- {netlist} \n ---Les équations sont \n ---"
+    for equ,expl in equations:
+        prompt+= str((f"{expl} : {sympy.latex(equ)}")) + "\n"
+    prompt += "Voici les résultats de la résolution \n ---"
+    for sol in solutions:
+        prompt += str(f"{sympy.latex(sol)} = {sympy.latex(solutions[sol])}") + "\n"
+    prompt += " --- Si tu reconnais le circuit étudié, donne en une explication en une phrase et donne (latex) les paramètres les plus importants. Sinon dit que tu ne reconnais pas le circuit. Ne t'exprime pas avec 'je'"
+    return prompt
+
+def query_LLM(prompt):
+    # needs to define the API key in the .env file
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+    
+    url = 'https://openrouter.ai/api/v1/chat/completions'
+    data = {
+        'model': 'google/gemini-2.0-flash-exp:free',
+        'prompt': prompt,
+        'max_tokens': 150
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()['choices'][0]['text']
+    
 
