@@ -17,6 +17,9 @@ import re
 import requests
 from dotenv import load_dotenv
 import os
+from scipy.signal import TransferFunction, bode, step, lti
+import numpy as np
+
 
 load_dotenv()
 api_key = os.getenv('OPENROUTER_API_KEY')
@@ -42,13 +45,11 @@ class Parser:
             component_type = tokens[0][0].upper()  # First letter indicates component type
             name = tokens[0]
             nodes = Parser.extract_node_tokens(tokens, component_type)
-
-            if 'SYMBOLIC' in tokens and compute_numeric == True:
-                raise ValueError("Cannot mix symbolic and numeric values in the netlist.")
             
             if compute_numeric:
                 value_token = Parser.extract_value_token(component_type, tokens)
-                value = Parser.parse_value(value_token)
+                if value_token != 'SYMBOLIC': # Symbolic is used to indicate that the value is not known (input variable for instance)
+                    value = Parser.parse_value(value_token)
             
             if component_type == 'R': # Resistor
                 component = Resistor(name, nodes, value)
@@ -152,7 +153,7 @@ class Component:
         TODO Return the Voltage-Current equation for the component.
         """
         
-
+    @abstractmethod
     def linearize(self): 
         """ 
         TODO Linearize the component to handle nonlinear elements.
@@ -393,6 +394,8 @@ class Solver:
         self.unknownCurrents = {} # Dictionary of unknown branch currents
         self.knownParameters = {} # Dictionary of known values (e.g., resistors, input voltages, etc.)
         self.equations = []
+        self.solutions = None
+        self.transferFunction = None
 
         self.knownParameters["p"] = sympy.symbols('p') # Laplace variable
 
@@ -444,24 +447,83 @@ class Solver:
                     (equ,explanation)=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
                     self.equations.append((equ, explanation))
 
-
     def solveEqSys(self):
         """
         Solve the system of equations to find the transfer function.
 
         Returns:
-            dict: A dictionary of solutions for the variables in the circuit. TODO : remove() modifie la liste en place, ne renvoie rien ERROR
+            dict: A dictionary of solutions for the variables in the circuit.
         """
         unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
-        return sympy.solve([equ for equ,expl in self.equations], unknowns)
+        self.solutions = sympy.solve([equ for equ,expl in self.equations], unknowns)
+        return self.solutions
+    
+    def getTransferFunction(self, inputNode, outputNode):
+        """
+        Get the transfer function of the circuit.
 
-def build_prompt(netlist, solutions, equations):
+        Args:
+            inputNode (str): The node where the input voltage is applied.
+            outputNode (str): The node where the output voltage is measured.
+
+        Returns:
+            sympy.Expr: The transfer function of the circuit.
+        """
+        self.transferFunction = sympy.simplify(self.solutions[self.nodeVoltages[outputNode]] / self.solutions[self.nodeVoltages[inputNode]])
+        return self.transferFunction
+
+
+class Simulator:
+    """
+    Handles the numerical simulation of the circuit.
+    """
+    def __init__(self, circuit, analyticTransferFunction, laplaceVariable = sympy.symbols('p')):
+        self.circuit = circuit  
+        self.laplaceVariable = laplaceVariable
+        self.paramValues = {} # Dictionary to replace the symbolic parameters with numerical values
+        self.analyticTransferFunction = analyticTransferFunction
+        self.num, self.denom = self.getNumericalTransferFunction()
+        self.sys = lti(self.num, self.denom)
+
+    def getNumericalTransferFunction(self):
+        p = self.laplaceVariable
+        for component in self.circuit.components:
+            if component.value != None:
+                self.paramValues[component.name] = component.value
+
+        # Replace the symbolic parameters with numerical values
+        self.transferFunction = self.analyticTransferFunction.subs(self.paramValues)
+
+        # Extract numerator and denominator coefficients
+        numerator, denominator = sympy.fraction(self.transferFunction)
+        num_coeffs = [float(c) for c in numerator.as_poly(p).all_coeffs()]
+        den_coeffs = [float(c) for c in denominator.as_poly(p).all_coeffs()]
+
+        return num_coeffs, den_coeffs
+    
+    def getStepResponse(self):
+        t, y = step(self.sys)
+        x = np.ones(len(t))
+        # Insert t=0, y=0 and x=0 to have plotting beginning at zero
+        t = np.insert(t, 0, 0)
+        y = np.insert(y, 0, 0)
+        x = np.insert(x, 0, 0)
+        return t, x, y
+
+    def getFrequencyResponse(self):
+        w, mag, phase = bode(self.sys)
+        return w, mag, phase              
+    
+
+def build_prompt(netlist, solutions, transferFunction, equations):
     prompt = f"Voici la netlist d'un circuit d'électornique \n --- {netlist} \n ---Les équations sont \n ---"
     for equ,expl in equations:
         prompt+= str((f"{expl} : {sympy.latex(equ)}")) + "\n"
     prompt += "Voici les résultats de la résolution \n ---"
     for sol in solutions:
         prompt += str(f"{sympy.latex(sol)} = {sympy.latex(solutions[sol])}") + "\n"
+    prompt += " --- Voici la fonction de transfert du circuit \n ---"
+    prompt += str(f"Transfer Function: {sympy.latex(transferFunction)}") + "\n"
     prompt += " --- Si tu reconnais le circuit étudié, donne en une explication en une phrase et donne (latex) les paramètres les plus importants. Sinon dit que tu ne reconnais pas le circuit. Ne t'exprime pas avec 'je'"
     return prompt
 
@@ -479,6 +541,7 @@ def query_LLM(prompt):
         'max_tokens': 150
     }
     response = requests.post(url, headers=headers, json=data)
-    return response.json()['choices'][0]['text']
+    text = response.json()['choices'][0]['text']
+    return text
     
 
