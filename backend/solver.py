@@ -14,6 +14,13 @@ import sympy
 from collections import defaultdict
 from abc import ABC, abstractmethod
 import re
+import requests
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+api_key = os.getenv('OPENROUTER_API_KEY')
+
 
 class Parser:
     """
@@ -40,8 +47,9 @@ class Parser:
 
             if component_type == 'R': # Resistor
                 nodes = tokens[1:3]
-                value = tokens[3]
-                #resistance = self.parse_value(value)
+                if tokens[3] != 'SYMBOLIC':
+                    value = tokens[3]
+                    resistance = self.parse_value(value)
                 self.circuit.addComponent(Resistor(name, nodes))
             elif component_type == 'V': # Voltage source
                 nodes = tokens[1:3]
@@ -64,6 +72,7 @@ class Parser:
             for node in nodes:
                 if node not in self.circuit.nodes:
                     self.circuit.nodes.append(node) 
+        self.circuit.nodes.sort()
 
     def parse_value(self, value_str):
         """
@@ -250,7 +259,7 @@ class Wire(Component):
 class Opamp(Component):
     """
     Represents an opamp component in the circuit.
-    Nodes need to be connected in the following order: inverting input, non-inverting input, output.
+    Nodes need to be connected in the following order: non-inverting input, inverting input,output.
 
     Attributes:
         name (str): The name of the opamp (e.g., 'opamp1').
@@ -437,4 +446,31 @@ class Solver:
         """
         unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
         return sympy.solve([equ for equ,expl in self.equations], unknowns)
+
+def build_prompt(netlist, solutions, equations):
+    prompt = f"Voici la netlist d'un circuit d'électornique \n --- {netlist} \n ---Les équations sont \n ---"
+    for equ,expl in equations:
+        prompt+= str((f"{expl} : {sympy.latex(equ)}")) + "\n"
+    prompt += "Voici les résultats de la résolution \n ---"
+    for sol in solutions:
+        prompt += str(f"{sympy.latex(sol)} = {sympy.latex(solutions[sol])}") + "\n"
+    prompt += " --- Si tu reconnais le circuit étudié, donne en une explication en une phrase et donne (latex) les paramètres les plus importants. Sinon dit que tu ne reconnais pas le circuit. Ne t'exprime pas avec 'je'"
+    return prompt
+
+def query_LLM(prompt):
+    # needs to define the API key in the .env file
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+    
+    url = 'https://openrouter.ai/api/v1/chat/completions'
+    data = {
+        'model': 'google/gemini-2.0-flash-exp:free',
+        'prompt': prompt,
+        'max_tokens': 150
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()['choices'][0]['text']
+    
 
