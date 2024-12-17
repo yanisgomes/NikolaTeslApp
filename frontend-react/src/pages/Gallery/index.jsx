@@ -1,10 +1,10 @@
 import { Loader } from '../../utils/Loader.js';
-import Card from '../../components/Card';
+import Card from '../../components/Card/index.jsx';
 import DefaultPicture from '../../assets/profile.jpg';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors.js';
 import { useState, useEffect } from 'react';
-import { useFetch } from '../../utils/hooks';
+import { useFetch } from '../../utils/hooks/index.js';
 import { Link } from 'react-router-dom';
 
 const MainContainer = styled.div`
@@ -32,10 +32,21 @@ const CardsContainer = styled.div`
     display: grid;
 
     grid-template-rows: 350px 350px;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
 
     justify-content: center;
     align-items: center;
+`;
+
+const BackgroundText = styled.h1`
+    font-size: 100px;
+    color: ${colors.background};
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    opacity: 0.1;
 `;
 
 const StyledImage = styled.img`
@@ -43,7 +54,7 @@ const StyledImage = styled.img`
     border-radius: 10%;
 `;
 
-function Freelances() {
+function Gallery() {
     const { data, isLoading, error } = useFetch(
         'http://localhost:8000/freelances'
     );
@@ -66,6 +77,7 @@ function Freelances() {
             <MainText>Trouver vos prestataires</MainText>
             <SubText>Nous réunissons les meilleurs profils pour vous.</SubText>
 
+            <BackgroundText>Gallery</BackgroundText>
             {isLoading ? (
                 <Loader />
             ) : (
@@ -90,4 +102,4 @@ function Freelances() {
     );
 }
 
-export default Freelances;
+export default Gallery;
