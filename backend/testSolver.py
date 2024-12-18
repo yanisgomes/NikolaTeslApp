@@ -1,4 +1,4 @@
-from solver import Solver, Simulator
+from solver import Solver, Simulator, Circuit
 from solver import query_LLM, build_prompt
 from collections import defaultdict
 import sympy as sp
@@ -22,39 +22,31 @@ L1 1 0 0.001
 '''
 
 # Get the Circuit object
-circuit = Parser.parse_netlist(netlist, compute_numeric=True)
-
-# Build the connection list
-circuit.buildConnexionList()
+circuit = Circuit(netlist)
 
 # Initialize the solver with the circuit
 solver = Solver(circuit)
 
-
-# Get the system of equations
-solver.getEqSys()
 print("--- System of Equations ---")
 for equ,expl in solver.equations:
     print(f"{expl} : {sp.latex(equ)}")
 
-# Solve the system of equations
-solutions = solver.solveEqSys()
-
 print("--- Solutions ---")
-for sol in solutions:
-    print(f"{sp.latex(sol)} = {sp.latex(solutions[sol])}")
+for sol in solver.solutions:
+    print(f"{sp.latex(sol)} = {sp.latex(solver.solutions[sol])}")
 
 print("--- Transfer Functions ---")
 transferFunction = solver.getTransferFunction('3', '2')
 print(f"Transfer Function: {transferFunction}")
 
 # Call the API
-prompt = build_prompt(netlist, solutions, solver.transferFunction, solver.equations)
+prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations)
 response = query_LLM(prompt)
 print(response)
 #sys.exit("Stopping the code execution here.")
 
-simu = Simulator(circuit, transferFunction)
+num, denom = solver.getNumericalTransferFunction('3', '2')
+simu = Simulator(circuit, num, denom)
 
 t, x, y = simu.getStepResponse()
 w, mag, phase = simu.getFrequencyResponse() 
