@@ -569,25 +569,6 @@ class Solver:
             if isinstance(component, VoltageSource):
                 self.unknownCurrents[component.nodes[0]] = sympy.symbols(f'i_{component.nodes[0]}')
 
-        # Populate the knownParameters dictionary with component
-        for component in circuit.components:
-            if isinstance(component, Resistor):
-                self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
-            elif isinstance(component, VoltageSource):
-                self.knownParameters[component.name] = sympy.symbols(f'{component.name}')
-
-        # Populate the nodeVoltages dictionary with node names
-        for node in circuit.nodes:
-            if node != 'n0':
-                self.nodeVoltages[node] = sympy.symbols(f'v_{node}')
-            else :
-                self.nodeVoltages['n0'] = 0 # TODO améliorer cette partie, ce n'est pas très rigoureux de mettre la masse dans nodeVoltages
-
-        # Populate the unknownCurrents dictionary with branch names
-        for component in circuit.components:
-            if isinstance(component, VoltageSource):
-                self.unknownCurrents[component.nodes[0]] = sympy.symbols(f'i_{component.nodes[0]}')
-
 
     def getEqSys(self):
         """
