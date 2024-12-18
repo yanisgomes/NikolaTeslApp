@@ -12,7 +12,7 @@ services:
     command: sh -c "pip install -r requirements.txt && python app.py"
     networks:
       - nikolapp-network
-      - reverse-proxy-network
+#      - reverse-proxy-network
 
   react-app:
     build:
@@ -23,12 +23,12 @@ services:
       - "9007:80"
     networks:
       - nikolapp-network
-      - reverse-proxy-network
+#      - reverse-proxy-network
     # depends_on:
     #   - backend  # Assurez-vous que le backend est démarré avant l'application React
 
 networks:
   nikolapp-network:
     driver: bridge  # Réseau interne propre à ce projet
-  reverse-proxy-network:
-    external: true  # Réseau partagé avec le reverse proxy
+#  reverse-proxy-network:
+#    external: true  # Réseau partagé avec le reverse proxy
