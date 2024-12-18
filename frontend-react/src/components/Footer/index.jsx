@@ -9,11 +9,12 @@ const FooterContainer = styled.footer`
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    padding-top: 20px;
+    flex: 0 0 auto;
+    margin-bottom: 20px;
+    margin-top: 10px;
 `;
 
 const NightModeButton = styled.button`
-    margin: 20px;
     background-color: transparent;
     cursor: pointer;
     color: ${colors.secondary};

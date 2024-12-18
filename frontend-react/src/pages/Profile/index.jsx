@@ -25,7 +25,7 @@ class Profile extends Component {
 
         return (
             <div>
-                <img src={picture} alt={name} height={150} width={150} />
+                <img src={picture} alt={name} height={200} width={150} />
                 <h1>{name}</h1>
                 <span>{location}</span>
                 <h2>{job}</h2>

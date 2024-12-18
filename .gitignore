@@ -1,0 +1,4 @@
+# Files to ignore when commiting to git
+
+.env
+test.py
