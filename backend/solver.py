@@ -19,7 +19,10 @@ from dotenv import load_dotenv
 import os
 from scipy.signal import TransferFunction, bode, step, lti
 import numpy as np
+import logging
 
+# Configure logging at the beginning of the file
+logging.basicConfig(level=logging.ERROR)
 
 load_dotenv()
 api_key = os.getenv('OPENROUTER_API_KEY')
@@ -31,45 +34,54 @@ class Parser:
     """
     @staticmethod
     def parse_netlist(netlist, compute_numeric=True):
-        circuit = Circuit()
-        lines = netlist.strip().split('\n')
-        value = None
-        for line in lines:
-            line = line.strip().upper()
-            if not line or line.startswith('*') or line.startswith('.'):
-                continue  # Skip comments and directives
-            tokens = line.split()
-            if not tokens:
-                continue
+        try:
+            logging.info("Starting to parse netlist.")
+            circuit = Circuit()
+            lines = netlist.strip().split('\n')
+            value = None
+            for line in lines:
+                line = line.strip().upper()
+                if not line or line.startswith('*') or line.startswith('.'):
+                    continue  # Skip comments and directives
+                tokens = line.split()
+                if not tokens:
+                    logging.warning(f"Empty tokens found in line: {line}")
+                    continue
 
-            component_type = tokens[0][0].upper()  # First letter indicates component type
-            name = tokens[0]
-            nodes = Parser.extract_node_tokens(tokens, component_type)
-            
-            if compute_numeric:
-                value_token = Parser.extract_value_token(component_type, tokens)
-                if value_token != 'SYMBOLIC': # Symbolic is used to indicate that the value is not known (input variable for instance)
-                    value = Parser.parse_value(value_token)
-            
-            if component_type == 'R': # Resistor
-                component = Resistor(name, nodes, value)
-            elif component_type == 'V': # Voltage source
-                component = VoltageSource(name, nodes, value)
-            elif component_type == 'L': # Inductor
-                component = Inductor(name, nodes, value)
-            elif component_type == 'C': # Capacitor
-                component = Capacitor(name, nodes, value)
-            elif component_type == 'O': # Opamp
-                component = Opamp(name, nodes)
-            
-            circuit.addComponent(component)
+                component_type = tokens[0][0].upper()  # First letter indicates component type
+                name = tokens[0]
+                nodes = Parser.extract_node_tokens(tokens, component_type)
+                
+                if compute_numeric:
+                    value_token = Parser.extract_value_token(component_type, tokens)
+                    if value_token != 'SYMBOLIC': # Symbolic is used to indicate that the value is not known (input variable for instance)
+                        value = Parser.parse_value(value_token)
+                
+                if component_type == 'R': # Resistor
+                    component = Resistor(name, nodes, value)
+                elif component_type == 'V': # Voltage source
+                    component = VoltageSource(name, nodes, value)
+                elif component_type == 'L': # Inductor
+                    component = Inductor(name, nodes, value)
+                elif component_type == 'C': # Capacitor
+                    component = Capacitor(name, nodes, value)
+                elif component_type == 'O': # Opamp
+                    component = Opamp(name, nodes)
+                else:
+                    logging.error(f"Unknown component type '{component_type}' in line: {line}")
+                
+                circuit.addComponent(component)
 
-            for node in nodes:
-                if node not in circuit.nodes:
-                    circuit.nodes.append(node) # add new nodes the circuit.nodes list
+                for node in nodes:
+                    if node not in circuit.nodes:
+                        circuit.nodes.append(node) # add new nodes the circuit.nodes list
 
-        circuit.nodes.sort()
-        return circuit
+            circuit.nodes.sort()
+            logging.info("Finished parsing netlist.")
+            return circuit
+        except Exception as e:
+            logging.error(f"Error parsing netlist: {e}")
+            raise
 
     @staticmethod
     def parse_value(value_str):
@@ -88,15 +100,19 @@ class Parser:
             'P': 1e-12,
             'F': 1e-15,
         }
-        match = re.match(r"([0-9\.]+)([A-Za-z]*)", value_str)
-        if match:
-            value, unit = match.groups()
-            value = float(value)
-            unit = unit.upper()
-            multiplier = units.get(unit, 1)
-            return value * multiplier
-        else:
-            return float(value_str)
+        try:
+            match = re.match(r"([0-9\.]+)([A-Za-z]*)", value_str)
+            if match:
+                value, unit = match.groups()
+                value = float(value)
+                unit = unit.upper()
+                multiplier = units.get(unit, 1)
+                return value * multiplier
+            else:
+                return float(value_str)
+        except ValueError as e:
+            logging.error(f"Error parsing value '{value_str}': {e}")
+            raise
 
     @staticmethod
     def extract_value_token(component_type, tokens):
@@ -108,6 +124,7 @@ class Parser:
                 idx = tokens.index('DC')
                 return tokens[idx + 1]
             elif 'AC' in tokens: # TODO numeric computation of AC is not handled
+                logging.warning("AC voltage sources are not supported.")
                 raise ValueError("AC voltage sources are not supported.")
             else:
                 # Assume the value is in the third position
@@ -324,30 +341,36 @@ class Circuit:
         self.components.append(component)
 
     def linearizeCircuit(self):
-        """
-        Handle the linearization of nonlinear circuit elements.
-        """
-        for component in self.components:
-            if not component.isLinear:
-                linearizedComponents = component.getLinearizedVersion()
-                for linearizedComponent in linearizedComponents:
-                    self.components.append(linearizedComponent)
-        self.isCircuitLinear = True
-        pass
+        try:
+            logging.info("Starting to linearize circuit.")
+            for component in self.components:
+                if not component.isLinear:
+                    logging.info(f"Linearizing nonlinear component: {component.name}")
+                    linearizedComponents = component.getLinearizedVersion()
+                    for linearizedComponent in linearizedComponents:
+                        self.components.append(linearizedComponent)
+            self.isCircuitLinear = True
+            logging.info("Finished linearizing circuit.")
+        except Exception as e:
+            logging.error(f"Error linearizing circuit: {e}")
+            raise
 
     def buildConnexionList(self):
-        """
-        Fill the connections dictionary with components connected to each node. Only linear components are considered.
-        """
-        if not self.isCircuitLinear:
-            self.linearizeCircuit()
-        for component in self.components:
-            if component.isLinear :
-                for node in component.nodes:
-                    self.connections[node].append(component)
-                    if node not in self.nodes:
-                        self.nodes.append(node)
-        self.isConnexionListBuilt = True
+        try:
+            logging.info("Starting to build connection list.")
+            if not self.isCircuitLinear:
+                self.linearizeCircuit()
+            for component in self.components:
+                if component.isLinear :
+                    for node in component.nodes:
+                        self.connections[node].append(component)
+                        if node not in self.nodes:
+                            self.nodes.append(node)
+            self.isConnexionListBuilt = True
+            logging.info("Finished building connection list.")
+        except Exception as e:
+            logging.error(f"Error building connection list: {e}")
+            raise
 
     def componentConnectedTo(self, node):
         """
@@ -428,6 +451,7 @@ class Solver:
         Returns:
             list: A list of Sympy equations representing the circuit.
         """
+        logging.info("Starting to establish the system of equations.")
         # Analyse nodale classique
         for node in self.circuit.nodes:
             if node != '0':
@@ -446,6 +470,7 @@ class Solver:
                 if component.needsAdditionalEquation:
                     (equ,explanation)=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
                     self.equations.append((equ, explanation))
+        logging.info("Finished establishing the system of equations.")
 
     def solveEqSys(self):
         """
@@ -454,9 +479,15 @@ class Solver:
         Returns:
             dict: A dictionary of solutions for the variables in the circuit.
         """
-        unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
-        self.solutions = sympy.solve([equ for equ,expl in self.equations], unknowns)
-        return self.solutions
+        try:
+            logging.info("Starting to solve the system of equations.")
+            unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
+            self.solutions = sympy.solve([equ for equ,expl in self.equations], unknowns)
+            logging.info("Finished solving the system of equations.")
+            return self.solutions
+        except Exception as e:
+            logging.error(f"Error solving equation system: {e}")
+            raise
     
     def getTransferFunction(self, inputNode, outputNode):
         """
@@ -469,7 +500,11 @@ class Solver:
         Returns:
             sympy.Expr: The transfer function of the circuit.
         """
+        if inputNode not in self.nodeVoltages or outputNode not in self.nodeVoltages:
+            logging.error(f"Input node '{inputNode}' or output node '{outputNode}' not found in nodeVoltages.")
+        logging.info(f"Calculating transfer function from {inputNode} to {outputNode}.")
         self.transferFunction = sympy.simplify(self.solutions[self.nodeVoltages[outputNode]] / self.solutions[self.nodeVoltages[inputNode]])
+        logging.info("Finished calculating transfer function.")
         return self.transferFunction
 
 
@@ -486,34 +521,54 @@ class Simulator:
         self.sys = lti(self.num, self.denom)
 
     def getNumericalTransferFunction(self):
-        p = self.laplaceVariable
-        for component in self.circuit.components:
-            if component.value != None:
-                self.paramValues[component.name] = component.value
+        try:
+            logging.info("Starting to get numerical transfer function.")
+            p = self.laplaceVariable
+            for component in self.circuit.components:
+                if component.value != None:
+                    self.paramValues[component.name] = component.value
 
-        # Replace the symbolic parameters with numerical values
-        self.transferFunction = self.analyticTransferFunction.subs(self.paramValues)
+            # Replace the symbolic parameters with numerical values
+            self.transferFunction = self.analyticTransferFunction.subs(self.paramValues)
+            missing_symbols = self.transferFunction.free_symbols - set(self.paramValues.keys()) - {self.laplaceVariable}
+            if missing_symbols:
+                logging.error(f"Missing numerical values for symbols: {missing_symbols}")
+                raise ValueError("Error: Missing numerical values for symbols:", missing_symbols)
+            # Extract numerator and denominator coefficients
+            numerator, denominator = sympy.fraction(self.transferFunction)
+            num_coeffs = [float(c) for c in numerator.as_poly(p).all_coeffs()]
+            den_coeffs = [float(c) for c in denominator.as_poly(p).all_coeffs()]
 
-        # Extract numerator and denominator coefficients
-        numerator, denominator = sympy.fraction(self.transferFunction)
-        num_coeffs = [float(c) for c in numerator.as_poly(p).all_coeffs()]
-        den_coeffs = [float(c) for c in denominator.as_poly(p).all_coeffs()]
+            logging.info("Finished getting numerical transfer function.")
+            return num_coeffs, den_coeffs
+        except Exception as e:
+            logging.error(f"Error getting numerical transfer function: {e}")
+            raise
 
-        return num_coeffs, den_coeffs
-    
     def getStepResponse(self):
-        t, y = step(self.sys)
-        x = np.ones(len(t))
-        # Insert t=0, y=0 and x=0 to have plotting beginning at zero
-        t = np.insert(t, 0, 0)
-        y = np.insert(y, 0, 0)
-        x = np.insert(x, 0, 0)
-        return t, x, y
+        try:
+            logging.info("Starting to get step response.")
+            t, y = step(self.sys)
+            x = np.ones(len(t))
+            # Insert t=0, y=0 and x=0 to have plotting beginning at zero
+            t = np.insert(t, 0, 0)
+            y = np.insert(y, 0, 0)
+            x = np.insert(x, 0, 0)
+            logging.info("Finished getting step response.")
+            return t, x, y
+        except Exception as e:
+            logging.error(f"Error getting step response: {e}")
+            raise
 
     def getFrequencyResponse(self):
-        w, mag, phase = bode(self.sys)
-        return w, mag, phase              
-    
+        try:
+            logging.info("Starting to get frequency response.")
+            w, mag, phase = bode(self.sys)
+            logging.info("Finished getting frequency response.")
+            return w, mag, phase
+        except Exception as e:
+            logging.error(f"Error getting frequency response: {e}")
+            raise
 
 def build_prompt(netlist, solutions, transferFunction, equations):
     prompt = f"Voici la netlist d'un circuit d'électornique \n --- {netlist} \n ---Les équations sont \n ---"
@@ -527,21 +582,33 @@ def build_prompt(netlist, solutions, transferFunction, equations):
     prompt += " --- Si tu reconnais le circuit étudié, donne en une explication en une phrase et donne (latex) les paramètres les plus importants. Sinon dit que tu ne reconnais pas le circuit. Ne t'exprime pas avec 'je'"
     return prompt
 
+
 def query_LLM(prompt):
-    # needs to define the API key in the .env file
+
+    if not api_key:
+        logging.warning("API key is missing.")
+        raise ValueError("Error: API key is missing.")
+    
     headers = {
         'Authorization': f'Bearer {api_key}',
         'Content-Type': 'application/json'
     }
-    
-    url = 'https://openrouter.ai/api/v1/chat/completions'
+    url = 'https://openrouter.ai/api/v1/completions'
     data = {
-        'model': 'google/gemini-2.0-flash-exp:free',
+        'model': 'gpt-3.5-turbo',  # Replace with your model
         'prompt': prompt,
         'max_tokens': 150
     }
-    response = requests.post(url, headers=headers, json=data)
-    text = response.json()['choices'][0]['text']
-    return text
-    
-
+    try:
+        logging.info("Starting API request to OpenRouter.")
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()  # Raise an HTTPError if the response was unsuccessful
+        response_json = response.json()
+        if 'choices' not in response_json:
+            logging.error("Error: 'choices' not found in response")
+            raise ValueError("Error: 'choices' not found in response")
+        logging.info("Finished API request to OpenRouter.")
+        return response_json['choices'][0]['text']
+    except requests.exceptions.RequestException as e:
+        logging.error(f"An error occurred during the API request: {e}")
+        raise ValueError(f"An error occurred during the API request: {e}")

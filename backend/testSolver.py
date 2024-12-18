@@ -7,6 +7,7 @@ from flask_cors import CORS  # Pour gérer les requêtes CORS
 import json
 from solver import Parser
 import matplotlib.pyplot as plt
+import sys
 
 
 netlist = '''
@@ -32,7 +33,6 @@ solver = Solver(circuit)
 
 # Get the system of equations
 solver.getEqSys()
-
 print("--- System of Equations ---")
 for equ,expl in solver.equations:
     print(f"{expl} : {sp.latex(equ)}")
@@ -52,6 +52,7 @@ print(f"Transfer Function: {transferFunction}")
 prompt = build_prompt(netlist, solutions, solver.transferFunction, solver.equations)
 response = query_LLM(prompt)
 print(response)
+#sys.exit("Stopping the code execution here.")
 
 simu = Simulator(circuit, transferFunction)
 
