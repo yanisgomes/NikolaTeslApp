@@ -56,23 +56,74 @@ const StyledImage = styled.img`
 
 function Gallery() {
     const { data, isLoading, error } = useFetch(
-        'http://localhost:8000/freelances'
+        // 'http://localhost:8000/freelances'
+        // 'http://NikolaTeslApp-backend:3000/galerie'
+        'http://localhost:9008/galerie' // TODO : Mettre en place un proxy
     );
-    const freelancesData = data?.freelancersList || [];
+    // const freelancesData = data?.freelancersList || [];
 
-    freelancesData.map((freelancer) => {
-        console.log(JSON.stringify(freelancer, null, 2)); // Utiliser JSON.stringify pour une sortie lisible
-        // Ou accéder directement aux propriétés
-        console.log(
-            `ID: ${freelancer.id}, Name: ${freelancer.name}, Job: ${freelancer.job}, Picture: ${freelancer.picture}`
-        );
-    });
+    // freelancesData.map((freelancer) => {
+    //     console.log(JSON.stringify(freelancer, null, 2)); // Utiliser JSON.stringify pour une sortie lisible
+    //     // Ou accéder directement aux propriétés
+    //     console.log(
+    //         `ID: ${freelancer.id}, Name: ${freelancer.name}, Job: ${freelancer.job}, Picture: ${freelancer.picture}`
+    //     );
+    // });
 
     if (error) {
         return <span>Il y a un problème</span>;
     }
 
+    // Hugo : Modification de la page pour afficher les circuits de la galerie
     return (
+        <MainContainer>
+            <MainText>Voici la galerie de circuits</MainText>
+            <SubText>Vous pouvez voir les circuits disponibles</SubText>
+
+            {isLoading ? (
+                <Loader />
+            ) : (
+                <div>
+                    <ul style={{ listStyleType: 'none', padding: 0 }}>
+                        {data.map((circuit) => (
+                            <li
+                                key={circuit.id}
+                                style={{
+                                    border: '1px solid #ddd',
+                                    marginBottom: '10px',
+                                    padding: '10px',
+                                    borderRadius: '5px',
+                                    backgroundColor: '#f9f9f9',
+                                }}
+                            >
+                                <h3 style={{ margin: '0 0 10px' }}>{circuit.nom}</h3>
+                                <p style={{ margin: '5px 0' }}>
+                                    <strong>Description :</strong> {circuit.description}
+                                </p>
+                                <p style={{ margin: '5px 0' }}>
+                                    <strong>Auteur :</strong> {circuit.auteur}
+                                </p>
+                                <p style={{ margin: '5px 0' }}>
+                                    <strong>Date :</strong> {circuit.date}
+                                </p>
+                                {/* <img
+                                    src={circuit.image}
+                                    alt={circuit.nom}
+                                    style={{ width: '100%', maxWidth: '300px', borderRadius: '5px' }}
+                                /> */}
+                                <p style={{ margin: '5px 0' }}>
+                                    <strong>Netlist :</strong> {circuit.netlist}
+                                </p>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </MainContainer>
+    );
+
+
+    {/* return (
         <MainContainer>
             <MainText>Trouver vos prestataires</MainText>
             <SubText>Nous réunissons les meilleurs profils pour vous.</SubText>
@@ -99,7 +150,7 @@ function Gallery() {
                 </CardsContainer>
             )}
         </MainContainer>
-    );
+    ); */}
 }
 
 export default Gallery;
