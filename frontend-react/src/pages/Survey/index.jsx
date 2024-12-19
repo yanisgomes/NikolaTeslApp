@@ -13,6 +13,133 @@ const PlacedItemContainer = styled.div`
     align-items: center;
 `;
 
+const SidebarContent = styled.div`
+    width: 100%;
+    margin-top: 60px;
+    text-align: center;
+`;
+
+const SidebarRight = styled.div`
+    position: absolute;
+    top: 120px;
+    right: 0;
+    height: 100%;
+    width: ${(props) => (props.isOpen ? '300px' : '0')};
+    background-color: ${colors.backgroundLight};
+    box-shadow: ${(props) =>
+        props.isOpen ? '0 0 10px rgba(0, 0, 0, 0.5)' : 'none'};
+    transition: width 0.3s ease-in-out;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: ${(props) => (props.isOpen ? '20px' : '0')};
+`;
+
+const SidebarLeft = styled.div`
+    position: absolute;
+    top: 120px;
+    left: 0;
+    height: 100%;
+    width: ${(props) => (props.isOpen ? '300px' : '0')};
+    background-color: ${colors.backgroundLight};
+    box-shadow: ${(props) =>
+        props.isOpen ? '0 0 10px rgba(0, 0, 0, 0.5)' : 'none'};
+    transition: width 0.3s ease-in-out;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: ${(props) => (props.isOpen ? '20px' : '0')};
+`;
+
+const SidebarTop = styled.div`
+    position: relative;
+    width: ${(props) =>
+        props.isSidebarRightOpen
+            ? props.isSidebarLeftOpen
+                ? '60%'
+                : '70%'
+            : props.isSidebarLeftOpen
+            ? '70%'
+            : '80%'};
+    height: ${(props) => (props.isOpen ? '200px' : '0')};
+    background-color: ${colors.backgroundLight};
+    box-shadow: ${(props) =>
+        props.isOpen ? '0 0 10px rgba(0, 0, 0, 0.5)' : 'none'};
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: ${(props) => (props.isOpen ? '20px' : '0')};
+    margin: 20px 0;
+    margin-right: ${(props) =>
+        props.isSidebarRightOpen ? '10%' : '0'}; /* Ajoute un espace à droite */
+    margin-left: ${(props) =>
+        props.isSidebarLeftOpen ? '10%' : '0'}; /* Ajoute un espace à gauche */
+    transition: margin 0.3s ease-in-out; /* Transition uniquement sur la marge */
+    transition: height 0.3s ease-in-out;
+`;
+
+const ToggleButtonRight = styled.button`
+    position: absolute;
+    top: 50%;
+    right: ${(props) => (props.isOpen ? '300px' : '0')};
+    transform: translateY(-50%);
+    background-color: ${colors.primary};
+    color: white;
+    border: none;
+    border-radius: 5px 5px 5px 5px;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    transition: right 0.3s ease-in-out;
+    z-index: 1000;
+
+    &:hover {
+        background-color: ${colors.secondary};
+    }
+`;
+
+const ToggleButtonLeft = styled.button`
+    position: absolute;
+    top: 50%;
+    left: ${(props) => (props.isOpen ? '300px' : '0')};
+    transform: translateY(-50%);
+    background-color: ${colors.primary};
+    color: white;
+    border: none;
+    border-radius: 5px 5px 5px 5px;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    transition: left 0.3s ease-in-out;
+    z-index: 1000;
+
+    &:hover {
+        background-color: ${colors.secondary};
+    }
+`;
+
+const ToggleButtonTop = styled.button`
+    position: absolute;
+    top: ${(props) => (props.isOpen ? '353px' : '90px')};
+    transform: translateY(-50%);
+    background-color: ${colors.primary};
+    color: white;
+    border: none;
+    border-radius: 5px 5px 5px 5px;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    transition: top 0.3s ease-in-out;
+    z-index: 1000;
+
+    &:hover {
+        background-color: ${colors.secondary};
+    }
+`;
+
 const PoleButton = styled.button`
     background-color: ${colors.backgroundLight};
     border: 1px solid ${colors.primary};
@@ -71,10 +198,22 @@ const Workspace = styled.div`
     position: relative;
     border: 2px dashed ${colors.primary};
     border-radius: 10px;
-    width: 80%;
-    height: 400px;
+    width: ${(props) =>
+        props.isSidebarRightOpen
+            ? props.isSidebarLeftOpen
+                ? '64%'
+                : '72%'
+            : props.isSidebarLeftOpen
+            ? '72%'
+            : '80%'}; /* Fixe la largeur à 80% de l'espace restant */
+    height: 600px;
     margin: 20px 0;
+    margin-right: ${(props) =>
+        props.isSidebarRightOpen ? '10%' : '0'}; /* Ajoute un espace à droite */
+    margin-left: ${(props) =>
+        props.isSidebarLeftOpen ? '10%' : '0'}; /* Ajoute un espace à gauche */
     background-color: ${colors.backgroundLight};
+    transition: margin 0.3s ease-in-out width 0.3s ease-in-out;
 `;
 
 const PlacedImage = styled.img`
@@ -86,7 +225,7 @@ const PlacedImage = styled.img`
 `;
 
 const TrashBin = styled.div`
-    width: 200px;
+    width: 300px;
     height: 200px;
     border: 2px dashed ${colors.primary};
     border-radius: 10px;
@@ -136,6 +275,10 @@ function useNetlist() {
 }
 
 function DragAndDrop() {
+    const [isSidebarRightOpen, setSidebarRightOpen] = useState(false);
+    const [isSidebarLeftOpen, setSidebarLeftOpen] = useState(false);
+    const [isSidebarTopOpen, setSidebarTopOpen] = useState(false);
+
     const { netlist, addComponent, removeComponentById, setNetlist } =
         useNetlist();
     const [items] = useState([
@@ -155,6 +298,8 @@ function DragAndDrop() {
     const handleDrop = (e) => {
         e.preventDefault();
         const workspaceBounds = e.target.getBoundingClientRect();
+        const x0 = (workspaceBounds.left + workspaceBounds.right) / 2;
+        const y0 = (workspaceBounds.top + workspaceBounds.bottom) / 2;
         const x = e.clientX - workspaceBounds.left;
         const y = e.clientY - workspaceBounds.top;
         const idplus = null;
@@ -243,20 +388,44 @@ function DragAndDrop() {
         }
     };
 
+    const toggleSidebarRight = () => {
+        setSidebarRightOpen((prev) => !prev);
+    };
+
+    const toggleSidebarLeft = () => {
+        setSidebarLeftOpen((prev) => !prev);
+    };
+
+    const toggleSidebarTop = () => {
+        setSidebarTopOpen((prev) => !prev);
+    };
+
     return (
         <DragAndDropContainer>
-            <Header>Créé ton circuit</Header>
-            <Toolbox>
-                {items.map((item) => (
-                    <ImageItem
-                        key={item.id}
-                        src={item.src}
-                        draggable
-                        onDragStart={(e) => handleDragStartFromToolbox(e, item)}
-                    />
-                ))}
-            </Toolbox>
-            <Workspace onDrop={handleDrop} onDragOver={handleDragOver}>
+            <SidebarTop
+                isOpen={isSidebarTopOpen}
+                isSidebarRightOpen={isSidebarRightOpen}
+                isSidebarLeftOpen={isSidebarLeftOpen}
+            >
+                <SidebarContent>yo</SidebarContent>
+            </SidebarTop>
+
+            <ToggleButtonTop
+                isOpen={isSidebarTopOpen}
+                onClick={toggleSidebarTop}
+                aria-label={
+                    isSidebarTopOpen ? 'Fermer le panneau' : 'Ouvrir le panneau'
+                }
+            >
+                {isSidebarTopOpen ? '↑' : '↓'}
+            </ToggleButtonTop>
+            <Workspace
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                isSidebarRightOpen={isSidebarRightOpen}
+                isSidebarLeftOpen={isSidebarLeftOpen}
+                isSidebarTopOpen={isSidebarTopOpen}
+            >
                 {placedItems.map((item) => (
                     <PlacedItemContainer
                         key={item.id}
@@ -283,9 +452,62 @@ function DragAndDrop() {
                     </PlacedItemContainer>
                 ))}
             </Workspace>
-            <TrashBin onDrop={handleDropInTrash} onDragOver={handleDragOver}>
-                Déposez ici pour supprimer
-            </TrashBin>
+            {/* Sidebar and Toggle Button */}
+            <SidebarRight isOpen={isSidebarRightOpen}>
+                <SidebarContent>
+                    <h3>Informations</h3>
+                    <p>Ajoutez ici des éléments ou des options.</p>
+                </SidebarContent>
+            </SidebarRight>
+
+            <ToggleButtonRight
+                isOpen={isSidebarRightOpen}
+                onClick={toggleSidebarRight}
+                aria-label={
+                    isSidebarRightOpen
+                        ? 'Fermer le panneau'
+                        : 'Ouvrir le panneau'
+                }
+            >
+                {isSidebarRightOpen ? '→' : '←'}
+            </ToggleButtonRight>
+
+            <SidebarLeft isOpen={isSidebarLeftOpen}>
+                <SidebarContent>
+                    <Header>Créé ton circuit</Header>
+                    <Toolbox>
+                        {items.map((item) => (
+                            <ImageItem
+                                key={item.id}
+                                src={item.src}
+                                draggable
+                                onDragStart={(e) =>
+                                    handleDragStartFromToolbox(e, item)
+                                }
+                            />
+                        ))}
+                    </Toolbox>
+                    <TrashBin
+                        onDrop={handleDropInTrash}
+                        onDragOver={handleDragOver}
+                    >
+                        Déposez ici pour supprimer
+                    </TrashBin>
+                </SidebarContent>
+            </SidebarLeft>
+
+            <ToggleButtonLeft
+                isOpen={isSidebarLeftOpen}
+                onClick={toggleSidebarLeft}
+                aria-label={
+                    isSidebarLeftOpen
+                        ? 'Fermer le panneau'
+                        : 'Ouvrir le panneau'
+                }
+            >
+                {isSidebarLeftOpen ? '←' : '→'}
+            </ToggleButtonLeft>
+
             <div>
                 <h1>Gestionnaire de Netlist</h1>
                 <ul>
