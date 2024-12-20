@@ -33,7 +33,7 @@
    docker-compose up -d
    ```
 
-   L'application est désormais disponible sur <http://localhost:9007>.
+   L'application est désormais disponible sur <http://localhost:9011>.
 
 5. **Arrêter les conteneurs Docker** :
    Pour arrêter les conteneurs et les supprimer, utilisez la commande suivante :

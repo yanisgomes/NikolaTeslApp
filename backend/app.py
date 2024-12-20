@@ -1,6 +1,54 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+
+@app.route('/galerie', methods=['GET'])
+def get_galerie():
+    """Retourne la liste des circuits dans la base de données."""
+    # On créer artificiellement une liste de circuits avec les attributs suivants:
+    # - id: identifiant unique du circuit
+    # - nom: nom du circuit
+    # - description: description du circuit
+    # - image: nom du fichier image du circuit
+    # - auteur: nom de l'auteur du circuit
+    # - date: date de création du circuit
+    # - netlist: netlist du circuit (le plus important, cela décrit le circuit)
+
+    circuits = [
+        {
+            "id": 1,
+            "nom": "Circuit 1",
+            "description": "Ceci est le circuit 1",
+            "image": "image1.jpg",
+            "auteur": "Auteur 1",
+            "date": "2024-12-01",
+            "netlist": "netlist1"
+        },
+        {
+            "id": 2,
+            "nom": "Circuit 2",
+            "description": "Ceci est le circuit 2",
+            "image": "image2.jpg",
+            "auteur": "Auteur 2",
+            "date": "2024-12-02",
+            "netlist": "netlist2"
+        },
+        {
+            "id": 3,
+            "nom": "Circuit 3",
+            "description": "Ceci est le circuit 3",
+            "image": "image3.jpg",
+            "auteur": "Auteur 3",
+            "date": "2024-12-03",
+            "netlist": "netlist3"
+        }
+    ]
+
+    return jsonify(circuits)
+
+
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
