@@ -1,77 +1,108 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from datetime import datetime
+import os
 
 app = Flask(__name__)
 CORS(app)
 
+# Configuration de la base de données SQLite
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_DIR = os.path.join(BASE_DIR, 'data')
+os.makedirs(DB_DIR, exist_ok=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(DB_DIR, 'circuits.db')}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = os.path.join(DB_DIR, 'uploads')
+
+
+db = SQLAlchemy(app)
+
+# Modèle de données pour la table 'circuits'
+class Circuit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    image = db.Column(db.String(255))
+    auteur = db.Column(db.String(255), nullable=False)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    netlist = db.Column(db.Text, nullable=False)
+
+def create_tables():
+    db.create_all()
+
+# Endpoint pour récupérer les circuits
 @app.route('/galerie', methods=['GET'])
 def get_galerie():
-    """Retourne la liste des circuits dans la base de données."""
-    # On créer artificiellement une liste de circuits avec les attributs suivants:
-    # - id: identifiant unique du circuit
-    # - nom: nom du circuit
-    # - description: description du circuit
-    # - image: nom du fichier image du circuit
-    # - auteur: nom de l'auteur du circuit
-    # - date: date de création du circuit
-    # - netlist: netlist du circuit (le plus important, cela décrit le circuit)
-
-    circuits = [
+    circuits = Circuit.query.all()
+    return jsonify([
         {
-            "id": 1,
-            "nom": "Circuit 1",
-            "description": "Ceci est le circuit 1",
-            "image": "image1.jpg",
-            "auteur": "Auteur 1",
-            "date": "2024-12-01",
-            "netlist": "netlist1"
-        },
-        {
-            "id": 2,
-            "nom": "Circuit 2",
-            "description": "Ceci est le circuit 2",
-            "image": "image2.jpg",
-            "auteur": "Auteur 2",
-            "date": "2024-12-02",
-            "netlist": "netlist2"
-        },
-        {
-            "id": 3,
-            "nom": "Circuit 3",
-            "description": "Ceci est le circuit 3",
-            "image": "image3.jpg",
-            "auteur": "Auteur 3",
-            "date": "2024-12-03",
-            "netlist": "netlist3"
+            "id": circuit.id,
+            "nom": circuit.nom,
+            "description": circuit.description,
+            "image": circuit.image,
+            "auteur": circuit.auteur,
+            "date": circuit.date.strftime('%Y-%m-%d'),
+            "netlist": circuit.netlist
         }
-    ]
+        for circuit in circuits
+    ])
 
-    return jsonify(circuits)
-
-
-
-@app.route('/api/data', methods=['GET'])
-def get_data():
-    """Retourne un exemple de données."""
-    return jsonify({"message": "Hello depuis l'API", "status": "success"})
-
-@app.route('/api/echo', methods=['POST'])
-def echo_data():
-    """Retourne les données envoyées dans la requête."""
+# Endpoint pour ajouter un nouveau circuit
+@app.route('/galerie', methods=['POST'])
+def add_circuit():
     data = request.json
-    return jsonify({"received": data, "status": "success"})
+    new_circuit = Circuit(
+        nom=data['nom'],
+        description=data['description'],
+        image=data.get('image', ''),
+        auteur=data['auteur'],
+        date=datetime.strptime(data['date'], '%Y-%m-%d'),
+        netlist=data['netlist']
+    )
+    db.session.add(new_circuit)
+    db.session.commit()
+    return jsonify({"message": "Circuit ajouté avec succès."}), 201
 
-@app.route('/api/add', methods=['POST'])
-def add_numbers():
-    """Additionne deux nombres."""
+
+@app.route('/uploads/<filename>', methods=['GET'])
+def serve_image(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'data/uploads'), filename)
+
+# Endpoint pour supprimer un circuit
+@app.route('/galerie/<int:circuit_id>', methods=['DELETE'])
+def delete_circuit(circuit_id):
+    circuit = Circuit.query.get(circuit_id)
+    if circuit is None:
+        return jsonify({"message": "Circuit introuvable."}), 404
+    db.session.delete(circuit)
+    db.session.commit()
+    return jsonify({"message": "Circuit supprimé avec succès."}), 200
+
+
+# Endpoint pour modifier un circuit
+@app.route('/galerie/<int:circuit_id>', methods=['PUT'])
+def update_circuit(circuit_id):
+    circuit = Circuit.query.get(circuit_id)
+    if circuit is None:
+        return jsonify({"message": "Circuit introuvable."}), 404
+    
     data = request.json
-    try:
-        num1 = data.get("num1")
-        num2 = data.get("num2")
-        result = num1 + num2
-        return jsonify({"result": result, "status": "success"})
-    except Exception as e:
-        return jsonify({"error": str(e), "status": "failure"}), 400
+    circuit.nom = data.get('nom', circuit.nom)  # Update only if provided
+    circuit.description = data.get('description', circuit.description)
+    circuit.image = data.get('image', circuit.image)
+    circuit.auteur = data.get('auteur', circuit.auteur)
+    circuit.date = datetime.strptime(data['date'], '%Y-%m-%d')
+    circuit.netlist = data.get('netlist', circuit.netlist)
+    
+    db.session.commit()
+    return jsonify({"message": "Circuit modifié avec succès."}), 200
+
+
 
 if __name__ == '__main__':
+    with app.app_context():
+        create_tables()
     app.run(host='0.0.0.0', port=3000)
+
+

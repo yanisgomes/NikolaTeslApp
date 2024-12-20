@@ -107,11 +107,16 @@ function Gallery() {
                                 <p style={{ margin: '5px 0' }}>
                                     <strong>Date :</strong> {circuit.date}
                                 </p>
-                                {/* <img
-                                    src={circuit.image}
+                                <img
+                                    src={`/api/uploads/${circuit.image}`} // Chemin dynamique pour l'image
                                     alt={circuit.nom}
-                                    style={{ width: '100%', maxWidth: '300px', borderRadius: '5px' }}
-                                /> */}
+                                    style={{
+                                        width: '100%',
+                                        maxWidth: '300px',
+                                        borderRadius: '5px',
+                                        objectFit: 'cover',
+                                    }}
+                                />
                                 <p style={{ margin: '5px 0' }}>
                                     <strong>Netlist :</strong> {circuit.netlist}
                                 </p>
