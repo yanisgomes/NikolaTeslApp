@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 import item1 from '../../assets/Resistance.png';
 import item2 from '../../assets/Bobine.png';
 import item3 from '../../assets/Condensateur.png';
+import { ThemeContext } from '../../utils/context/';
 import { symbol } from 'prop-types';
 
 const PlacedItemContainer = styled.div`
@@ -19,13 +20,14 @@ const SidebarContent = styled.div`
     text-align: center;
 `;
 
-const Sidebar = styled.div`
+const SidebarRight = styled.div`
     position: absolute;
-    top: 60;
+    top: 120px;
     right: 0;
     height: 100%;
     width: ${(props) => (props.isOpen ? '300px' : '0')};
-    background-color: ${colors.backgroundLight};
+    backgroundColor: theme === "light" ? "#ffffff" : "#333333",
+    color: theme === "light" ? "#000000" : "#ffffff",
     box-shadow: ${(props) =>
         props.isOpen ? '0 0 10px rgba(0, 0, 0, 0.5)' : 'none'};
     transition: width 0.3s ease-in-out;
@@ -36,7 +38,53 @@ const Sidebar = styled.div`
     padding: ${(props) => (props.isOpen ? '20px' : '0')};
 `;
 
-const ToggleButton = styled.button`
+const SidebarLeft = styled.div`
+    position: absolute;
+    top: 120px;
+    left: 0;
+    height: 100%;
+    width: ${(props) => (props.isOpen ? '300px' : '0')};
+    background-color: ${colors.backgroundNight};
+    color: ${colors.primary};
+    box-shadow: ${(props) =>
+        props.isOpen ? '0 0 10px rgba(0, 0, 0, 0.5)' : 'none'};
+    transition: width 0.3s ease-in-out;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: ${(props) => (props.isOpen ? '20px' : '0')};
+`;
+
+const SidebarTop = styled.div`
+    position: relative;
+    width: ${(props) =>
+        props.isSidebarRightOpen
+            ? props.isSidebarLeftOpen
+                ? '60%'
+                : '70%'
+            : props.isSidebarLeftOpen
+            ? '70%'
+            : '80%'};
+    height: ${(props) => (props.isOpen ? '200px' : '0')};
+    background-color: ${colors.backgroundLight};
+    box-shadow: ${(props) =>
+        props.isOpen ? '0 0 10px rgba(0, 0, 0, 0.5)' : 'none'};
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: ${(props) => (props.isOpen ? '20px' : '0')};
+    margin: 20px 0;
+    margin-right: ${(props) =>
+        props.isSidebarRightOpen ? '10%' : '0'}; /* Ajoute un espace à droite */
+    margin-left: ${(props) =>
+        props.isSidebarLeftOpen ? '10%' : '0'}; /* Ajoute un espace à gauche */
+    transition: margin 0.3s ease-in-out; /* Transition uniquement sur la marge */
+    transition: height 0.3s ease-in-out;
+`;
+
+const ToggleButtonRight = styled.button`
     position: absolute;
     top: 50%;
     right: ${(props) => (props.isOpen ? '300px' : '0')};
@@ -44,11 +92,50 @@ const ToggleButton = styled.button`
     background-color: ${colors.primary};
     color: white;
     border: none;
-    border-radius: 5px 0 0 5px;
+    border-radius: 5px 5px 5px 5px;
     cursor: pointer;
     padding: 10px;
     font-size: 18px;
     transition: right 0.3s ease-in-out;
+    z-index: 1000;
+
+    &:hover {
+        background-color: ${colors.secondary};
+    }
+`;
+
+const ToggleButtonLeft = styled.button`
+    position: absolute;
+    top: 50%;
+    left: ${(props) => (props.isOpen ? '300px' : '0')};
+    transform: translateY(-50%);
+    background-color: ${colors.primary};
+    color: white;
+    border: none;
+    border-radius: 5px 5px 5px 5px;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    transition: left 0.3s ease-in-out;
+    z-index: 1000;
+
+    &:hover {
+        background-color: ${colors.secondary};
+    }
+`;
+
+const ToggleButtonTop = styled.button`
+    position: absolute;
+    top: ${(props) => (props.isOpen ? '353px' : '90px')};
+    transform: translateY(-50%);
+    background-color: ${colors.primary};
+    color: white;
+    border: none;
+    border-radius: 5px 5px 5px 5px;
+    cursor: pointer;
+    padding: 10px;
+    font-size: 18px;
+    transition: top 0.3s ease-in-out;
     z-index: 1000;
 
     &:hover {
@@ -110,18 +197,49 @@ const ImageItem = styled.img`
     }
 `;
 
+const WorkspaceContainer = styled.div`
+    position: relative;
+    overflow: auto;
+    width: 100%;
+    height: ${(props) => props.height || '600px'};
+    background-color: ${colors.backgroundLight};
+    transition: width 0.3s ease-in-out;
+`;
+
+const WorkspaceContent = styled.div`
+    position: absolute;
+    transform: ${(props) =>
+        `translate(${props.offsetX}px, ${props.offsetY}px) scale(${props.zoom})`};
+    transform-origin: ${(props) => `${props.originX}% ${props.originY}%`};
+    transition: transform 0.1s ease-out;
+    width: 200%;
+    height: 200%;
+`;
+
 const Workspace = styled.div`
     position: relative;
     border: 2px dashed ${colors.primary};
-    border-radius: 10px;
-    width: 80%; /* Fixe la largeur à un pourcentage constant */
-    max-width: 1200px; /* Optionnel : limite maximale */
-    height: 400px;
+    border-radius: 5px;
+    width: ${(props) =>
+        props.isSidebarRightOpen
+            ? props.isSidebarLeftOpen
+                ? '64%'
+                : '72%'
+            : props.isSidebarLeftOpen
+            ? '72%'
+            : '80%'}; /* Fixe la largeur à 80% de l'espace restant */
+    height: 600px;
     margin: 20px 0;
     margin-right: ${(props) =>
-        props.isSidebarOpen ? '300px' : '0'}; /* Ajoute un espace à droite */
+        props.isSidebarRightOpen ? '10%' : '0'}; /* Ajoute un espace à droite */
+    margin-left: ${(props) =>
+        props.isSidebarLeftOpen ? '10%' : '0'}; /* Ajoute un espace à gauche */
     background-color: ${colors.backgroundLight};
-    transition: margin-right 0.3s ease-in-out; /* Transition uniquement sur la marge */
+    transition: margin 0.3s ease-in-out width 0.3s ease-in-out;
+    transition: width 0.3s ease-in-out;
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
 `;
 
 const PlacedImage = styled.img`
@@ -133,7 +251,7 @@ const PlacedImage = styled.img`
 `;
 
 const TrashBin = styled.div`
-    width: 200px;
+    width: 300px;
     height: 200px;
     border: 2px dashed ${colors.primary};
     border-radius: 10px;
@@ -183,7 +301,50 @@ function useNetlist() {
 }
 
 function DragAndDrop() {
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
+    const { theme } = useContext(ThemeContext);
+    const [zoom, setZoom] = useState(1); // État pour le niveau de zoom
+    const [offsetX, setOffsetX] = useState(0); // État pour le déplacement horizontal
+    const [offsetY, setOffsetY] = useState(0); // État pour le déplacement vertical
+    const [isPanning, setIsPanning] = useState(false); // État pour savoir si on déplace
+    const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 }); // Position précédente de la souris
+    const [isSidebarRightOpen, setSidebarRightOpen] = useState(false);
+    const [isSidebarLeftOpen, setSidebarLeftOpen] = useState(false);
+    const [isSidebarTopOpen, setSidebarTopOpen] = useState(false);
+
+    const handleWheel = (e) => {
+        e.preventDefault();
+        const zoomFactor = 0.1;
+        if (e.deltaY < 0) {
+            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3)); // Zoom maximum à 3x
+        } else {
+            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5)); // Zoom minimum à 0.5x
+        }
+    };
+
+    const handleMouseDown = (e) => {
+        setIsPanning(true);
+        setLastMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseMove = (e) => {
+        if (isPanning) {
+            const dx = e.clientX - lastMousePosition.x;
+            const dy = e.clientY - lastMousePosition.y;
+            setOffsetX((prevOffsetX) => prevOffsetX + dx);
+            setOffsetY((prevOffsetY) => prevOffsetY + dy);
+            setLastMousePosition({ x: e.clientX, y: e.clientY });
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsPanning(false);
+    };
+
+    const resetZoomAndPan = () => {
+        setZoom(1);
+        setOffsetX(0);
+        setOffsetY(0);
+    };
 
     const { netlist, addComponent, removeComponentById, setNetlist } =
         useNetlist();
@@ -204,10 +365,8 @@ function DragAndDrop() {
     const handleDrop = (e) => {
         e.preventDefault();
         const workspaceBounds = e.target.getBoundingClientRect();
-        const x0 = (workspaceBounds.left + workspaceBounds.right) / 2;
-        const y0 = (workspaceBounds.top + workspaceBounds.bottom) / 2;
-        const x = e.clientX - workspaceBounds.left;
-        const y = e.clientY - workspaceBounds.top;
+        const x = (e.clientX - workspaceBounds.left) / zoom;
+        const y = (e.clientY - workspaceBounds.top) / zoom;
         const idplus = null;
         const idmoins = null;
         if (draggingItem) {
@@ -294,75 +453,167 @@ function DragAndDrop() {
         }
     };
 
-    const toggleSidebar = () => {
-        setSidebarOpen((prev) => !prev);
+    const toggleSidebarRight = () => {
+        setSidebarRightOpen((prev) => !prev);
+    };
+
+    const toggleSidebarLeft = () => {
+        setSidebarLeftOpen((prev) => !prev);
+    };
+
+    const toggleSidebarTop = () => {
+        setSidebarTopOpen((prev) => !prev);
     };
 
     return (
         <DragAndDropContainer>
-            <Header>Créé ton circuit</Header>
-            <Toolbox>
-                {items.map((item) => (
-                    <ImageItem
-                        key={item.id}
-                        src={item.src}
-                        draggable
-                        onDragStart={(e) => handleDragStartFromToolbox(e, item)}
-                    />
-                ))}
-            </Toolbox>
+            <SidebarTop
+                isOpen={isSidebarTopOpen}
+                isSidebarRightOpen={isSidebarRightOpen}
+                isSidebarLeftOpen={isSidebarLeftOpen}
+            >
+                <SidebarContent>yo</SidebarContent>
+            </SidebarTop>
+
+            <ToggleButtonTop
+                isOpen={isSidebarTopOpen}
+                onClick={toggleSidebarTop}
+                aria-label={
+                    isSidebarTopOpen ? 'Fermer le panneau' : 'Ouvrir le panneau'
+                }
+            >
+                {isSidebarTopOpen ? '↑' : '↓'}
+            </ToggleButtonTop>
+
             <Workspace
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
-                isSidebarOpen={isSidebarOpen}
+                isSidebarRightOpen={isSidebarRightOpen}
+                isSidebarLeftOpen={isSidebarLeftOpen}
+                isSidebarTopOpen={isSidebarTopOpen}
             >
-                {placedItems.map((item) => (
-                    <PlacedItemContainer
-                        key={item.id}
-                        style={{
-                            top: item.y,
-                            left: item.x,
-                        }}
+                <WorkspaceContainer
+                    onWheel={handleWheel}
+                    onMouseDown={handleMouseDown}
+                    width="600px"
+                    height="600px"
+                >
+                    <WorkspaceContent
+                        zoom={zoom}
+                        offsetX={offsetX}
+                        offsetY={offsetY}
                     >
-                        <PoleButton
-                            onClick={() => handlePoleClick('positif', item)}
-                        >
-                            +
-                        </PoleButton>
-                        <PlacedImage
-                            src={item.src}
-                            draggable
-                            onDragStart={() => handleDragStartPlacedItem(item)}
-                        />
-                        <PoleButton
-                            onClick={() => handlePoleClick('negatif', item)}
-                        >
-                            -
-                        </PoleButton>
-                    </PlacedItemContainer>
-                ))}
+                        {placedItems.map((item) => (
+                            <PlacedItemContainer
+                                key={item.id}
+                                style={{
+                                    top: item.y,
+                                    left: item.x,
+                                }}
+                            >
+                                <PoleButton
+                                    onClick={() =>
+                                        handlePoleClick('positif', item)
+                                    }
+                                >
+                                    +
+                                </PoleButton>
+                                <PlacedImage
+                                    src={item.src}
+                                    draggable
+                                    onDragStart={() =>
+                                        handleDragStartPlacedItem(item)
+                                    }
+                                />
+                                <PoleButton
+                                    onClick={() =>
+                                        handlePoleClick('negatif', item)
+                                    }
+                                >
+                                    -
+                                </PoleButton>
+                            </PlacedItemContainer>
+                        ))}
+                    </WorkspaceContent>
+                </WorkspaceContainer>
+                <div style={{ marginTop: '10px' }}>
+                    <button
+                        onClick={() =>
+                            setZoom((prev) => Math.min(prev + 0.1, 3))
+                        }
+                    >
+                        Zoom In
+                    </button>
+                    <button
+                        onClick={() =>
+                            setZoom((prev) => Math.max(prev - 0.1, 0.5))
+                        }
+                    >
+                        Zoom Out
+                    </button>
+                    <button onClick={resetZoomAndPan}>Reset</button>
+                </div>
             </Workspace>
             {/* Sidebar and Toggle Button */}
-            <Sidebar isOpen={isSidebarOpen}>
+            <SidebarRight isOpen={isSidebarRightOpen}>
                 <SidebarContent>
                     <h3>Informations</h3>
                     <p>Ajoutez ici des éléments ou des options.</p>
                 </SidebarContent>
-            </Sidebar>
+            </SidebarRight>
 
-            <ToggleButton
-                isOpen={isSidebarOpen}
-                onClick={toggleSidebar}
+            <ToggleButtonRight
+                isOpen={isSidebarRightOpen}
+                onClick={toggleSidebarRight}
                 aria-label={
-                    isSidebarOpen ? 'Fermer le panneau' : 'Ouvrir le panneau'
+                    isSidebarRightOpen
+                        ? 'Fermer le panneau'
+                        : 'Ouvrir le panneau'
                 }
             >
-                {isSidebarOpen ? '→' : '←'}
-            </ToggleButton>
+                {isSidebarRightOpen ? '→' : '←'}
+            </ToggleButtonRight>
 
-            <TrashBin onDrop={handleDropInTrash} onDragOver={handleDragOver}>
-                Déposez ici pour supprimer
-            </TrashBin>
+            <SidebarLeft isOpen={isSidebarLeftOpen}>
+                <SidebarContent>
+                    <Header>Créé ton circuit</Header>
+                    <Toolbox>
+                        {items.map((item) => (
+                            <ImageItem
+                                key={item.id}
+                                src={item.src}
+                                draggable
+                                onDragStart={(e) =>
+                                    handleDragStartFromToolbox(e, item)
+                                }
+                            />
+                        ))}
+                    </Toolbox>
+                    <TrashBin
+                        onDrop={handleDropInTrash}
+                        onDragOver={handleDragOver}
+                    >
+                        Déposez ici pour supprimer
+                    </TrashBin>
+                </SidebarContent>
+                yo
+            </SidebarLeft>
+
+            <ToggleButtonLeft
+                isOpen={isSidebarLeftOpen}
+                onClick={toggleSidebarLeft}
+                aria-label={
+                    isSidebarLeftOpen
+                        ? 'Fermer le panneau'
+                        : 'Ouvrir le panneau'
+                }
+            >
+                {isSidebarLeftOpen ? '←' : '→'}
+            </ToggleButtonLeft>
+
             <div>
                 <h1>Gestionnaire de Netlist</h1>
                 <ul>
