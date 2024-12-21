@@ -472,7 +472,7 @@ function DragAndDrop() {
                 isSidebarRightOpen={isSidebarRightOpen}
                 isSidebarLeftOpen={isSidebarLeftOpen}
             >
-                <SidebarContent>yo</SidebarContent>
+                <SidebarContent>yoTop</SidebarContent>
             </SidebarTop>
 
             <ToggleButtonTop
@@ -599,7 +599,7 @@ function DragAndDrop() {
                         Déposez ici pour supprimer
                     </TrashBin>
                 </SidebarContent>
-                yo
+                yoLeft
             </SidebarLeft>
 
             <ToggleButtonLeft
