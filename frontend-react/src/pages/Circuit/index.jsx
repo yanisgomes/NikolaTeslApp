@@ -5,39 +5,40 @@ import item1 from '../../assets/Resistance.png';
 import item2 from '../../assets/Bobine.png';
 import item3 from '../../assets/Condensateur.png';
 import { ThemeContext } from '../../utils/context/';
-import { symbol } from 'prop-types';
 
 import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-
-const MainVerticalContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    border: 2px solid ${colors.primary};
-`;
+import TabbedMenu from '../../components/TabbedMenu';
+import CircuitToolbar from '../../components/CircuitToolbar';
 
 const MainHorizontalContainer = styled.div`
     display: flex;
     flex-direction: row;
     flex: 1;
 
-    border: 2px solid ${colors.primary};
+    gap: 24px;
+    margin: 20px 0;
+`;
+
+const MainVerticalContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    gap: 24px;
 `;
 
 /*
- *
- *                   __        ________  ________  ________
- *                  /  |      /        |/        |/        |
- *                  $$ |      $$$$$$$$/ $$$$$$$$/ $$$$$$$$/
- *                  $$ |      $$ |__    $$ |__       $$ |
- *                  $$ |      $$    |   $$    |      $$ |
- *                  $$ |      $$$$$/    $$$$$/       $$ |
- *                  $$ |_____ $$ |_____ $$ |         $$ |
- *                  $$       |$$       |$$ |         $$ |
- *                  $$$$$$$$/ $$$$$$$$/ $$/          $$/
- *
- *
+ *          $$$$$$$$\
+ *          \__$$  __|
+ *             $$ | $$$$$$\   $$$$$$\
+ *             $$ |$$  __$$\ $$  __$$\
+ *             $$ |$$ /  $$ |$$ /  $$ |
+ *             $$ |$$ |  $$ |$$ |  $$ |
+ *             $$ |\$$$$$$  |$$$$$$$  |
+ *             \__| \______/ $$  ____/
+ *                           $$ |
+ *                           $$ |
+ *                           \__|
  */
 
 const TopMenu = styled.div`
@@ -50,45 +51,33 @@ const TopMenu = styled.div`
         props.theme === 'dark'
             ? colors.darkBackgroundSecondary
             : colors.backgroundLight};
-    
-    border: 2px solid ${colors.primary}
-    &:hover {
-        border: 2px solid ${colors.secondary};
-    }
+
 `;
 
 /*
- *               _______   ______   ______   __    __  ________
- *              |       \ |      \ /      \ |  \  |  \|        \
- *              | $$$$$$$\ \$$$$$$|  $$$$$$\| $$  | $$ \$$$$$$$$
- *              | $$__| $$  | $$  | $$ __\$$| $$__| $$   | $$
- *              | $$    $$  | $$  | $$|    \| $$    $$   | $$
- *              | $$$$$$$\  | $$  | $$ \$$$$| $$$$$$$$   | $$
- *              | $$  | $$ _| $$_ | $$__| $$| $$  | $$   | $$
- *              | $$  | $$|   $$ \ \$$    $$| $$  | $$   | $$
- *               \$$   \$$ \$$$$$$  \$$$$$$  \$$   \$$    \$$
  *
- *
+ *           __                   ______    __
+ *          /  |                 /      \  /  |
+ *          $$ |        ______  /$$$$$$  |_$$ |_
+ *          $$ |       /      \ $$ |_ $$// $$   |
+ *          $$ |      /$$$$$$  |$$   |   $$$$$$/
+ *          $$ |      $$    $$ |$$$$/      $$ | __
+ *          $$ |_____ $$$$$$$$/ $$ |       $$ |/  |
+ *          $$       |$$       |$$ |       $$  $$/
+ *          $$$$$$$$/  $$$$$$$/ $$/         $$$$/
  */
 
 const LeftMenu = styled.div`
-    transition: width 0.3s ease-in-out;
-
-    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content;
+    transition: width 0.3s ease-in-out;
 
     background-color: ${(props) =>
         props.theme === 'dark'
             ? colors.darkBackgroundSecondary
-            : colors.backgroundLight};
-
-    border: 2px solid ${colors.primary}
-    &:hover {
-        border: 2px solid ${colors.secondary};
-    }
+            : colors.lightGrey};
 `;
 
 /*
@@ -107,9 +96,11 @@ const Workspace = styled.div`
     flex-direction: column;
     flex: 1;
     height: 100%;
-    border: 2px solid ${colors.secondary};
-    border-radius: 5px;
-    background-color: ${colors.backgroundLight};
+
+    background-color: ${colors.lightGrey};
+
+    border-radius: 12px;
+    padding: 18px;
 `;
 
 const CircuitContainer = styled.div`
@@ -121,11 +112,12 @@ const CircuitContainer = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: ${colors.secondary};
-    opacity: 20%;
+    background-color: ${colors.backgroundLight};
 `;
 
 const CircuitContent = styled.div`
+    border: 2px dashed ${colors.darkGrey};
+
     transform: ${(props) =>
         `translate(${props.offsetX}px, ${props.offsetY}px) scale(${props.zoom})`};
     transform-origin: ${(props) => `${props.originX}% ${props.originY}%`};
@@ -133,6 +125,11 @@ const CircuitContent = styled.div`
     width: 100%;
     height: 100%;
     background-color: ${colors.backgroundLight};
+`;
+
+const CircuitToolbarButtonContainer = styled.div`
+    display: flex;
+    gap: 10px;
 `;
 
 const PlacedItemContainer = styled.div`
@@ -194,7 +191,6 @@ const ImageItem = styled.img`
 
     &:hover {
         border-radius: 20px;
-        border-bottom: 2px solid ${colors.secondary};
     }
 `;
 
@@ -202,26 +198,6 @@ const PlacedImage = styled.img`
     width: 100px;
     height: 80px;
     cursor: grab;
-`;
-
-const TrashBin = styled.div`
-    border: 2px dashed ${colors.primary};
-    border-radius: 10px;
-
-    background-color: ${colors.backgroundLight};
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    color: ${colors.primary};
-
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-    opacity: 0.5;
-    &:hover {
-        opacity: 1;
-    }
 `;
 
 function useNetlist() {
@@ -246,17 +222,15 @@ function CircuitInterface() {
     const [offsetX, setOffsetX] = useState(0); // État pour le déplacement horizontal
     const [offsetY, setOffsetY] = useState(0); // État pour le déplacement vertical
     const [isPanning, setIsPanning] = useState(false); // État pour savoir si on déplace
-    const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 }); // Position précédente de la souris
-    const [isLeftMenuOpen, setLeftMenuOpen] = useState(false);
-    const [isTopMenuOpen, setTopMenuOpen] = useState(false);
+    const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 });
 
     const handleWheel = (e) => {
         e.preventDefault();
         const zoomFactor = 0.1;
         if (e.deltaY < 0) {
-            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3)); // Zoom maximum à 3x
+            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3)); // Zoom max
         } else {
-            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5)); // Zoom minimum à 0.5x
+            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5)); // Zoom min
         }
     };
 
@@ -392,6 +366,37 @@ function CircuitInterface() {
         }
     };
 
+    const topMenuPages = [
+        {
+            name: 'Page 1',
+            content: (
+                <>
+                    <h2>Créé ton circuit</h2>
+                    <Toolbox>
+                        {items.map((item) => (
+                            <ImageItem
+                                key={item.id}
+                                src={item.src}
+                                draggable
+                                onDragStart={(e) =>
+                                    handleDragStartFromToolbox(e, item)
+                                }
+                            />
+                        ))}
+                    </Toolbox>
+                </>
+            ),
+        },
+        {
+            name: 'Page 2',
+            content: <h2>This is Page 2, with more tools!</h2>,
+        },
+        {
+            name: 'Page 3',
+            content: <h2>Explore Page 3 for advanced options!</h2>,
+        },
+    ];
+
     return (
         <>
             <Header />
@@ -421,21 +426,7 @@ function CircuitInterface() {
                 </LeftMenu>
 
                 <MainVerticalContainer>
-                    <TopMenu isOpen={isTopMenuOpen} theme={theme}>
-                        <h2>Créé ton circuit</h2>
-                        <Toolbox>
-                            {items.map((item) => (
-                                <ImageItem
-                                    key={item.id}
-                                    src={item.src}
-                                    draggable
-                                    onDragStart={(e) =>
-                                        handleDragStartFromToolbox(e, item)
-                                    }
-                                />
-                            ))}
-                        </Toolbox>
-                    </TopMenu>
+                    <TabbedMenu pages={topMenuPages} theme={theme} />
 
                     <Workspace
                         onMouseMove={handleMouseMove}
@@ -444,6 +435,18 @@ function CircuitInterface() {
                         onDrop={handleDrop}
                         onDragOver={handleDragOver}
                     >
+                        <CircuitToolbar
+                            zoom={zoom}
+                            setZoom={setZoom}
+                            resetZoomAndPan={resetZoomAndPan}
+                            handleUndo={() =>
+                                console.log('Undo not implemented')
+                            } // Placeholder
+                            handleDropInTrash={(e) =>
+                                console.log('Dropped in trash')
+                            }
+                            handleDragOver={(e) => e.preventDefault()}
+                        />
                         <CircuitContainer
                             onWheel={handleWheel}
                             onMouseDown={handleMouseDown}
@@ -487,37 +490,9 @@ function CircuitInterface() {
                                 ))}
                             </CircuitContent>
                         </CircuitContainer>
-
-                        <div style={{ marginTop: '10px' }}>
-                            <button
-                                onClick={() =>
-                                    setZoom((prev) => Math.min(prev + 0.1, 3))
-                                }
-                            >
-                                Zoom In
-                            </button>
-                            <button
-                                onClick={() =>
-                                    setZoom((prev) => Math.max(prev - 0.1, 0.5))
-                                }
-                            >
-                                Zoom Out
-                            </button>
-                            <button onClick={resetZoomAndPan}>Reset</button>
-                            <button onClick={handleUndo}>
-                                Annuler (Ctrl+Z)
-                            </button>
-                            <TrashBin
-                                onDrop={handleDropInTrash}
-                                onDragOver={handleDragOver}
-                            >
-                                Supprimer
-                            </TrashBin>
-                        </div>
                     </Workspace>
                 </MainVerticalContainer>
             </MainHorizontalContainer>
-            <Footer />
         </>
     );
 }

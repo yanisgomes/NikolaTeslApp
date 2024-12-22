@@ -5,29 +5,6 @@ import colors from './colors.js';
 
 import { createGlobalStyle } from 'styled-components';
 
-// const GlobalStyle = createGlobalStyle`
-//   div {
-//     font-family: 'Trebuchet MS', Helvetica, sans-serif;
-//   }
-//   h1 {
-//     font-family: 'Trebuchet MS', Helvetica, sans-serif;
-//     font-weight: 700;
-//     font-size: 50px;
-//     line-height: 80.25px;
-//     color: ${colors.text};
-//   }
-//   button {
-//     font-family: 'Comportaa', sans-serif;
-//     font-weight: 700;
-//     font-size: 20px;
-//     line-height: 22.3px;
-//     color: #FFFFFF;
-//     border-radius: 20px;
-//     border: none;
-//     background-color: ${colors.primary};
-//
-//   }
-// `;
 const baseFontFamily = 'Montserrat, sans-serif';
 
 const StyledGlobalStyle = createGlobalStyle`
@@ -92,7 +69,6 @@ const StyledGlobalStyle = createGlobalStyle`
         border-radius: 20px;
         border: none;
         background-color: ${colors.primary};
-        padding: 10px 20px;
     }
 `;
 

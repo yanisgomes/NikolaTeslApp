@@ -30,10 +30,9 @@ const StyledImage = styled.img`
 
 const StyledLink = styled(Link)`
     padding: 12px;
-    margin: 5px;
     text-decoration: none;
     font-size: 18px;
-
+    margin-left: 20px;
     color: ${(props) =>
         props.theme === 'light'
             ? colors.darkBackgroundSecondary
@@ -82,7 +81,11 @@ function Header() {
     return (
         <StyledHeader theme={theme}>
             <TitleWrapper style={{ marginRigth: 'auto' }}>
-                <StyledImage src={imgTesla} alt="nikola-tesla-logo" />
+                <StyledImage
+                    src={imgTesla}
+                    alt="nikola-tesla-logo"
+                    onClick={toggleTheme}
+                />
                 <TitleApp theme={theme}>NikolaTeslApp</TitleApp>
             </TitleWrapper>
             <nav>
