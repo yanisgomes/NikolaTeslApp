@@ -59,7 +59,7 @@ function Gallery() {
         // 'http://localhost:8000/freelances'
         // 'http://NikolaTeslApp-backend:3000/galerie'
         // 'http://localhost:9008/galerie' // TODO : Mettre en place un proxy
-        '/api/galerie' // <== Utilisation du proxy
+        '/api/galerie/' // <== Utilisation du proxy
     );
     // const freelancesData = data?.freelancersList || [];
 
@@ -107,11 +107,16 @@ function Gallery() {
                                 <p style={{ margin: '5px 0' }}>
                                     <strong>Date :</strong> {circuit.date}
                                 </p>
-                                {/* <img
-                                    src={circuit.image}
+                                <img
+                                    src={`/api/uploads/${circuit.image}`} // Chemin dynamique pour l'image
                                     alt={circuit.nom}
-                                    style={{ width: '100%', maxWidth: '300px', borderRadius: '5px' }}
-                                /> */}
+                                    style={{
+                                        width: '100%',
+                                        maxWidth: '300px',
+                                        borderRadius: '5px',
+                                        objectFit: 'cover',
+                                    }}
+                                />
                                 <p style={{ margin: '5px 0' }}>
                                     <strong>Netlist :</strong> {circuit.netlist}
                                 </p>
