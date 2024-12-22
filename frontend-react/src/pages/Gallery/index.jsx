@@ -1,5 +1,5 @@
 import { Loader } from '../../utils/Loader.js';
-import Card from '../../components/Card/index.jsx';
+// import Card from '../../components/Card/index.jsx';
 import DefaultPicture from '../../assets/profile.jpg';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors.js';
@@ -54,11 +54,55 @@ const StyledImage = styled.img`
     border-radius: 10%;
 `;
 
+// Ajout de Hugo : 
+const GridContainer = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background-color: #f5f5f5;
+`;
+
+const Card = styled.div`
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    background: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+
+    &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+    }
+`;
+
+const Image = styled.img`
+    display: block;
+    max-width: 100%;
+    height: auto;
+    max-height: 300px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+`;
+
+
+const CircuitName = styled.h3`
+    margin: 10px 0;
+    color: #2c3e50;
+`;
+
+const CircuitDetails = styled.p`
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+`;
+
+
+
 function Gallery() {
     const { data, isLoading, error } = useFetch(
         // 'http://localhost:8000/freelances'
-        // 'http://NikolaTeslApp-backend:3000/galerie'
-        // 'http://localhost:9008/galerie' // TODO : Mettre en place un proxy
         '/api/galerie/' // <== Utilisation du proxy
     );
     // const freelancesData = data?.freelancersList || [];
@@ -77,86 +121,46 @@ function Gallery() {
 
     // Hugo : Modification de la page pour afficher les circuits de la galerie
     return (
-        <MainContainer>
-            <MainText>Voici la galerie de circuits</MainText>
-            <SubText>Vous pouvez voir les circuits disponibles</SubText>
+        <div>
+            <h1 style={{ textAlign: 'center', color: '#34495e' }}>Galerie de Circuits</h1>
+            <p style={{ textAlign: 'center', color: '#7f8c8d' }}>
+                Parcourez les circuits disponibles dans la collection.
+            </p>
 
             {isLoading ? (
-                <Loader />
-            ) : (
-                <div>
-                    <ul style={{ listStyleType: 'none', padding: 0 }}>
-                        {data.map((circuit) => (
-                            <li
-                                key={circuit.id}
-                                style={{
-                                    border: '1px solid #ddd',
-                                    marginBottom: '10px',
-                                    padding: '10px',
-                                    borderRadius: '5px',
-                                    backgroundColor: '#f9f9f9',
-                                }}
-                            >
-                                <h3 style={{ margin: '0 0 10px' }}>{circuit.nom}</h3>
-                                <p style={{ margin: '5px 0' }}>
-                                    <strong>Description :</strong> {circuit.description}
-                                </p>
-                                <p style={{ margin: '5px 0' }}>
-                                    <strong>Auteur :</strong> {circuit.auteur}
-                                </p>
-                                <p style={{ margin: '5px 0' }}>
-                                    <strong>Date :</strong> {circuit.date}
-                                </p>
-                                <img
-                                    src={`/api/uploads/${circuit.image}`} // Chemin dynamique pour l'image
-                                    alt={circuit.nom}
-                                    style={{
-                                        width: '100%',
-                                        maxWidth: '300px',
-                                        borderRadius: '5px',
-                                        objectFit: 'cover',
-                                    }}
-                                />
-                                <p style={{ margin: '5px 0' }}>
-                                    <strong>Netlist :</strong> {circuit.netlist}
-                                </p>
-                            </li>
-                        ))}
-                    </ul>
+                <div style={{ textAlign: 'center', marginTop: '50px' }}>
+                    <Loader /> {/* Assurez-vous que Loader est défini */}
                 </div>
-            )}
-        </MainContainer>
-    );
-
-
-    {/* return (
-        <MainContainer>
-            <MainText>Trouver vos prestataires</MainText>
-            <SubText>Nous réunissons les meilleurs profils pour vous.</SubText>
-
-            <BackgroundText>Gallery</BackgroundText>
-            {isLoading ? (
-                <Loader />
             ) : (
-                <CardsContainer>
-                    {freelancesData.map(({ id, name, job, picture }, index) =>
-                        isLoading ? (
-                            <Loader />
-                        ) : (
-                            <Link key={`freelance-${id}`} to={`/profile/${id}`}>
-                                <Card
-                                    key={`${id}-${index}`}
-                                    label={job}
-                                    picture={picture}
-                                    title={name}
-                                />
-                            </Link>
-                        )
-                    )}
-                </CardsContainer>
+                <GridContainer>
+                    {data.map((circuit) => (
+                        <Card key={circuit.id}>
+                            <Image
+                                src={`/api/uploads/${circuit.image}`} // Chemin dynamique pour l'image
+                                alt={circuit.nom}
+                            />
+                            <CircuitName>{circuit.nom}</CircuitName>
+                            <CircuitDetails>
+                                <strong>Description :</strong> {circuit.description}
+                            </CircuitDetails>
+                            <CircuitDetails>
+                                <strong>Auteur :</strong> {circuit.auteur}
+                            </CircuitDetails>
+                            <CircuitDetails>
+                                <strong>Date :</strong> {circuit.date}
+                            </CircuitDetails>
+                            <CircuitDetails>
+                                <strong>Netlist :</strong>
+                                <pre style={{ background: '#f9f9f9', padding: '10px', borderRadius: '5px' }}>
+                                    {circuit.netlist}
+                                </pre>
+                            </CircuitDetails>
+                        </Card>
+                    ))}
+                </GridContainer>
             )}
-        </MainContainer>
-    ); */}
+        </div>
+    );
 }
 
 export default Gallery;
