@@ -7,3 +7,4 @@ python-dotenv
 numpy
 scipy
 matplotlib
+gunicorn

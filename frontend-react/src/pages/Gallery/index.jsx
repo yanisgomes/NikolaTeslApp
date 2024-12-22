@@ -83,6 +83,7 @@ const Image = styled.img`
     height: auto;
     max-height: 300px;
     border-radius: 10px;
+    margin: 0 auto;
     margin-bottom: 15px;
 `;
 
@@ -135,11 +136,11 @@ function Gallery() {
                 <GridContainer>
                     {data.map((circuit) => (
                         <Card key={circuit.id}>
+                            <CircuitName>{circuit.nom}</CircuitName>
                             <Image
                                 src={`/api/uploads/${circuit.image}`} // Chemin dynamique pour l'image
                                 alt={circuit.nom}
                             />
-                            <CircuitName>{circuit.nom}</CircuitName>
                             <CircuitDetails>
                                 <strong>Description :</strong> {circuit.description}
                             </CircuitDetails>

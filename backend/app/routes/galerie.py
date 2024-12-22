@@ -21,6 +21,7 @@ def get_galerie():
         for circuit in circuits
     ])
 
+
 @galerie_bp.route('/', methods=['POST'])
 def add_circuit():
     data = request.json
@@ -55,14 +56,18 @@ def add_circuit():
         }
     }), 201
 
+
 @galerie_bp.route('/<int:circuit_id>', methods=['DELETE'])
 def delete_circuit(circuit_id):
     circuit = Circuit.query.get(circuit_id)
     if circuit is None:
         return jsonify({"message": "Circuit introuvable."}), 404
+    
     db.session.delete(circuit)
     db.session.commit()
+
     return jsonify({"message": "Circuit supprimé avec succès."}), 200
+
 
 @galerie_bp.route('/<int:circuit_id>', methods=['PUT'])
 def update_circuit(circuit_id):
@@ -71,12 +76,31 @@ def update_circuit(circuit_id):
         return jsonify({"message": "Circuit introuvable."}), 404
     
     data = request.json
-    circuit.nom = data.get('nom', circuit.nom)
-    circuit.description = data.get('description', circuit.description)
-    circuit.image = data.get('image', circuit.image)
-    circuit.auteur = data.get('auteur', circuit.auteur)
-    circuit.date = datetime.strptime(data['date'], '%Y-%m-%d')
-    circuit.netlist = data.get('netlist', circuit.netlist)
+    if not data:
+        return jsonify({"message": "Les données doivent être au format JSON."}), 400
+
+    if 'nom' in data:
+        circuit.nom = data.get('nom', circuit.nom)
+    if 'description' in data:
+        circuit.description = data.get('description', circuit.description)
+    if 'auteur' in data:
+        circuit.auteur = data.get('auteur', circuit.auteur)
+    if 'netlist' in data:
+        circuit.netlist = data.get('netlist', circuit.netlist)
+    circuit.date = datetime.now(timezone.utc)
+
     
     db.session.commit()
-    return jsonify({"message": "Circuit modifié avec succès."}), 200
+
+    return jsonify({
+        "message": "Circuit modifié avec succès.",
+        "circuit": {
+            "id": circuit.id,
+            "nom": circuit.nom,
+            "description": circuit.description,
+            "image": circuit.image,
+            "auteur": circuit.auteur,
+            "date": circuit.date.strftime('%Y-%m-%d'),
+            "netlist": circuit.netlist
+        }
+    }), 200
