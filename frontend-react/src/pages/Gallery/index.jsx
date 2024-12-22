@@ -59,7 +59,7 @@ function Gallery() {
         // 'http://localhost:8000/freelances'
         // 'http://NikolaTeslApp-backend:3000/galerie'
         // 'http://localhost:9008/galerie' // TODO : Mettre en place un proxy
-        '/api/galerie' // <== Utilisation du proxy
+        '/api/galerie/' // <== Utilisation du proxy
     );
     // const freelancesData = data?.freelancersList || [];
 
