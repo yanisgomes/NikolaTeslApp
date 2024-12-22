@@ -4,13 +4,19 @@ import { ThemeContext } from '../../utils/context/';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
-import imgTesla from '../../assets/nikola-tesla-cartoon.png';
+import imgTesla from '../../assets/logo_lissajous.png';
 
 const StyledHeader = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 5px 0;
+
+    border-bottom: 2px solid
+        ${(props) =>
+            props.theme === 'dark'
+                ? colors.lightBackground
+                : colors.darkBackground};
 `;
 
 const StyledImage = styled.img`
@@ -49,7 +55,7 @@ const ButtonWrapper = styled.div`
 function Header() {
     const { theme, toggleTheme } = useContext(ThemeContext);
     return (
-        <StyledHeader>
+        <StyledHeader theme={theme}>
             <TitleWrapper style={{ marginRigth: 'auto' }}>
                 <StyledImage src={imgTesla} alt="nikola-tesla-logo" />
                 <h2
@@ -66,9 +72,9 @@ function Header() {
             <nav>
                 <ButtonWrapper>
                     <StyledLink to="/">Accueil</StyledLink>
-                    <StyledLink to="/freelances/">Galerie</StyledLink>
+                    <StyledLink to="/galerie/">Galerie</StyledLink>
                     {/*<StyledLink to="/freelances">Profils</StyledLink>*/}
-                    <StyledLink to="/survey/1" $isFullLink>
+                    <StyledLink to="/circuit/" $isFullLink>
                         Créer un circuit
                     </StyledLink>
                 </ButtonWrapper>

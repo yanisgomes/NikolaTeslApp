@@ -1,5 +1,9 @@
+import React, { useContext } from 'react';
+import { ThemeContext } from '../../utils/context/';
 import imgHome from '../../assets/fonction-transfert-home.png';
 import imgTesla from '../../assets/nikola-tesla-cartoon.png';
+import Footer from '../../components/Footer/index.jsx';
+import Header from '../../components/Header/index.jsx';
 import colors from '../../utils/style/colors.js';
 import styled from 'styled-components';
 
@@ -62,30 +66,35 @@ const StyledImageTesla = styled.img`
 `;
 
 function App() {
+    const { theme } = useContext(ThemeContext);
     return (
-        <HorizontalContainer>
-            <VerticalContainer>
-                <StyledTitle>Déclenchez l'éclair de génie !</StyledTitle>
-                <StyledList>
-                    <li>
-                        Explorez les phénomènes électriques grâce à une
-                        interface interactive et intuitive qui donne vie aux
-                        concepts.
-                    </li>
-                    <li>
-                        Plongez au cœur des circuits électroniques pour en
-                        comprendre la phyique
-                    </li>
-                    <li>
-                        Concevez vos propres circuits et obtenez leur
-                        formalisation mathématique détaillées
-                    </li>
-                </StyledList>
-                <StyledImageTesla src={imgTesla} alt="404" />
-                <StyledButton>Créer un nouveau circuit</StyledButton>
-            </VerticalContainer>
-            <StyledImageMain src={imgHome} alt="404" />
-        </HorizontalContainer>
+        <>
+            <Header />
+            <HorizontalContainer>
+                <VerticalContainer>
+                    <StyledTitle>Déclenchez l'éclair de génie !</StyledTitle>
+                    <StyledList>
+                        <li>
+                            Explorez les phénomènes électriques grâce à une
+                            interface interactive et intuitive qui donne vie aux
+                            concepts.
+                        </li>
+                        <li>
+                            Plongez au cœur des circuits électroniques pour en
+                            comprendre la phyique
+                        </li>
+                        <li>
+                            Concevez vos propres circuits et obtenez leur
+                            formalisation mathématique détaillées
+                        </li>
+                    </StyledList>
+                    <StyledImageTesla src={imgTesla} alt="404" />
+                    <StyledButton>Créer un nouveau circuit</StyledButton>
+                </VerticalContainer>
+                <StyledImageMain src={imgHome} alt="404" />
+            </HorizontalContainer>
+            <Footer />
+        </>
     );
 }
 

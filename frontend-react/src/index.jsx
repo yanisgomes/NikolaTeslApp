@@ -2,16 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import Survey from './pages/Survey/';
+import Circuit from './pages/Circuit';
 import Header from './components/Header/';
 import Footer from './components/Footer/';
 import Error from './components/Error/';
-import Results from './pages/Results/';
 import Gallery from './pages/Gallery';
 import GlobalStyle from './utils/style/GlobalStyle';
 import ProfileContainer from './components/ProfileContainer/';
 
-import { ThemeProvider, SurveyProvider } from './utils/context/';
+import { ThemeProvider, CircuitProvider } from './utils/context/';
 
 import styled from 'styled-components';
 
@@ -24,31 +23,30 @@ const MainContainer = styled.div`
 `;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+// Render the React application
 root.render(
     <React.StrictMode>
         <Router>
             <ThemeProvider>
-                <SurveyProvider>
+                <CircuitProvider>
                     <MainContainer>
                         <GlobalStyle />
-                        <Header />
+
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="*" element={<Error />} />
+                            <Route path="/galerie/" element={<Gallery />} />
                             <Route
-                                path="/survey/:questionNumber"
-                                element={<Survey />}
+                                path="/circuit/" //path="/circuit/"
+                                element={<Circuit />}
                             />
-                            <Route path="/results/" element={<Results />} />
-                            <Route path="/freelances/" element={<Gallery />} />
                             <Route
                                 path="/profile/:id"
                                 element={<ProfileContainer />}
                             />
                         </Routes>
-                        <Footer />
                     </MainContainer>
-                </SurveyProvider>
+                </CircuitProvider>
             </ThemeProvider>
         </Router>
     </React.StrictMode>

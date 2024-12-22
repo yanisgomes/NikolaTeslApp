@@ -28,26 +28,23 @@ import { createGlobalStyle } from 'styled-components';
 //
 //   }
 // `;
-//
+const baseFontFamily = 'Montserrat, sans-serif';
 
 const StyledGlobalStyle = createGlobalStyle`
     * {
-        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+        font-family: ${baseFontFamily};
     }
  
     body {
-        /* Ici cette syntaxe revient au même que
-        background-color: ${({ isDarkMode }) =>
-            isDarkMode ? colors.darkBackground : colors.lightBackground}; */
         margin: 0;  
     }
     div {
-        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+        font-family: ${baseFontFamily};
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     h1 {
-        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+        font-family: ${baseFontFamily};
         font-weight: 700;
         font-size: 50px;
         line-height: 80.25px;
@@ -57,7 +54,7 @@ const StyledGlobalStyle = createGlobalStyle`
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     h2 {
-        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+        font-family: ${baseFontFamily};
         font-weight: 700;
         font-size: 30px;
         color: ${({ isDarkMode }) =>
@@ -66,21 +63,21 @@ const StyledGlobalStyle = createGlobalStyle`
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     h3 {
-        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+        font-family: ${baseFontFamily};
         color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkText : colors.lightText};
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     span {
-        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+        font-family: ${baseFontFamily};
         color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkText : colors.lightText};
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
-        li {
-        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+    li {
+        font-family: ${baseFontFamily};
         color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkText : colors.lightText};
         background-color: ${({ isDarkMode }) =>
@@ -97,7 +94,6 @@ const StyledGlobalStyle = createGlobalStyle`
         background-color: ${colors.primary};
         padding: 10px 20px;
     }
-}
 `;
 
 function GlobalStyle() {
