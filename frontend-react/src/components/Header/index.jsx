@@ -20,7 +20,6 @@ const StyledHeader = styled.div`
 `;
 
 const StyledImage = styled.img`
-    object-fit: cover;
     border-radius: 5%;
     width: 10%;
     transition: transform 0.2s ease-in-out;
@@ -30,13 +29,32 @@ const StyledImage = styled.img`
 `;
 
 const StyledLink = styled(Link)`
-    padding: 15px;
-    color: #8186a0;
+    padding: 12px;
+    margin: 5px;
     text-decoration: none;
     font-size: 18px;
+
+    color: ${(props) =>
+        props.theme === 'light'
+            ? colors.darkBackgroundSecondary
+            : colors.backgroundLight};
+
+    &:hover {
+        color: ${colors.secondary};
+    }
+
     ${(props) =>
         props.$isFullLink &&
-        `color: white; border-radius: 30px; background-color: #5843E4;`}
+        `color: white;
+        border-radius: 30px;
+        background-color: ${colors.primary};
+        text-decoration: none;
+
+        &:hover {
+            color: white;
+            background-color: ${colors.secondary}
+        }
+        `}
 `;
 
 const TitleWrapper = styled.div`
@@ -44,6 +62,13 @@ const TitleWrapper = styled.div`
     align-items: center;
     gap: 10px;
     width: fit-content;
+`;
+
+const TitleApp = styled.h2`
+    color: ${(props) =>
+        props.theme === 'light'
+            ? colors.darkBackgroundSecondary
+            : colors.backgroundLight};
 `;
 
 const ButtonWrapper = styled.div`
@@ -58,23 +83,20 @@ function Header() {
         <StyledHeader theme={theme}>
             <TitleWrapper style={{ marginRigth: 'auto' }}>
                 <StyledImage src={imgTesla} alt="nikola-tesla-logo" />
-                <h2
-                    style={{
-                        color:
-                            theme === 'light'
-                                ? colors.darkBackground
-                                : colors.lightBackground,
-                    }}
-                >
-                    NikolaTeslApp
-                </h2>
+                <TitleApp theme={theme}>NikolaTeslApp</TitleApp>
             </TitleWrapper>
             <nav>
                 <ButtonWrapper>
-                    <StyledLink to="/">Accueil</StyledLink>
-                    <StyledLink to="/galerie/">Galerie</StyledLink>
-                    {/*<StyledLink to="/freelances">Profils</StyledLink>*/}
-                    <StyledLink to="/circuit/" $isFullLink>
+                    <StyledLink to="/" theme={theme}>
+                        Accueil
+                    </StyledLink>
+                    <StyledLink to="/galerie/" theme={theme}>
+                        Galerie
+                    </StyledLink>
+                    <StyledLink to="/freelances" theme={theme}>
+                        Profils
+                    </StyledLink>
+                    <StyledLink to="/circuit/" theme={theme} $isFullLink>
                         Créer un circuit
                     </StyledLink>
                 </ButtonWrapper>

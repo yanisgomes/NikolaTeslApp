@@ -84,7 +84,7 @@ const StyledGlobalStyle = createGlobalStyle`
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     button {
-        font-family: 'Comportaa', sans-serif;
+        font-family: ${baseFontFamily};
         font-weight: 700;
         font-size: 20px;
         line-height: 22.3px;
