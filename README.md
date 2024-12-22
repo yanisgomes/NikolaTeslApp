@@ -37,4 +37,4 @@
 
 ### Intérêt du déploiement Docker  
 
-Le déploiement sur Docker simplifie la gestion de l'environnement d'exécution. Il permet de déployer l'application sans avoir à gérer Yarn ou pip, réduisant ainsi la complexité et les erreurs liées à la gestion des dépendances.  
+Le déploiement sur Docker simplifie la gestion de l'environnement d'exécution. Il permet de déployer l'application sans avoir à gérer Yarn ou pip, réduisant ainsi la complexité et les erreurs liées à la gestion des dépendances.
