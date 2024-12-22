@@ -435,12 +435,6 @@ function CircuitInterface() {
                                 />
                             ))}
                         </Toolbox>
-                        <TrashBin
-                            onDrop={handleDropInTrash}
-                            onDragOver={handleDragOver}
-                        >
-                            Supprimer
-                        </TrashBin>
                     </TopMenu>
 
                     <Workspace
@@ -513,6 +507,12 @@ function CircuitInterface() {
                             <button onClick={handleUndo}>
                                 Annuler (Ctrl+Z)
                             </button>
+                            <TrashBin
+                                onDrop={handleDropInTrash}
+                                onDragOver={handleDragOver}
+                            >
+                                Supprimer
+                            </TrashBin>
                         </div>
                     </Workspace>
                 </MainVerticalContainer>

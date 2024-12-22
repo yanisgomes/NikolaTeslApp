@@ -1,35 +1,63 @@
-import image404 from '../../assets/image404.png';
+import { useContext } from 'react';
+import { ThemeContext } from '../../utils/context/';
+
+import { Link } from 'react-router-dom';
+
 import colors from '../../utils/style/colors.js';
 import styled from 'styled-components';
 import Header from '../Header/index.jsx';
 
+import image404 from '../../assets/logo_lissajous.png';
+
 const ErrorContainer = styled.div`
     justify-content: center;
     align-items: center;
-    display: flex;
-    display-direction: column;
-
-    background-color: ${colors.backgroundLight};
-    margin: 23px 63px;
-    padding: 50px;
+    flex: 1;
 `;
 
 const StyledSpan = styled.span`
-    font-family: 'Comportaa', sans-serif;
-    font-weight: 700;
-    font-size: 20px;
-    line-height: 22.3px;
     color: ${colors.text};
 `;
 
+const StyledLink = styled(Link)`
+    padding: 12px;
+    margin: 5px;
+    text-decoration: none;
+    font-size: 18px;
+
+    color: ${(props) =>
+        props.theme === 'light'
+            ? colors.darkBackgroundSecondary
+            : colors.backgroundLight};
+
+    &:hover {
+        color: ${colors.secondary};
+    }
+
+    ${(props) =>
+        props.$isFullLink &&
+        `color: white;
+        border-radius: 30px;
+        background-color: ${colors.primary};
+        text-decoration: none;
+
+        &:hover {
+            color: white;
+            background-color: ${colors.secondary}
+        }
+        `}
+`;
+
 function Error() {
+    const { theme, toggleTheme } = useContext(ThemeContext);
     return (
         <>
             <Header />
             <ErrorContainer>
-                <StyledSpan>Oups...</StyledSpan>
-                <img src={image404} alt="404" />
-                <StyledSpan>Il semblerait qu'il y ait un problème</StyledSpan>
+                <StyledSpan>Error 404</StyledSpan>
+                <StyledLink to="/" theme={theme}>
+                    Retourner sur NikolaTeslApp
+                </StyledLink>
             </ErrorContainer>
         </>
     );
