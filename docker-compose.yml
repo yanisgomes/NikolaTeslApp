@@ -1,34 +1,38 @@
-version: '3.8'
-
 services:
-  backend:
-    image: python:3.9
+  backend-python:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: NikolaTeslApp-backend
-    ports:
-      - "9008:3000"
-    volumes:
-      - ./backend:/app
-    working_dir: /app
-    command: sh -c "pip install -r requirements.txt && python app.py"
+    # ports:
+    #   - "9008:3000"
     networks:
-      - nikolapp-network
-#      - reverse-proxy-network
+      - NikolaTeslApp-network
+      # - reverse-proxy-network
 
   react-app:
     build:
       context: ./frontend-react
       dockerfile: Dockerfile
     container_name: NikolaTeslApp-frontend
-    ports:
-      - "9007:80"
     networks:
-      - nikolapp-network
-#      - reverse-proxy-network
-    # depends_on:
-    #   - backend  # Assurez-vous que le backend est démarré avant l'application React
+      - NikolaTeslApp-network
+    #  - reverse-proxy-network
+    depends_on:
+      - backend-python
+
+  proxy:
+    image: nginx:alpine
+    container_name: NikolaTeslApp-proxy
+    ports:
+      - "9011:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - NikolaTeslApp-network
 
 networks:
-  nikolapp-network:
-    driver: bridge  # Réseau interne propre à ce projet
+  NikolaTeslApp-network:
+    driver: bridge
 #  reverse-proxy-network:
 #    external: true  # Réseau partagé avec le reverse proxy
