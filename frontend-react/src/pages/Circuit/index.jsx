@@ -97,10 +97,16 @@ const Workspace = styled.div`
     flex: 1;
     height: 100%;
 
-    background-color: ${colors.lightGrey};
+    background: ${(props) =>
+        props.theme === 'dark'
+            ? colors.backgroundLight
+            : colors.backgroundLight};
 
-    border-radius: 12px;
-    padding: 18px;
+    border: 1px solid
+        ${(props) =>
+            props.theme === 'dark' ? colors.darkGrey : colors.lightGrey2};
+    border-radius: 16px;
+    padding: 8px;
 `;
 
 const CircuitContainer = styled.div`
@@ -368,7 +374,7 @@ function CircuitInterface() {
 
     const topMenuPages = [
         {
-            name: 'Page 1',
+            name: 'Composants',
             content: (
                 <>
                     <h2>Créé ton circuit</h2>
@@ -388,20 +394,20 @@ function CircuitInterface() {
             ),
         },
         {
-            name: 'Page 2',
+            name: 'Réponse temporelle',
             content: <h2>This is Page 2, with more tools!</h2>,
         },
         {
-            name: 'Page 3',
+            name: 'Réponse fréquentielle',
             content: <h2>Explore Page 3 for advanced options!</h2>,
         },
     ];
 
-    return (
-        <>
-            <Header />
-            <MainHorizontalContainer>
-                <LeftMenu theme={theme}>
+    const leftMenuPages = [
+        {
+            name: 'Résolution analytique',
+            content: (
+                <>
                     <h3>Informations</h3>
                     <p>Ajoutez ici des éléments ou des options.</p>
 
@@ -423,7 +429,20 @@ function CircuitInterface() {
                             ))}
                         </ul>
                     </div>
-                </LeftMenu>
+                </>
+            ),
+        },
+        {
+            name: 'Nikola',
+            content: <h2>This is Page 2, with more tools!</h2>,
+        },
+    ];
+
+    return (
+        <>
+            <Header />
+            <MainHorizontalContainer>
+                <TabbedMenu pages={leftMenuPages} theme={theme} />
 
                 <MainVerticalContainer>
                     <TabbedMenu pages={topMenuPages} theme={theme} />

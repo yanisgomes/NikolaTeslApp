@@ -14,7 +14,7 @@ const TabbedMenuWrapper = styled.div`
     border: 1px solid
         ${(props) =>
             props.theme === 'dark' ? colors.darkGrey : colors.lightGrey2};
-    border-radius: 24px;
+    border-radius: 16px;
     overflow: hidden;
 `;
 
@@ -53,7 +53,7 @@ const Tab = styled.button`
 `;
 
 const Content = styled.div`
-    padding: 20px;
+    padding: 16px;
     background-color: ${(props) =>
         props.theme === 'dark'
             ? colors.backgroundLight
