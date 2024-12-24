@@ -3,9 +3,14 @@ import { Loader } from '../../utils/Loader.js';
 import DefaultPicture from '../../assets/profile.jpg';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors.js';
+
 import { useState, useEffect } from 'react';
 import { useFetch } from '../../utils/hooks/index.js';
+
 import { Link } from 'react-router-dom';
+
+import Header from '../../components/Header/index.jsx';
+import Footer from '../../components/Footer/index.jsx';
 
 const MainContainer = styled.div`
     display: flex;
@@ -54,7 +59,7 @@ const StyledImage = styled.img`
     border-radius: 10%;
 `;
 
-// Ajout de Hugo : 
+// Ajout de Hugo :
 const GridContainer = styled.div`
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -87,7 +92,6 @@ const Image = styled.img`
     margin-bottom: 15px;
 `;
 
-
 const CircuitName = styled.h3`
     margin: 10px 0;
     color: #2c3e50;
@@ -98,8 +102,6 @@ const CircuitDetails = styled.p`
     font-size: 14px;
     color: #555;
 `;
-
-
 
 function Gallery() {
     const { data, isLoading, error } = useFetch(
@@ -117,13 +119,21 @@ function Gallery() {
     // });
 
     if (error) {
-        return <span>Il y a un problème</span>;
+        return (
+            <>
+                <Header />
+                <span>Il y a un problème</span>
+                <Footer />
+            </>
+        );
     }
 
     // Hugo : Modification de la page pour afficher les circuits de la galerie
     return (
         <div>
-            <h1 style={{ textAlign: 'center', color: '#34495e' }}>Galerie de Circuits</h1>
+            <h1 style={{ textAlign: 'center', color: '#34495e' }}>
+                Galerie de Circuits
+            </h1>
             <p style={{ textAlign: 'center', color: '#7f8c8d' }}>
                 Parcourez les circuits disponibles dans la collection.
             </p>
@@ -142,7 +152,8 @@ function Gallery() {
                                 alt={circuit.nom}
                             />
                             <CircuitDetails>
-                                <strong>Description :</strong> {circuit.description}
+                                <strong>Description :</strong>{' '}
+                                {circuit.description}
                             </CircuitDetails>
                             <CircuitDetails>
                                 <strong>Auteur :</strong> {circuit.auteur}
@@ -152,7 +163,13 @@ function Gallery() {
                             </CircuitDetails>
                             <CircuitDetails>
                                 <strong>Netlist :</strong>
-                                <pre style={{ background: '#f9f9f9', padding: '10px', borderRadius: '5px' }}>
+                                <pre
+                                    style={{
+                                        background: '#f9f9f9',
+                                        padding: '10px',
+                                        borderRadius: '5px',
+                                    }}
+                                >
                                     {circuit.netlist}
                                 </pre>
                             </CircuitDetails>

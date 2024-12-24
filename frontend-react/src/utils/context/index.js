@@ -15,17 +15,17 @@ export const ThemeProvider = ({ children }) => {
     );
 };
 
-export const SurveyContext = createContext();
+export const CircuitContext = createContext();
 
-export const SurveyProvider = ({ children }) => {
+export const CircuitProvider = ({ children }) => {
     const [answers, setAnswers] = useState({});
     const saveAnswers = (newAnswers) => {
         setAnswers({ ...answers, ...newAnswers });
     };
 
     return (
-        <SurveyContext.Provider value={{ answers, saveAnswers }}>
+        <CircuitContext.Provider value={{ answers, saveAnswers }}>
             {children}
-        </SurveyContext.Provider>
+        </CircuitContext.Provider>
     );
 };
