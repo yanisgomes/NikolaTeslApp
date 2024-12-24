@@ -14,21 +14,23 @@ import TabbedMenu from '../../components/TabbedMenu/';
 import CircuitToolbar from '../../components/CircuitToolbar';
 import ChatInterface from '../../components/ChatInterface';
 
+import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
+
+/********************************************
+ *           STYLED COMPONENTS
+ ********************************************/
 const MainHorizontalContainer = styled.div`
     display: flex;
     flex-direction: row;
     flex: 1;
-
     gap: 24px;
     margin: 20px 0;
 `;
 
 const LeftMenu = styled.div`
-    flex: 0 0 40%; /* Ensures the LeftMenu occupies 30% of the container */
-
-    max-width: 500px; /* Optional: Limit maximum width */
+    flex: 0 0 40%;
+    max-width: 500px;
     align-self: stretch;
-
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -47,12 +49,10 @@ const Workspace = styled.div`
     flex-direction: column;
     flex: 1;
     min-height: 60%;
-
     background: ${(props) =>
         props.theme === 'dark'
             ? colors.backgroundLight
             : colors.backgroundLight};
-
     border: 1px solid
         ${(props) =>
             props.theme === 'dark' ? colors.darkGrey : colors.lightGrey2};
@@ -74,7 +74,6 @@ const CircuitContainer = styled.div`
 
 const CircuitContent = styled.div`
     border: 2px dashed ${colors.darkGrey};
-
     transform: ${(props) =>
         `translate(${props.offsetX}px, ${props.offsetY}px) scale(${props.zoom})`};
     transform-origin: ${(props) => `${props.originX}% ${props.originY}%`};
@@ -94,26 +93,36 @@ const PlacedItemContainer = styled.div`
     transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
-    &:hover {
-        border: 2px dashed ${colors.secondary};
-        border-radius: 10px;
-        color: white;
-    }
+
+    /* Exemple de surlignage dynamique */
+    ${({ isSelected, isHovered }) => {
+        if (isSelected) {
+            return `
+                border: 2px solid #ff5555; /* Rouge, par exemple */
+                border-radius: 10px;
+            `;
+        } else if (isHovered) {
+            return `
+                border: 2px dashed #ffaa00; /* Orange en pointillés */
+                border-radius: 10px;
+            `;
+        }
+        return '';
+    }}
 `;
 
 const PoleButton = styled.button`
     background-color: ${colors.primary};
-
     border-radius: 50%;
     width: 20px;
     height: 20px;
-
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
     color: ${colors.primary};
+
     &:hover {
         background-color: ${colors.secondary};
         color: white;
@@ -123,10 +132,8 @@ const PoleButton = styled.button`
 const Toolbox = styled.div`
     display: flex;
     justify-content: center;
-
     border: 2px solid ${colors.primary};
     border-radius: 10px;
-
     padding: 15px;
     gap: 5px;
 
@@ -138,10 +145,8 @@ const Toolbox = styled.div`
 const ImageItem = styled.img`
     width: 100px;
     height: 50px;
-
     cursor: grab;
     user-select: none;
-
     background-color: ${colors.backgroundLight};
     border-radius: 10px;
     padding 20px;
@@ -157,6 +162,9 @@ const PlacedImage = styled.img`
     cursor: grab;
 `;
 
+/********************************************
+ *                 HOOKS
+ ********************************************/
 function useNetlist() {
     const [netlist, setNetlist] = useState([]);
 
@@ -173,8 +181,15 @@ function useNetlist() {
     return { netlist, addComponent, removeComponentById, setNetlist };
 }
 
+/********************************************
+ *          COMPOSANT PRINCIPAL
+ ********************************************/
 function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
+
+    /********************************************
+     *        ÉTATS DU ZOOM + PAN
+     ********************************************/
     const [zoom, setZoom] = useState(1);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
@@ -216,30 +231,71 @@ function CircuitInterface() {
         setOffsetY(0);
     };
 
+    /********************************************
+     *        ÉTAT DE NOTRE NETLIST
+     ********************************************/
     const { netlist, addComponent, removeComponentById, setNetlist } =
         useNetlist();
+
+    // Valeurs par défaut (au choix) pour R, L, C :
+    const defaultValues = {
+        resistance: 1000, // 1 kΩ
+        bobine: 0.001, // 1 mH
+        condensateur: 0.000001, // 1 µF
+    };
+
+    /********************************************
+     *  ITEMS DISPONIBLES DANS LA TOOLBOX
+     ********************************************/
     const [items] = useState([
         { id: 1, src: item1, type: 'resistance', symbole: 'R' },
         { id: 2, src: item2, type: 'bobine', symbole: 'L' },
         { id: 3, src: item3, type: 'condensateur', symbole: 'C' },
     ]);
 
+    /********************************************
+     *  GESTION DES COMPOSANTS PLACÉS (Workspace)
+     ********************************************/
     const [placedItems, setPlacedItems] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
     const [history, setHistory] = useState([]);
 
+    // Sauvegarde de l’historique
     const saveHistory = () => {
         setHistory((prev) => [...prev, [...placedItems]]);
     };
 
+    /********************************************
+     *   SÉLECTION / SURVOL GLOBAUX (2-WAY)
+     ********************************************/
+    const [selectedItemId, setSelectedItemId] = useState(null);
+    const [hoveredItemId, setHoveredItemId] = useState(null);
+
+    // Quand on veut sélectionner un composant, on met à jour le state parent :
+    const handleSelectItem = (id) => {
+        setSelectedItemId(id);
+    };
+
+    // Quand on survole un composant :
+    const handleHoverItem = (id) => {
+        setHoveredItemId(id);
+    };
+    // Quand on arrête de le survoler :
+    const handleUnhoverItem = () => {
+        setHoveredItemId(null);
+    };
+
+    /********************************************
+     *   GESTION DU DRAG & DROP
+     ********************************************/
     const handleDrop = (e) => {
         e.preventDefault();
         const workspaceBounds = e.target.getBoundingClientRect();
         const x = (e.clientX - workspaceBounds.left) / zoom;
         const y = (e.clientY - workspaceBounds.top) / zoom;
-        const idplus = null;
-        const idmoins = null;
+
         if (draggingItem) {
+            // On déplace un item déjà placé
             saveHistory();
             setPlacedItems((prev) =>
                 prev.map((item) =>
@@ -248,10 +304,13 @@ function CircuitInterface() {
             );
             setDraggingItem(null);
         } else {
+            // On dépose un nouvel item depuis la toolbox
             const draggedItem = JSON.parse(
                 e.dataTransfer.getData('text/plain')
             );
             saveHistory();
+
+            // Créer l'élément pour le workspace
             const newItem = {
                 id: Date.now(),
                 src: draggedItem.src,
@@ -261,18 +320,17 @@ function CircuitInterface() {
                 symbole: draggedItem.symbole,
             };
 
+            // On ajoute au placedItems
+            setPlacedItems((prev) => [...prev, newItem]);
+
+            // On ajoute aussi au netlist (Analyse) avec une valeur par défaut
             addComponent({
                 id: newItem.id,
-                src: newItem.src,
-                x: newItem.x,
-                y: newItem.y,
-                type: newItem.type,
-                idplus,
-                idmoins,
-                symbole: newItem.symbole,
+                name: draggedItem.type.toUpperCase() + '_' + newItem.id,
+                symbole: draggedItem.symbole,
+                type: draggedItem.type,
+                value: defaultValues[draggedItem.type] || 1, // fallback 1
             });
-
-            setPlacedItems((prev) => [...prev, newItem]);
         }
     };
 
@@ -280,48 +338,80 @@ function CircuitInterface() {
         e.preventDefault();
     };
 
+    // Départ du drag depuis la toolbox
     const handleDragStartFromToolbox = (e, item) => {
         e.dataTransfer.setData('text/plain', JSON.stringify(item));
     };
 
+    // Départ du drag depuis un item déjà placé
     const handleDragStartPlacedItem = (item) => {
         setDraggingItem(item);
     };
 
-    const handleRemoveComponent = (id) => {
-        saveHistory();
-        removeComponentById(id);
-        setPlacedItems((prev) => prev.filter((item) => item.id !== id));
-    };
-
-    const handleDropInTrash = (e) => {
-        e.preventDefault();
-
-        if (draggingItem) {
-            handleRemoveComponent(draggingItem.id);
-            setDraggingItem(null);
-        }
-    };
-
+    // Exemple : callback "pôles"
     const handlePoleClick = (pole, item) => {
-        alert(`Pôle ${pole} cliqué pour ${item.name}`);
+        alert(`Pôle ${pole} cliqué pour l'item #${item.id}`);
     };
 
-    const handleUndo = () => {
-        if (history.length > 0) {
-            const lastState = history[history.length - 1];
-            setPlacedItems(lastState);
-            setNetlist(lastState);
-            setHistory((prev) => prev.slice(0, -1));
+    /********************************************
+     *   CALLBACKS POUR LA NETLIST / ANALYTIQUE
+     ********************************************/
+    // Changer la valeur d'un composant depuis la liste
+    const handleChangeValue = (id, newValue) => {
+        setNetlist((prev) =>
+            prev.map((comp) =>
+                comp.id === id ? { ...comp, value: Number(newValue) } : comp
+            )
+        );
+    };
+
+    // Requête IA
+    const handleRequestAI = (id) => {
+        const comp = netlist.find((item) => item.id === id);
+        if (!comp) return;
+        alert(
+            `Requête IA pour le composant : ${comp.name} (symbole : ${comp.symbole})`
+        );
+    };
+
+    // Supprimer un composant (depuis la liste analytique)
+    const handleRemoveComponent = (id) => {
+        // 1) Supprime dans la netlist
+        removeComponentById(id);
+        // 2) Supprime dans la workspace
+        setPlacedItems((prev) => prev.filter((item) => item.id !== id));
+        // 3) Si c'était le composant sélectionné, on désélectionne
+        if (selectedItemId === id) {
+            setSelectedItemId(null);
+        }
+        // Idem pour le hover
+        if (hoveredItemId === id) {
+            setHoveredItemId(null);
         }
     };
 
+    // Quand un composant de la liste analytique est sélectionné
+    const handleSelectFromNetlist = (id) => {
+        setSelectedItemId(id);
+    };
+
+    // Quand on survole un composant de la liste analytique
+    const handleHoverFromNetlist = (id) => {
+        setHoveredItemId(id);
+    };
+    const handleUnhoverFromNetlist = () => {
+        setHoveredItemId(null);
+    };
+
+    /********************************************
+     *   CONFIGURATION DES DEUX MENUS
+     ********************************************/
     const topMenuPages = [
         {
             name: 'Composants',
             content: (
                 <>
-                    <h2>Créé ton circuit</h2>
+                    <h2>Crée ton circuit</h2>
                     <Toolbox>
                         {items.map((item) => (
                             <ImageItem
@@ -351,26 +441,19 @@ function CircuitInterface() {
         {
             name: 'Résolution analytique',
             content: (
-                <>
-                    <div>
-                        <h2>Résolution détaillée</h2>
-                        <ul>
-                            {netlist.map((item) => (
-                                <li key={item.id}>
-                                    {item.name}{' '}
-                                    <button
-                                        onClick={() =>
-                                            handleRemoveComponent(item.id)
-                                        }
-                                    >
-                                        Supprimer {item.symbole}
-                                        {item.id}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </>
+                <AnalyticResolutionPage
+                    netlist={netlist}
+                    // callbacks
+                    onChangeValue={handleChangeValue}
+                    onRequestAI={handleRequestAI}
+                    onRemoveComponent={handleRemoveComponent}
+                    // Sélection / Survol
+                    selectedItemId={selectedItemId}
+                    hoveredItemId={hoveredItemId}
+                    onSelect={handleSelectFromNetlist}
+                    onHover={handleHoverFromNetlist}
+                    onUnhover={handleUnhoverFromNetlist}
+                />
             ),
         },
         {
@@ -379,14 +462,19 @@ function CircuitInterface() {
         },
     ];
 
+    /********************************************
+     *   RENDER PRINCIPAL
+     ********************************************/
     return (
         <>
             <Header />
             <MainHorizontalContainer>
+                {/* Menu de gauche */}
                 <LeftMenu>
                     <TabbedMenu pages={leftMenuPages} theme={theme} />
                 </LeftMenu>
 
+                {/* Contenu principal (Top tab + Workspace) */}
                 <MainVerticalContainer>
                     <TabbedMenu pages={topMenuPages} theme={theme} />
 
@@ -396,6 +484,7 @@ function CircuitInterface() {
                         onMouseLeave={handleMouseUp}
                         onDrop={handleDrop}
                         onDragOver={handleDragOver}
+                        theme={theme}
                     >
                         <CircuitToolbar
                             zoom={zoom}
@@ -403,7 +492,7 @@ function CircuitInterface() {
                             resetZoomAndPan={resetZoomAndPan}
                             handleUndo={() =>
                                 console.log('Undo not implemented')
-                            } // Placeholder
+                            }
                             handleDropInTrash={(e) =>
                                 console.log('Dropped in trash')
                             }
@@ -419,37 +508,66 @@ function CircuitInterface() {
                                 offsetX={offsetX}
                                 offsetY={offsetY}
                             >
-                                {placedItems.map((item) => (
-                                    <PlacedItemContainer
-                                        key={item.id}
-                                        style={{
-                                            top: item.y,
-                                            left: item.x,
-                                        }}
-                                    >
-                                        <PoleButton
+                                {placedItems.map((item) => {
+                                    const isSelected =
+                                        selectedItemId === item.id;
+                                    const isHovered = hoveredItemId === item.id;
+                                    return (
+                                        <PlacedItemContainer
+                                            key={item.id}
+                                            style={{
+                                                top: item.y,
+                                                left: item.x,
+                                            }}
+                                            isSelected={isSelected}
+                                            isHovered={isHovered}
+                                            onMouseEnter={() =>
+                                                handleHoverItem(item.id)
+                                            }
+                                            onMouseLeave={() =>
+                                                handleUnhoverItem()
+                                            }
                                             onClick={() =>
-                                                handlePoleClick('positif', item)
+                                                handleSelectItem(item.id)
                                             }
                                         >
-                                            +
-                                        </PoleButton>
-                                        <PlacedImage
-                                            src={item.src}
-                                            draggable
-                                            onDragStart={() =>
-                                                handleDragStartPlacedItem(item)
-                                            }
-                                        />
-                                        <PoleButton
-                                            onClick={() =>
-                                                handlePoleClick('negatif', item)
-                                            }
-                                        >
-                                            -
-                                        </PoleButton>
-                                    </PlacedItemContainer>
-                                ))}
+                                            {/* Pôle + */}
+                                            <PoleButton
+                                                onClick={() =>
+                                                    handlePoleClick(
+                                                        'positif',
+                                                        item
+                                                    )
+                                                }
+                                            >
+                                                +
+                                            </PoleButton>
+
+                                            {/* L’image du composant */}
+                                            <PlacedImage
+                                                src={item.src}
+                                                draggable
+                                                onDragStart={() =>
+                                                    handleDragStartPlacedItem(
+                                                        item
+                                                    )
+                                                }
+                                            />
+
+                                            {/* Pôle - */}
+                                            <PoleButton
+                                                onClick={() =>
+                                                    handlePoleClick(
+                                                        'negatif',
+                                                        item
+                                                    )
+                                                }
+                                            >
+                                                -
+                                            </PoleButton>
+                                        </PlacedItemContainer>
+                                    );
+                                })}
                             </CircuitContent>
                         </CircuitContainer>
                     </Workspace>
