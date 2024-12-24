@@ -14,6 +14,8 @@ import { ThemeProvider, CircuitProvider } from './utils/context/';
 
 import styled from 'styled-components';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 const MainContainer = styled.div`
     display: flex;
     flex-direction: column;

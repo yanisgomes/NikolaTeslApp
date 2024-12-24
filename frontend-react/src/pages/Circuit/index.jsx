@@ -1,14 +1,18 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import styled from 'styled-components';
+
 import colors from '../../utils/style/colors';
+import fonts from './../../utils/style/fonts';
+
 import item1 from '../../assets/Resistance.png';
 import item2 from '../../assets/Bobine.png';
 import item3 from '../../assets/Condensateur.png';
 import { ThemeContext } from '../../utils/context/';
 
 import Header from '../../components/Header';
-import TabbedMenu from '../../components/TabbedMenu';
+import TabbedMenu from '../../components/TabbedMenu/';
 import CircuitToolbar from '../../components/CircuitToolbar';
+import ChatInterface from '../../components/ChatInterface';
 
 const MainHorizontalContainer = styled.div`
     display: flex;
@@ -19,83 +23,30 @@ const MainHorizontalContainer = styled.div`
     margin: 20px 0;
 `;
 
-const MainVerticalContainer = styled.div`
+const LeftMenu = styled.div`
+    flex: 0 0 40%; /* Ensures the LeftMenu occupies 30% of the container */
+
+    max-width: 500px; /* Optional: Limit maximum width */
+    align-self: stretch;
+
     display: flex;
     flex-direction: column;
-    flex: 1;
+    align-items: center;
+    transition: width 0.3s ease-in-out;
+`;
 
+const MainVerticalContainer = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     gap: 24px;
 `;
-
-/*
- *          $$$$$$$$\
- *          \__$$  __|
- *             $$ | $$$$$$\   $$$$$$\
- *             $$ |$$  __$$\ $$  __$$\
- *             $$ |$$ /  $$ |$$ /  $$ |
- *             $$ |$$ |  $$ |$$ |  $$ |
- *             $$ |\$$$$$$  |$$$$$$$  |
- *             \__| \______/ $$  ____/
- *                           $$ |
- *                           $$ |
- *                           \__|
- */
-
-const TopMenu = styled.div`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content;
-
-    background-color: ${(props) =>
-        props.theme === 'dark'
-            ? colors.darkBackgroundSecondary
-            : colors.backgroundLight};
-
-`;
-
-/*
- *
- *           __                   ______    __
- *          /  |                 /      \  /  |
- *          $$ |        ______  /$$$$$$  |_$$ |_
- *          $$ |       /      \ $$ |_ $$// $$   |
- *          $$ |      /$$$$$$  |$$   |   $$$$$$/
- *          $$ |      $$    $$ |$$$$/      $$ | __
- *          $$ |_____ $$$$$$$$/ $$ |       $$ |/  |
- *          $$       |$$       |$$ |       $$  $$/
- *          $$$$$$$$/  $$$$$$$/ $$/         $$$$/
- */
-
-const LeftMenu = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content;
-    transition: width 0.3s ease-in-out;
-
-    background-color: ${(props) =>
-        props.theme === 'dark'
-            ? colors.darkBackgroundSecondary
-            : colors.lightGrey};
-`;
-
-/*
- *
- *   __     __     ______     ______     __  __     ______     ______   ______     ______     ______
- *  /\ \  _ \ \   /\  __ \   /\  == \   /\ \/ /    /\  ___\   /\  == \ /\  __ \   /\  ___\   /\  ___\
- *  \ \ \/ ".\ \  \ \ \/\ \  \ \  __<   \ \  _"-.  \ \___  \  \ \  _-/ \ \  __ \  \ \ \____  \ \  __\
- *   \ \__/".~\_\  \ \_____\  \ \_\ \_\  \ \_\ \_\  \/\_____\  \ \_\    \ \_\ \_\  \ \_____\  \ \_____\
- *    \/_/   \/_/   \/_____/   \/_/ /_/   \/_/\/_/   \/_____/   \/_/     \/_/\/_/   \/_____/   \/_____/
- *
- *
- */
 
 const Workspace = styled.div`
     display: flex;
     flex-direction: column;
     flex: 1;
-    height: 100%;
+    min-height: 60%;
 
     background: ${(props) =>
         props.theme === 'dark'
@@ -224,19 +175,19 @@ function useNetlist() {
 
 function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
-    const [zoom, setZoom] = useState(1); // État pour le niveau de zoom
-    const [offsetX, setOffsetX] = useState(0); // État pour le déplacement horizontal
-    const [offsetY, setOffsetY] = useState(0); // État pour le déplacement vertical
-    const [isPanning, setIsPanning] = useState(false); // État pour savoir si on déplace
+    const [zoom, setZoom] = useState(1);
+    const [offsetX, setOffsetX] = useState(0);
+    const [offsetY, setOffsetY] = useState(0);
+    const [isPanning, setIsPanning] = useState(false);
     const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 });
 
     const handleWheel = (e) => {
         e.preventDefault();
         const zoomFactor = 0.1;
         if (e.deltaY < 0) {
-            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3)); // Zoom max
+            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3));
         } else {
-            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5)); // Zoom min
+            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5));
         }
     };
 
@@ -275,7 +226,7 @@ function CircuitInterface() {
 
     const [placedItems, setPlacedItems] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
-    const [history, setHistory] = useState([]); // Stocke les états précédents
+    const [history, setHistory] = useState([]);
 
     const saveHistory = () => {
         setHistory((prev) => [...prev, [...placedItems]]);
@@ -289,8 +240,7 @@ function CircuitInterface() {
         const idplus = null;
         const idmoins = null;
         if (draggingItem) {
-            saveHistory(); // Sauvegarde avant de modifier placedItems
-            // Si on déplace un élément existant
+            saveHistory();
             setPlacedItems((prev) =>
                 prev.map((item) =>
                     item.id === draggingItem.id ? { ...item, x, y } : item
@@ -298,11 +248,10 @@ function CircuitInterface() {
             );
             setDraggingItem(null);
         } else {
-            // Si on déplace un élément depuis la toolbox
             const draggedItem = JSON.parse(
                 e.dataTransfer.getData('text/plain')
             );
-            saveHistory(); // Sauvegarde avant de modifier placedItems
+            saveHistory();
             const newItem = {
                 id: Date.now(),
                 src: draggedItem.src,
@@ -312,7 +261,6 @@ function CircuitInterface() {
                 symbole: draggedItem.symbole,
             };
 
-            // Ajouter l'élément à la netlist
             addComponent({
                 id: newItem.id,
                 src: newItem.src,
@@ -341,19 +289,15 @@ function CircuitInterface() {
     };
 
     const handleRemoveComponent = (id) => {
-        saveHistory(); // Sauvegarde avant de modifier placedItems
+        saveHistory();
         removeComponentById(id);
-
-        // Supprimer aussi de placedItems
         setPlacedItems((prev) => prev.filter((item) => item.id !== id));
     };
 
     const handleDropInTrash = (e) => {
         e.preventDefault();
 
-        // Si un élément est en cours de glisser
         if (draggingItem) {
-            // Supprimer l'élément de la netlist et de placedItems
             handleRemoveComponent(draggingItem.id);
             setDraggingItem(null);
         }
@@ -366,9 +310,9 @@ function CircuitInterface() {
     const handleUndo = () => {
         if (history.length > 0) {
             const lastState = history[history.length - 1];
-            setPlacedItems(lastState); // Restaure l'état précédent
-            setNetlist(lastState); // Restaure l'état précédent
-            setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
+            setPlacedItems(lastState);
+            setNetlist(lastState);
+            setHistory((prev) => prev.slice(0, -1));
         }
     };
 
@@ -395,11 +339,11 @@ function CircuitInterface() {
         },
         {
             name: 'Réponse temporelle',
-            content: <h2>This is Page 2, with more tools!</h2>,
+            content: <h2>Résolution temporelle</h2>,
         },
         {
             name: 'Réponse fréquentielle',
-            content: <h2>Explore Page 3 for advanced options!</h2>,
+            content: <h2>Résolution fréquentielle</h2>,
         },
     ];
 
@@ -408,11 +352,8 @@ function CircuitInterface() {
             name: 'Résolution analytique',
             content: (
                 <>
-                    <h3>Informations</h3>
-                    <p>Ajoutez ici des éléments ou des options.</p>
-
                     <div>
-                        <h1>Gestionnaire de Netlist</h1>
+                        <h2>Résolution détaillée</h2>
                         <ul>
                             {netlist.map((item) => (
                                 <li key={item.id}>
@@ -434,7 +375,7 @@ function CircuitInterface() {
         },
         {
             name: 'Nikola',
-            content: <h2>This is Page 2, with more tools!</h2>,
+            content: <ChatInterface />,
         },
     ];
 
@@ -442,7 +383,9 @@ function CircuitInterface() {
         <>
             <Header />
             <MainHorizontalContainer>
-                <TabbedMenu pages={leftMenuPages} theme={theme} />
+                <LeftMenu>
+                    <TabbedMenu pages={leftMenuPages} theme={theme} />
+                </LeftMenu>
 
                 <MainVerticalContainer>
                     <TabbedMenu pages={topMenuPages} theme={theme} />

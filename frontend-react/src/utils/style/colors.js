@@ -29,4 +29,3 @@ const colors = {
 };
 
 export default colors;
-export const hex777 = '#777777';

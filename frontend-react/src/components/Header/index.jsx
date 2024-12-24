@@ -4,6 +4,7 @@ import { ThemeContext } from '../../utils/context/';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
+import fonts from '../../utils/style/fonts';
 import imgTesla from '../../assets/logo_lissajous.png';
 
 const StyledHeader = styled.div`
@@ -31,6 +32,8 @@ const StyledImage = styled.img`
 const StyledLink = styled(Link)`
     padding: 12px;
     text-decoration: none;
+
+    font-family: ${fonts.mainFont};
     font-size: 18px;
     margin-left: 20px;
     color: ${(props) =>

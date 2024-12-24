@@ -2,26 +2,26 @@ import { useContext } from 'react';
 import { ThemeContext } from '../context/';
 
 import colors from './colors.js';
+import fonts from './fonts.js';
 
 import { createGlobalStyle } from 'styled-components';
 
-const baseFontFamily = 'Montserrat, sans-serif';
-
 const StyledGlobalStyle = createGlobalStyle`
     * {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
     }
  
     body {
         margin: 0;  
     }
     div {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
+        font-size: 12px;
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     h1 {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
         font-weight: 700;
         font-size: 50px;
         line-height: 80.25px;
@@ -31,7 +31,7 @@ const StyledGlobalStyle = createGlobalStyle`
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     h2 {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
         font-weight: 700;
         font-size: 30px;
         color: ${({ isDarkMode }) =>
@@ -40,28 +40,28 @@ const StyledGlobalStyle = createGlobalStyle`
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     h3 {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
         color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkText : colors.lightText};
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     span {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
         color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkText : colors.lightText};
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     li {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
         color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkText : colors.lightText};
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
     button {
-        font-family: ${baseFontFamily};
+        font-family: ${fonts.mainFont};
         font-weight: 700;
         font-size: 20px;
         line-height: 22.3px;
