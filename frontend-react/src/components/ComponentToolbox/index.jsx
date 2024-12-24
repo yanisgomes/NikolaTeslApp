@@ -17,26 +17,6 @@ const Container = styled.div`
     flex-direction: column;
 `;
 
-const FilterHeader = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-
-    button {
-        background: ${colors.primary};
-        color: white;
-        border: none;
-        padding: 8px;
-        cursor: pointer;
-        border-radius: 4px;
-
-        &:hover {
-            opacity: 0.9;
-        }
-    }
-`;
-
 const FilterPanel = styled.div`
     margin-bottom: 8px;
     border: 1px solid ${colors.lightGrey2};

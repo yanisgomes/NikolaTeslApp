@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components';
 
 import colors from '../../utils/style/colors';
-import fonts from './../../utils/style/fonts';
 
 import item1 from '../../assets/Resistance.png';
 import item2 from '../../assets/Bobine.png';
@@ -84,11 +83,6 @@ const CircuitContent = styled.div`
     background-color: ${colors.backgroundLight};
 `;
 
-const CircuitToolbarButtonContainer = styled.div`
-    display: flex;
-    gap: 10px;
-`;
-
 const PlacedItemContainer = styled.div`
     position: absolute;
     transform: translate(-50%, -50%);
@@ -127,33 +121,6 @@ const PoleButton = styled.button`
     &:hover {
         background-color: ${colors.secondary};
         color: white;
-    }
-`;
-
-const Toolbox = styled.div`
-    display: flex;
-    justify-content: center;
-    border: 2px solid ${colors.primary};
-    border-radius: 10px;
-    padding: 15px;
-    gap: 5px;
-
-    &:hover {
-        border-color: ${colors.secondary};
-    }
-`;
-
-const ImageItem = styled.img`
-    width: 100px;
-    height: 50px;
-    cursor: grab;
-    user-select: none;
-    background-color: ${colors.backgroundLight};
-    border-radius: 10px;
-    padding 20px;
-
-    &:hover {
-        border-radius: 20px;
     }
 `;
 
@@ -224,7 +191,7 @@ function CircuitInterface() {
     // PLACED ITEMS (Workspace)
     const [placedItems, setPlacedItems] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
-    const [history, setHistory] = useState([]);
+    const [setHistory] = useState([]);
 
     // Sélection / Survol
     const [selectedItemId, setSelectedItemId] = useState(null);
@@ -390,17 +357,6 @@ function CircuitInterface() {
             content: <ChatInterface />,
         },
     ];
-
-    // ZOOM + PAN logic …
-    const handleMouseDown = (e) => {
-        // 1) Si l'utilisateur a cliqué sur le Workspace lui-même, on désélectionne
-        if (e.target === e.currentTarget) {
-            setSelectedItemId(null);
-        }
-        // 2) Ensuite, on enclenche la logique de pan
-        setIsPanning(true);
-        setLastMousePosition({ x: e.clientX, y: e.clientY });
-    };
 
     const handleMouseDownWorkspace = (e) => {
         if (e.target === e.currentTarget) {
