@@ -1,2 +1,10 @@
 flask
 flask_cors
+flask_sqlalchemy
+sympy
+requests
+python-dotenv
+numpy
+scipy
+matplotlib
+gunicorn
