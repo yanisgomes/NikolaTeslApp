@@ -3,6 +3,22 @@ import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 import fonts from './../../utils/style/fonts';
 
+import ACIButton from './../AnalyticComponentItemButton';
+
+import {
+    VscSparkle,
+    VscTrash,
+    VscChevronUp,
+    VscChevronDown,
+} from 'react-icons/vsc';
+
+import { getIconAsUrl } from '../../utils/utils';
+
+const VscSparkleUrl = getIconAsUrl(<VscSparkle />);
+const VscTrashUrl = getIconAsUrl(<VscTrash />);
+const VscChevronUpUrl = getIconAsUrl(<VscChevronUp />);
+const VscChevronDownUrl = getIconAsUrl(<VscChevronDown />);
+
 const ACItemContainer = styled.div`
     display: flex;
     flex-direction: column;
@@ -17,8 +33,12 @@ const ACItemContainer = styled.div`
         isHovered &&
         css`
             border-color: #ccc;
-            transform: translateX(2px);
         `}
+`;
+
+const HoverButtonContainer = styled.div`
+    display: flex;
+    gap: 8px;
 `;
 
 const AnalyticComponentItem = ({
@@ -81,37 +101,26 @@ const AnalyticComponentItem = ({
 
                 {/* Boutons visibles uniquement au survol */}
                 {isHovered && (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        {/* Bouton pour IA */}
-                        <button
+                    <HoverButtonContainer>
+                        <ACIButton
                             onClick={onRequestAI}
-                            style={{
-                                marginRight: '8px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            IA
-                        </button>
-
-                        {/* Bouton de suppression */}
-                        <button
+                            logoUrl={VscSparkleUrl}
+                            size="30px"
+                        />
+                        <ACIButton
                             onClick={onDelete}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            🗑
-                        </button>
-
-                        {/* Flèche de dépliage/repliage */}
-                        <button
+                            logoUrl={VscTrashUrl}
+                            size="30px"
+                        />
+                        <ACIButton
                             onClick={handleToggleExpand}
-                            style={{
-                                marginLeft: '8px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            {isExpanded ? '▲' : '▼'}
-                        </button>
-                    </div>
+                            logoUrl={
+                                isExpanded ? VscChevronUpUrl : VscChevronDownUrl
+                            }
+                            size="30px"
+                            variant="variation"
+                        />
+                    </HoverButtonContainer>
                 )}
             </div>
 

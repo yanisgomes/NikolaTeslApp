@@ -13,6 +13,7 @@ import Header from '../../components/Header';
 import TabbedMenu from '../../components/TabbedMenu/';
 import CircuitToolbar from '../../components/CircuitToolbar';
 import ChatInterface from '../../components/ChatInterface';
+import ComponentToolbox from '../../components/ComponentToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
@@ -349,21 +350,10 @@ function CircuitInterface() {
         {
             name: 'Composants',
             content: (
-                <>
-                    <h2>Crée ton circuit</h2>
-                    <Toolbox>
-                        {items.map((item) => (
-                            <ImageItem
-                                key={item.id}
-                                src={item.src}
-                                draggable
-                                onDragStart={(e) =>
-                                    handleDragStartFromToolbox(e, item)
-                                }
-                            />
-                        ))}
-                    </Toolbox>
-                </>
+                <ComponentToolbox
+                    items={items}
+                    handleDragStartFromToolbox={handleDragStartFromToolbox}
+                />
             ),
         },
         {
