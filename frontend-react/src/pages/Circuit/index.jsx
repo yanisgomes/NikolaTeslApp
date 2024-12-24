@@ -162,9 +162,6 @@ const PlacedImage = styled.img`
     cursor: grab;
 `;
 
-/********************************************
- *                 HOOKS
- ********************************************/
 function useNetlist() {
     const [netlist, setNetlist] = useState([]);
 
@@ -181,113 +178,58 @@ function useNetlist() {
     return { netlist, addComponent, removeComponentById, setNetlist };
 }
 
-/********************************************
- *          COMPOSANT PRINCIPAL
- ********************************************/
 function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
 
-    /********************************************
-     *        ÉTATS DU ZOOM + PAN
-     ********************************************/
+    // ÉTATS ZOOM + PAN ...
     const [zoom, setZoom] = useState(1);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
     const [isPanning, setIsPanning] = useState(false);
     const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 });
 
-    const handleWheel = (e) => {
-        e.preventDefault();
-        const zoomFactor = 0.1;
-        if (e.deltaY < 0) {
-            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3));
-        } else {
-            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5));
-        }
-    };
-
-    const handleMouseDown = (e) => {
-        setIsPanning(true);
-        setLastMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleMouseMove = (e) => {
-        if (isPanning) {
-            const dx = e.clientX - lastMousePosition.x;
-            const dy = e.clientY - lastMousePosition.y;
-            setOffsetX((prevOffsetX) => prevOffsetX + dx);
-            setOffsetY((prevOffsetY) => prevOffsetY + dy);
-            setLastMousePosition({ x: e.clientX, y: e.clientY });
-        }
-    };
-
-    const handleMouseUp = () => {
-        setIsPanning(false);
-    };
-
-    const resetZoomAndPan = () => {
-        setZoom(1);
-        setOffsetX(0);
-        setOffsetY(0);
-    };
-
-    /********************************************
-     *        ÉTAT DE NOTRE NETLIST
-     ********************************************/
+    // GESTION NETLIST
     const { netlist, addComponent, removeComponentById, setNetlist } =
         useNetlist();
 
-    // Valeurs par défaut (au choix) pour R, L, C :
-    const defaultValues = {
-        resistance: 1000, // 1 kΩ
-        bobine: 0.001, // 1 mH
-        condensateur: 0.000001, // 1 µF
+    // NEW / UPDATED - Compteurs pour générer les noms
+    const [componentCount, setComponentCount] = useState({
+        resistance: 0,
+        bobine: 0,
+        condensateur: 0,
+    });
+
+    // NEW / UPDATED - Map type -> symbole (pour le "nom" lisible)
+    const typeToShortSymbol = {
+        resistance: 'R',
+        bobine: 'L',
+        condensateur: 'C',
     };
 
-    /********************************************
-     *  ITEMS DISPONIBLES DANS LA TOOLBOX
-     ********************************************/
+    // Valeurs par défaut
+    const defaultValues = {
+        resistance: 1000, // 1kΩ
+        bobine: 0.001, // 1mH
+        condensateur: 1e-6, // 1µF
+    };
+
+    // ITEMS DISPONIBLES (TOOLBOX)
     const [items] = useState([
         { id: 1, src: item1, type: 'resistance', symbole: 'R' },
         { id: 2, src: item2, type: 'bobine', symbole: 'L' },
         { id: 3, src: item3, type: 'condensateur', symbole: 'C' },
     ]);
 
-    /********************************************
-     *  GESTION DES COMPOSANTS PLACÉS (Workspace)
-     ********************************************/
+    // PLACED ITEMS (Workspace)
     const [placedItems, setPlacedItems] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
     const [history, setHistory] = useState([]);
 
-    // Sauvegarde de l’historique
-    const saveHistory = () => {
-        setHistory((prev) => [...prev, [...placedItems]]);
-    };
-
-    /********************************************
-     *   SÉLECTION / SURVOL GLOBAUX (2-WAY)
-     ********************************************/
+    // Sélection / Survol
     const [selectedItemId, setSelectedItemId] = useState(null);
     const [hoveredItemId, setHoveredItemId] = useState(null);
 
-    // Quand on veut sélectionner un composant, on met à jour le state parent :
-    const handleSelectItem = (id) => {
-        setSelectedItemId(id);
-    };
-
-    // Quand on survole un composant :
-    const handleHoverItem = (id) => {
-        setHoveredItemId(id);
-    };
-    // Quand on arrête de le survoler :
-    const handleUnhoverItem = () => {
-        setHoveredItemId(null);
-    };
-
-    /********************************************
-     *   GESTION DU DRAG & DROP
-     ********************************************/
+    // GESTION DU DRAG & DROP
     const handleDrop = (e) => {
         e.preventDefault();
         const workspaceBounds = e.target.getBoundingClientRect();
@@ -295,7 +237,7 @@ function CircuitInterface() {
         const y = (e.clientY - workspaceBounds.top) / zoom;
 
         if (draggingItem) {
-            // On déplace un item déjà placé
+            // On déplace un item déjà existant
             saveHistory();
             setPlacedItems((prev) =>
                 prev.map((item) =>
@@ -304,59 +246,80 @@ function CircuitInterface() {
             );
             setDraggingItem(null);
         } else {
-            // On dépose un nouvel item depuis la toolbox
+            // On drop depuis la toolbox => nouvelle instance
             const draggedItem = JSON.parse(
                 e.dataTransfer.getData('text/plain')
             );
             saveHistory();
 
-            // Créer l'élément pour le workspace
+            const newId = Date.now(); // Identifiant interne unique
             const newItem = {
-                id: Date.now(),
+                id: newId,
                 src: draggedItem.src,
                 x,
                 y,
                 type: draggedItem.type,
                 symbole: draggedItem.symbole,
             };
-
-            // On ajoute au placedItems
             setPlacedItems((prev) => [...prev, newItem]);
 
-            // On ajoute aussi au netlist (Analyse) avec une valeur par défaut
+            // NEW / UPDATED - Incrémente le compteur pour ce type
+            setComponentCount((prev) => {
+                const oldCount = prev[draggedItem.type] || 0;
+                return {
+                    ...prev,
+                    [draggedItem.type]: oldCount + 1,
+                };
+            });
+
+            // On ajoute aussi au netlist
             addComponent({
-                id: newItem.id,
-                name: draggedItem.type.toUpperCase() + '_' + newItem.id,
+                id: newId,
+                // NEW / UPDATED : Calcul du name
+                name: `${typeToShortSymbol[draggedItem.type]}_${
+                    componentCount[draggedItem.type] + 1
+                }`,
                 symbole: draggedItem.symbole,
                 type: draggedItem.type,
-                value: defaultValues[draggedItem.type] || 1, // fallback 1
+                value: defaultValues[draggedItem.type] || 1,
             });
         }
     };
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-    };
+    const handleDragOver = (e) => e.preventDefault();
 
-    // Départ du drag depuis la toolbox
+    // Toolbox => dragStart
     const handleDragStartFromToolbox = (e, item) => {
         e.dataTransfer.setData('text/plain', JSON.stringify(item));
     };
 
-    // Départ du drag depuis un item déjà placé
+    // Workspace => dragStart
     const handleDragStartPlacedItem = (item) => {
         setDraggingItem(item);
     };
 
-    // Exemple : callback "pôles"
+    // Historique
+    const saveHistory = () => {
+        setHistory((prev) => [...prev, [...placedItems]]);
+    };
+
+    // Pôles
     const handlePoleClick = (pole, item) => {
         alert(`Pôle ${pole} cliqué pour l'item #${item.id}`);
     };
 
-    /********************************************
-     *   CALLBACKS POUR LA NETLIST / ANALYTIQUE
-     ********************************************/
-    // Changer la valeur d'un composant depuis la liste
+    // Sélection / Survol
+    const handleSelectItem = (id) => {
+        setSelectedItemId(id);
+    };
+    const handleHoverItem = (id) => {
+        setHoveredItemId(id);
+    };
+    const handleUnhoverItem = () => {
+        setHoveredItemId(null);
+    };
+
+    // CALLBACKS ANALYTIQUE
     const handleChangeValue = (id, newValue) => {
         setNetlist((prev) =>
             prev.map((comp) =>
@@ -364,48 +327,24 @@ function CircuitInterface() {
             )
         );
     };
-
-    // Requête IA
     const handleRequestAI = (id) => {
         const comp = netlist.find((item) => item.id === id);
         if (!comp) return;
-        alert(
-            `Requête IA pour le composant : ${comp.name} (symbole : ${comp.symbole})`
-        );
+        alert(`Requête IA pour le composant : ${comp.name}`);
     };
-
-    // Supprimer un composant (depuis la liste analytique)
     const handleRemoveComponent = (id) => {
-        // 1) Supprime dans la netlist
         removeComponentById(id);
-        // 2) Supprime dans la workspace
         setPlacedItems((prev) => prev.filter((item) => item.id !== id));
-        // 3) Si c'était le composant sélectionné, on désélectionne
-        if (selectedItemId === id) {
-            setSelectedItemId(null);
-        }
-        // Idem pour le hover
-        if (hoveredItemId === id) {
-            setHoveredItemId(null);
-        }
+        if (selectedItemId === id) setSelectedItemId(null);
+        if (hoveredItemId === id) setHoveredItemId(null);
     };
 
-    // Quand un composant de la liste analytique est sélectionné
-    const handleSelectFromNetlist = (id) => {
-        setSelectedItemId(id);
-    };
+    // Sélection / survol depuis la netlist
+    const handleSelectFromNetlist = (id) => setSelectedItemId(id);
+    const handleHoverFromNetlist = (id) => setHoveredItemId(id);
+    const handleUnhoverFromNetlist = () => setHoveredItemId(null);
 
-    // Quand on survole un composant de la liste analytique
-    const handleHoverFromNetlist = (id) => {
-        setHoveredItemId(id);
-    };
-    const handleUnhoverFromNetlist = () => {
-        setHoveredItemId(null);
-    };
-
-    /********************************************
-     *   CONFIGURATION DES DEUX MENUS
-     ********************************************/
+    // Menu haut
     const topMenuPages = [
         {
             name: 'Composants',
@@ -437,13 +376,13 @@ function CircuitInterface() {
         },
     ];
 
+    // Menu gauche
     const leftMenuPages = [
         {
             name: 'Résolution analytique',
             content: (
                 <AnalyticResolutionPage
                     netlist={netlist}
-                    // callbacks
                     onChangeValue={handleChangeValue}
                     onRequestAI={handleRequestAI}
                     onRemoveComponent={handleRemoveComponent}
@@ -462,9 +401,59 @@ function CircuitInterface() {
         },
     ];
 
-    /********************************************
-     *   RENDER PRINCIPAL
-     ********************************************/
+    // ZOOM + PAN logic …
+    const handleMouseDown = (e) => {
+        // 1) Si l'utilisateur a cliqué sur le Workspace lui-même, on désélectionne
+        if (e.target === e.currentTarget) {
+            setSelectedItemId(null);
+        }
+        // 2) Ensuite, on enclenche la logique de pan
+        setIsPanning(true);
+        setLastMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseDownWorkspace = (e) => {
+        if (e.target === e.currentTarget) {
+            setSelectedItemId(null);
+        }
+        // 2) Ensuite, on enclenche la logique de pan
+        setIsPanning(true);
+        setLastMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseDownCircuitContent = (e) => {
+        if (e.target === e.currentTarget) {
+            setSelectedItemId(null);
+        }
+    };
+
+    const handleMouseMove = (e) => {
+        if (isPanning) {
+            const dx = e.clientX - lastMousePosition.x;
+            const dy = e.clientY - lastMousePosition.y;
+            setOffsetX((prevOffsetX) => prevOffsetX + dx);
+            setOffsetY((prevOffsetY) => prevOffsetY + dy);
+            setLastMousePosition({ x: e.clientX, y: e.clientY });
+        }
+    };
+    const handleMouseUp = () => {
+        setIsPanning(false);
+    };
+    const handleWheel = (e) => {
+        e.preventDefault();
+        const zoomFactor = 0.1;
+        if (e.deltaY < 0) {
+            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3));
+        } else {
+            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5));
+        }
+    };
+    const resetZoomAndPan = () => {
+        setZoom(1);
+        setOffsetX(0);
+        setOffsetY(0);
+    };
+
     return (
         <>
             <Header />
@@ -474,17 +463,17 @@ function CircuitInterface() {
                     <TabbedMenu pages={leftMenuPages} theme={theme} />
                 </LeftMenu>
 
-                {/* Contenu principal (Top tab + Workspace) */}
+                {/* Contenu principal (top tab + workspace) */}
                 <MainVerticalContainer>
                     <TabbedMenu pages={topMenuPages} theme={theme} />
 
                     <Workspace
+                        theme={theme}
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseUp}
                         onDrop={handleDrop}
                         onDragOver={handleDragOver}
-                        theme={theme}
                     >
                         <CircuitToolbar
                             zoom={zoom}
@@ -499,14 +488,15 @@ function CircuitInterface() {
                             handleDragOver={(e) => e.preventDefault()}
                         />
                         <CircuitContainer
-                            onWheel={handleWheel}
-                            onMouseDown={handleMouseDown}
                             theme={theme}
+                            onWheel={handleWheel}
+                            onMouseDown={handleMouseDownWorkspace}
                         >
                             <CircuitContent
                                 zoom={zoom}
                                 offsetX={offsetX}
                                 offsetY={offsetY}
+                                onMouseDown={handleMouseDownCircuitContent}
                             >
                                 {placedItems.map((item) => {
                                     const isSelected =
@@ -531,7 +521,6 @@ function CircuitInterface() {
                                                 handleSelectItem(item.id)
                                             }
                                         >
-                                            {/* Pôle + */}
                                             <PoleButton
                                                 onClick={() =>
                                                     handlePoleClick(
@@ -543,7 +532,6 @@ function CircuitInterface() {
                                                 +
                                             </PoleButton>
 
-                                            {/* L’image du composant */}
                                             <PlacedImage
                                                 src={item.src}
                                                 draggable
@@ -554,7 +542,6 @@ function CircuitInterface() {
                                                 }
                                             />
 
-                                            {/* Pôle - */}
                                             <PoleButton
                                                 onClick={() =>
                                                     handlePoleClick(

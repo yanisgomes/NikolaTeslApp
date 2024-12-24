@@ -4,22 +4,21 @@ import styled, { css } from 'styled-components';
 import fonts from './../../utils/style/fonts';
 
 const ACItemContainer = styled.div`
-    /* idem que précédemment */
-    /* highlight si sélectionné ou survolé */
-    ${({ isSelected, isHovered }) =>
-        isSelected
-            ? css`
-                  border-color: #ff5555;
-                  transform: translateX(2px);
-              `
-            : isHovered
-            ? css`
-                  border-color: #ffaa00;
-                  transform: translateX(2px);
-              `
-            : css`
-                  border-color: transparent;
-              `}
+    display: flex;
+    flex-direction: column;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 8px;
+    transition: border 0.3s, transform 0.3s;
+
+    /* Au survol, on change la bordure et on décale légèrement vers la droite */
+    ${({ isHovered }) =>
+        isHovered &&
+        css`
+            border-color: #ccc;
+            transform: translateX(2px);
+        `}
 `;
 
 const AnalyticComponentItem = ({
@@ -38,6 +37,13 @@ const AnalyticComponentItem = ({
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const handleToggleExpand = () => setIsExpanded((prev) => !prev);
+    const symbolDictionary = {
+        R: 'Résistance',
+        L: 'Inductance',
+        C: 'Capacité',
+        V: 'Tension',
+        I: 'Courant',
+    };
 
     return (
         <ACItemContainer
@@ -62,8 +68,7 @@ const AnalyticComponentItem = ({
                         fontSize: '16px',
                     }}
                 >
-                    {name}
-                    {symbol ? `${symbol}` : ''}
+                    {symbolDictionary[symbol] || symbol} : {name}
                 </span>
 
                 {/* Champ de saisie de la valeur numérique */}
