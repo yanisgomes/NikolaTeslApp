@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components';
 import {
     VscZoomIn,
@@ -51,6 +51,7 @@ const CircuitToolbar = ({
     handleDropInTrash,
     handleDragOver,
 }) => {
+    const [isTrashOpen, setTrashOpen] = useState(false);
     const { theme } = useContext(ThemeContext);
 
     return (
