@@ -330,7 +330,11 @@ function CircuitInterface() {
     const saveHistory = () => {
         setHistory((prev) => [
             ...prev,
-            { connections: [...connections], placedItems: [...placedItems] },
+            {
+                connections: [...connections],
+                placedItems: [...placedItems],
+                netlist: [...netlist],
+            },
         ]);
     };
 
@@ -430,6 +434,16 @@ function CircuitInterface() {
         },
     ];
 
+    const handleUndo = () => {
+        if (history.length > 0) {
+            const lastState = history[history.length - 1];
+            setPlacedItems(lastState.placedItems); // Restaure l'état des éléments placés
+            setConnections(lastState.connections); // Restaure l'état des connexions
+            setNetlist(lastState.netlist); // Restaure l'état de la netlist
+            setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
+        }
+    };
+
     // Menu gauche
     const leftMenuPages = [
         {
@@ -506,15 +520,6 @@ function CircuitInterface() {
         setZoom(1);
         setOffsetX(0);
         setOffsetY(0);
-    };
-
-    const handleUndo = () => {
-        if (history.length > 0) {
-            const lastState = history[history.length - 1];
-            setPlacedItems(lastState.placedItems); // Restaure l'état des éléments placés
-            setConnections(lastState.connections); // Restaure l'état des connexions
-            setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
-        }
     };
 
     return (
