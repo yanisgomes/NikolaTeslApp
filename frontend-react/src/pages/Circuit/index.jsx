@@ -332,10 +332,6 @@ function CircuitInterface() {
     // Pôles
     const handlePoleClick = (pole, item) => {
         if (lastPole) {
-            // Identifiez le pôle opposé
-            const poleOppose =
-                lastPole.pole === 'positif' ? 'negatif' : 'positif';
-
             // Mettre à jour les items avec les voisins appropriés
             const updatedPlacedItems = placedItems.map((placedItem) => {
                 if (placedItem.id === lastPole.item.id) {
@@ -551,39 +547,65 @@ function CircuitInterface() {
                                 offsetY={offsetY}
                                 onMouseDown={handleMouseDownCircuitContent}
                             >
-                                {placedItems.flatMap((item) =>
-                                    [...item.idplus, ...item.idmoins].map(
-                                        (neighbor) => {
-                                            const targetItem = placedItems.find(
-                                                (i) => i.id === neighbor.id
-                                            );
-                                            if (!targetItem) return null; // Si l'élément n'existe pas, ignorez
+                                {(() => {
+                                    const drawnConnections = new Set(); // Ensemble pour suivre les connexions déjà tracées
 
-                                            const x1 =
-                                                item.x +
-                                                (neighbor.pole === 'positif'
-                                                    ? 10
-                                                    : -10);
-                                            const y1 = item.y;
-                                            const x2 =
-                                                targetItem.x +
-                                                (neighbor.pole === 'positif'
-                                                    ? 10
-                                                    : -10);
-                                            const y2 = targetItem.y;
+                                    return placedItems.flatMap((item) =>
+                                        [...item.idplus, ...item.idmoins].map(
+                                            (neighbor) => {
+                                                const targetItem =
+                                                    placedItems.find(
+                                                        (i) =>
+                                                            i.id === neighbor.id
+                                                    );
+                                                if (!targetItem) return null; // Ignorez si le voisin n'existe pas
 
-                                            return (
-                                                <Line
-                                                    key={`${item.id}-${neighbor.id}`}
-                                                    x1={x1}
-                                                    y1={y1}
-                                                    x2={x2}
-                                                    y2={y2}
-                                                />
-                                            );
-                                        }
-                                    )
-                                )}
+                                                // Créez une paire ordonnée pour éviter les doublons
+                                                const connectionKey = [
+                                                    item.id,
+                                                    neighbor.id,
+                                                    neighbor.pole,
+                                                ]
+                                                    .sort()
+                                                    .join('-');
+                                                if (
+                                                    drawnConnections.has(
+                                                        connectionKey
+                                                    )
+                                                )
+                                                    return null; // Déjà tracé
+
+                                                drawnConnections.add(
+                                                    connectionKey
+                                                ); // Marquez comme tracé
+
+                                                // Calcul des coordonnées pour dessiner les lignes
+                                                const x1 =
+                                                    item.x +
+                                                    (neighbor.pole === 'positif'
+                                                        ? 30
+                                                        : -30); // Décalage horizontal
+                                                const y1 = item.y + 20; // Décalage vertical
+                                                const x2 =
+                                                    targetItem.x +
+                                                    (neighbor.pole === 'positif'
+                                                        ? 30
+                                                        : -30);
+                                                const y2 = targetItem.y + 20;
+
+                                                return (
+                                                    <Line
+                                                        key={`${item.id}-${neighbor.id}`}
+                                                        x1={x1}
+                                                        y1={y1}
+                                                        x2={x2}
+                                                        y2={y2}
+                                                    />
+                                                );
+                                            }
+                                        )
+                                    );
+                                })()}
 
                                 {placedItems.map((item) => {
                                     const isSelected =
