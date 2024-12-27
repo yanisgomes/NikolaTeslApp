@@ -163,8 +163,7 @@ const PlacedImage = styled.img`
     cursor: grab;
 `;
 
-const Line = ({ x1, y1, x2, y2 }) => {
-    const midX = (x1 + x2) / 2; // Milieu pour le virage à angle droit
+const Line = ({ x1, y1, x2, y2, color = 'black', strokeWidth = 2 }) => {
     return (
         <svg
             style={{
@@ -173,11 +172,13 @@ const Line = ({ x1, y1, x2, y2 }) => {
                 overflow: 'visible',
             }}
         >
-            <path
-                d={`M ${x1},${y1} L ${midX},${y1} L ${midX},${y2} L ${x2},${y2}`}
-                stroke="black"
-                strokeWidth="2"
-                fill="none"
+            <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={color}
+                strokeWidth={strokeWidth}
             />
         </svg>
     );
@@ -246,6 +247,7 @@ function CircuitInterface() {
     const [draggingItem, setDraggingItem] = useState(null);
     const [history, setHistory] = useState([]);
     const [lastPole, setLastPole] = useState(null);
+    const [connections, setConnections] = useState([]);
 
     // Sélection / Survol
     const [selectedItemId, setSelectedItemId] = useState(null);
@@ -332,35 +334,34 @@ function CircuitInterface() {
     // Pôles
     const handlePoleClick = (pole, item) => {
         if (lastPole) {
-            // Mettre à jour les items avec les voisins appropriés
-            const updatedPlacedItems = placedItems.map((placedItem) => {
-                if (placedItem.id === lastPole.item.id) {
-                    // Mettez à jour le premier item (celui précédemment cliqué)
-                    const neighbors =
-                        lastPole.pole === 'positif' ? 'idplus' : 'idmoins';
-                    const newNeighbor = { id: item.id, pole };
-                    return {
-                        ...placedItem,
-                        [neighbors]: [...placedItem[neighbors], newNeighbor],
-                    };
-                }
-                if (placedItem.id === item.id) {
-                    // Mettez à jour le second item (celui actuellement cliqué)
-                    const neighbors = pole === 'positif' ? 'idplus' : 'idmoins';
-                    const newNeighbor = {
-                        id: lastPole.item.id,
-                        pole: lastPole.pole,
-                    };
-                    return {
-                        ...placedItem,
-                        [neighbors]: [...placedItem[neighbors], newNeighbor],
-                    };
-                }
-                return placedItem;
-            });
+            // Ajoutez une nouvelle connexion ou supprimez une connexion existante
+            const newConnection = {
+                from: { id: lastPole.item.id, pole: lastPole.pole },
+                to: { id: item.id, pole },
+            };
 
-            // Appliquez les changements
-            setPlacedItems(updatedPlacedItems);
+            // Vérifiez si la connexion existe déjà
+            const connectionIndex = connections.findIndex(
+                (conn) =>
+                    (conn.from.id === newConnection.from.id &&
+                        conn.from.pole === newConnection.from.pole &&
+                        conn.to.id === newConnection.to.id &&
+                        conn.to.pole === newConnection.to.pole) ||
+                    (conn.from.id === newConnection.to.id &&
+                        conn.from.pole === newConnection.to.pole &&
+                        conn.to.id === newConnection.from.id &&
+                        conn.to.pole === newConnection.from.pole)
+            );
+
+            if (connectionIndex !== -1) {
+                // Supprimez la connexion existante
+                setConnections((prev) =>
+                    prev.filter((_, index) => index !== connectionIndex)
+                );
+            } else {
+                // Ajoutez une nouvelle connexion
+                setConnections((prev) => [...prev, newConnection]);
+            }
             setLastPole(null); // Réinitialisez après le lien
         } else {
             // Enregistrez ce pôle pour le prochain clic
@@ -547,65 +548,39 @@ function CircuitInterface() {
                                 offsetY={offsetY}
                                 onMouseDown={handleMouseDownCircuitContent}
                             >
-                                {(() => {
-                                    const drawnConnections = new Set(); // Ensemble pour suivre les connexions déjà tracées
-
-                                    return placedItems.flatMap((item) =>
-                                        [...item.idplus, ...item.idmoins].map(
-                                            (neighbor) => {
-                                                const targetItem =
-                                                    placedItems.find(
-                                                        (i) =>
-                                                            i.id === neighbor.id
-                                                    );
-                                                if (!targetItem) return null; // Ignorez si le voisin n'existe pas
-
-                                                // Créez une paire ordonnée pour éviter les doublons
-                                                const connectionKey = [
-                                                    item.id,
-                                                    neighbor.id,
-                                                    neighbor.pole,
-                                                ]
-                                                    .sort()
-                                                    .join('-');
-                                                if (
-                                                    drawnConnections.has(
-                                                        connectionKey
-                                                    )
-                                                )
-                                                    return null; // Déjà tracé
-
-                                                drawnConnections.add(
-                                                    connectionKey
-                                                ); // Marquez comme tracé
-
-                                                // Calcul des coordonnées pour dessiner les lignes
-                                                const x1 =
-                                                    item.x +
-                                                    (neighbor.pole === 'positif'
-                                                        ? 30
-                                                        : -30); // Décalage horizontal
-                                                const y1 = item.y + 20; // Décalage vertical
-                                                const x2 =
-                                                    targetItem.x +
-                                                    (neighbor.pole === 'positif'
-                                                        ? 30
-                                                        : -30);
-                                                const y2 = targetItem.y + 20;
-
-                                                return (
-                                                    <Line
-                                                        key={`${item.id}-${neighbor.id}`}
-                                                        x1={x1}
-                                                        y1={y1}
-                                                        x2={x2}
-                                                        y2={y2}
-                                                    />
-                                                );
-                                            }
-                                        )
+                                {connections.map((conn, index) => {
+                                    const fromItem = placedItems.find(
+                                        (item) => item.id === conn.from.id
                                     );
-                                })()}
+                                    const toItem = placedItems.find(
+                                        (item) => item.id === conn.to.id
+                                    );
+
+                                    if (!fromItem || !toItem) return null; // Ignorez les connexions invalides
+
+                                    // Calcul des positions des pôles
+                                    const fromX =
+                                        fromItem.x +
+                                        (conn.from.pole === 'positif'
+                                            ? -60
+                                            : 60);
+                                    const fromY = fromItem.y;
+                                    const toX =
+                                        toItem.x +
+                                        (conn.to.pole === 'positif' ? -60 : 60);
+                                    const toY = toItem.y;
+
+                                    return (
+                                        <Line
+                                            key={index}
+                                            x1={fromX}
+                                            y1={fromY}
+                                            x2={toX}
+                                            y2={toY}
+                                            components={placedItems}
+                                        />
+                                    );
+                                })}
 
                                 {placedItems.map((item) => {
                                     const isSelected =
