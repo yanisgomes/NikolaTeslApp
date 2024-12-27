@@ -163,6 +163,26 @@ const PlacedImage = styled.img`
     cursor: grab;
 `;
 
+const Line = ({ x1, y1, x2, y2 }) => {
+    const midX = (x1 + x2) / 2; // Milieu pour le virage à angle droit
+    return (
+        <svg
+            style={{
+                position: 'absolute',
+                pointerEvents: 'none',
+                overflow: 'visible',
+            }}
+        >
+            <path
+                d={`M ${x1},${y1} L ${midX},${y1} L ${midX},${y2} L ${x2},${y2}`}
+                stroke="black"
+                strokeWidth="2"
+                fill="none"
+            />
+        </svg>
+    );
+};
+
 function useNetlist() {
     const [netlist, setNetlist] = useState([]);
 
@@ -225,6 +245,7 @@ function CircuitInterface() {
     const [placedItems, setPlacedItems] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
     const [history, setHistory] = useState([]);
+    const [lastPole, setLastPole] = useState(null);
 
     // Sélection / Survol
     const [selectedItemId, setSelectedItemId] = useState(null);
@@ -236,6 +257,8 @@ function CircuitInterface() {
         const workspaceBounds = e.target.getBoundingClientRect();
         const x = (e.clientX - workspaceBounds.left) / zoom;
         const y = (e.clientY - workspaceBounds.top) / zoom;
+        const idplus = [];
+        const idmoins = [];
 
         if (draggingItem) {
             // On déplace un item déjà existant
@@ -259,6 +282,8 @@ function CircuitInterface() {
                 src: draggedItem.src,
                 x,
                 y,
+                idplus,
+                idmoins,
                 type: draggedItem.type,
                 symbole: draggedItem.symbole,
             };
@@ -306,7 +331,45 @@ function CircuitInterface() {
 
     // Pôles
     const handlePoleClick = (pole, item) => {
-        alert(`Pôle ${pole} cliqué pour l'item #${item.id}`);
+        if (lastPole) {
+            // Identifiez le pôle opposé
+            const poleOppose =
+                lastPole.pole === 'positif' ? 'negatif' : 'positif';
+
+            // Mettre à jour les items avec les voisins appropriés
+            const updatedPlacedItems = placedItems.map((placedItem) => {
+                if (placedItem.id === lastPole.item.id) {
+                    // Mettez à jour le premier item (celui précédemment cliqué)
+                    const neighbors =
+                        lastPole.pole === 'positif' ? 'idplus' : 'idmoins';
+                    const newNeighbor = { id: item.id, pole };
+                    return {
+                        ...placedItem,
+                        [neighbors]: [...placedItem[neighbors], newNeighbor],
+                    };
+                }
+                if (placedItem.id === item.id) {
+                    // Mettez à jour le second item (celui actuellement cliqué)
+                    const neighbors = pole === 'positif' ? 'idplus' : 'idmoins';
+                    const newNeighbor = {
+                        id: lastPole.item.id,
+                        pole: lastPole.pole,
+                    };
+                    return {
+                        ...placedItem,
+                        [neighbors]: [...placedItem[neighbors], newNeighbor],
+                    };
+                }
+                return placedItem;
+            });
+
+            // Appliquez les changements
+            setPlacedItems(updatedPlacedItems);
+            setLastPole(null); // Réinitialisez après le lien
+        } else {
+            // Enregistrez ce pôle pour le prochain clic
+            setLastPole({ pole, item });
+        }
     };
 
     // Sélection / Survol
@@ -488,6 +551,40 @@ function CircuitInterface() {
                                 offsetY={offsetY}
                                 onMouseDown={handleMouseDownCircuitContent}
                             >
+                                {placedItems.flatMap((item) =>
+                                    [...item.idplus, ...item.idmoins].map(
+                                        (neighbor) => {
+                                            const targetItem = placedItems.find(
+                                                (i) => i.id === neighbor.id
+                                            );
+                                            if (!targetItem) return null; // Si l'élément n'existe pas, ignorez
+
+                                            const x1 =
+                                                item.x +
+                                                (neighbor.pole === 'positif'
+                                                    ? 10
+                                                    : -10);
+                                            const y1 = item.y;
+                                            const x2 =
+                                                targetItem.x +
+                                                (neighbor.pole === 'positif'
+                                                    ? 10
+                                                    : -10);
+                                            const y2 = targetItem.y;
+
+                                            return (
+                                                <Line
+                                                    key={`${item.id}-${neighbor.id}`}
+                                                    x1={x1}
+                                                    y1={y1}
+                                                    x2={x2}
+                                                    y2={y2}
+                                                />
+                                            );
+                                        }
+                                    )
+                                )}
+
                                 {placedItems.map((item) => {
                                     const isSelected =
                                         selectedItemId === item.id;
