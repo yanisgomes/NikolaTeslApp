@@ -328,13 +328,15 @@ function CircuitInterface() {
 
     // Historique
     const saveHistory = () => {
-        setHistory((prev) => [...prev, [...placedItems]]);
+        setHistory((prev) => [
+            ...prev,
+            { connections: [...connections], placedItems: [...placedItems] },
+        ]);
     };
 
     // Pôles
     const handlePoleClick = (pole, item) => {
         if (lastPole) {
-            // Ajoutez une nouvelle connexion ou supprimez une connexion existante
             const newConnection = {
                 from: { id: lastPole.item.id, pole: lastPole.pole },
                 to: { id: item.id, pole },
@@ -352,6 +354,8 @@ function CircuitInterface() {
                         conn.to.id === newConnection.from.id &&
                         conn.to.pole === newConnection.from.pole)
             );
+
+            saveHistory(); // Sauvegarde avant de modifier
 
             if (connectionIndex !== -1) {
                 // Supprimez la connexion existante
@@ -507,8 +511,8 @@ function CircuitInterface() {
     const handleUndo = () => {
         if (history.length > 0) {
             const lastState = history[history.length - 1];
-            setPlacedItems(lastState); // Restaure l'état précédent
-            setNetlist(lastState); // Restaure l'état précédent
+            setPlacedItems(lastState.placedItems); // Restaure l'état des éléments placés
+            setConnections(lastState.connections); // Restaure l'état des connexions
             setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
         }
     };
