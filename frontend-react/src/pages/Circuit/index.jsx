@@ -504,6 +504,15 @@ function CircuitInterface() {
         setOffsetY(0);
     };
 
+    const handleUndo = () => {
+        if (history.length > 0) {
+            const lastState = history[history.length - 1];
+            setPlacedItems(lastState); // Restaure l'état précédent
+            setNetlist(lastState); // Restaure l'état précédent
+            setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
+        }
+    };
+
     return (
         <>
             <Header />
@@ -529,9 +538,7 @@ function CircuitInterface() {
                             zoom={zoom}
                             setZoom={setZoom}
                             resetZoomAndPan={resetZoomAndPan}
-                            handleUndo={() =>
-                                console.log('Undo not implemented')
-                            }
+                            handleUndo={handleUndo}
                             handleDropInTrash={(e) =>
                                 console.log('Dropped in trash')
                             }
