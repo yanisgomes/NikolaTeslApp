@@ -130,54 +130,57 @@ function Gallery() {
 
     // Hugo : Modification de la page pour afficher les circuits de la galerie
     return (
-        <div>
-            <h1 style={{ textAlign: 'center', color: '#34495e' }}>
-                Galerie de Circuits
-            </h1>
-            <p style={{ textAlign: 'center', color: '#7f8c8d' }}>
-                Parcourez les circuits disponibles dans la collection.
-            </p>
+        <>
+            <Header />
+            <div>
+                <h1 style={{ textAlign: 'center', color: '#34495e' }}>
+                    Galerie de Circuits
+                </h1>
+                <p style={{ textAlign: 'center', color: '#7f8c8d' }}>
+                    Parcourez les circuits disponibles dans la collection.
+                </p>
 
-            {isLoading ? (
-                <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                    <Loader /> {/* Assurez-vous que Loader est défini */}
-                </div>
-            ) : (
-                <GridContainer>
-                    {data.map((circuit) => (
-                        <Card key={circuit.id}>
-                            <CircuitName>{circuit.nom}</CircuitName>
-                            <Image
-                                src={`/api/uploads/${circuit.image}`} // Chemin dynamique pour l'image
-                                alt={circuit.nom}
-                            />
-                            <CircuitDetails>
-                                <strong>Description :</strong>{' '}
-                                {circuit.description}
-                            </CircuitDetails>
-                            <CircuitDetails>
-                                <strong>Auteur :</strong> {circuit.auteur}
-                            </CircuitDetails>
-                            <CircuitDetails>
-                                <strong>Date :</strong> {circuit.date}
-                            </CircuitDetails>
-                            <CircuitDetails>
-                                <strong>Netlist :</strong>
-                                <pre
-                                    style={{
-                                        background: '#f9f9f9',
-                                        padding: '10px',
-                                        borderRadius: '5px',
-                                    }}
-                                >
-                                    {circuit.netlist}
-                                </pre>
-                            </CircuitDetails>
-                        </Card>
-                    ))}
-                </GridContainer>
-            )}
-        </div>
+                {isLoading ? (
+                    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+                        <Loader /> {/* Assurez-vous que Loader est défini */}
+                    </div>
+                ) : (
+                    <GridContainer>
+                        {data.map((circuit) => (
+                            <Card key={circuit.id}>
+                                <CircuitName>{circuit.nom}</CircuitName>
+                                <Image
+                                    src={`/api/uploads/${circuit.image}`} // Chemin dynamique pour l'image
+                                    alt={circuit.nom}
+                                />
+                                <CircuitDetails>
+                                    <strong>Description :</strong>{' '}
+                                    {circuit.description}
+                                </CircuitDetails>
+                                <CircuitDetails>
+                                    <strong>Auteur :</strong> {circuit.auteur}
+                                </CircuitDetails>
+                                <CircuitDetails>
+                                    <strong>Date :</strong> {circuit.date}
+                                </CircuitDetails>
+                                <CircuitDetails>
+                                    <strong>Netlist :</strong>
+                                    <pre
+                                        style={{
+                                            background: '#f9f9f9',
+                                            padding: '10px',
+                                            borderRadius: '5px',
+                                        }}
+                                    >
+                                        {circuit.netlist}
+                                    </pre>
+                                </CircuitDetails>
+                            </Card>
+                        ))}
+                    </GridContainer>
+                )}
+            </div>
+        </>
     );
 }
 
