@@ -70,7 +70,17 @@ class Parser:
                 if component_type == 'R': # Resistor
                     component = Resistor(name, nodes, value)
                 elif component_type == 'V': # Voltage source
+                    for c in component_list:
+                        if isinstance(c, VoltageSource) and (c.nodes == nodes or c.nodes == [nodes[1],nodes[0]]):
+                            logging.error(f"Error: multiple voltage sources connected to the same nodes: {nodes}")
+                            raise ValueError(f"Error: multiple voltage sources connected to the same nodes: {nodes}")
                     component = VoltageSource(name, nodes, value)
+                elif component_type == 'I': # Current source
+                    for c in component_list:
+                        if isinstance(c, CurrentSource) and (c.nodes[0] in nodes or c.nodes[1] in nodes):
+                            logging.error(f"Error: multiple current sources in series: node {nodes}")
+                            raise ValueError(f"Error: multiple current sources in series: node {nodes}")
+                    component = CurrentSource(name, nodes, value)
                 elif component_type == 'L': # Inductor
                     component = Inductor(name, nodes, value)
                 elif component_type == 'C': # Capacitor
