@@ -12,12 +12,12 @@ import sys
 
 netlist = '''
 * https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
-Vin 3 0 Symbolic      
-R2 3 2 1000
-R1 1 0 1000
-C1 1 0 1u
-C2 2 1 10u
-L1 1 0 0.001
+Vg 1 0 4
+Vx 3 2 6
+R1 1 2 1
+R2 2 0 4
+R3 3 0 2
+It 1 2 1
 .end
 '''
 

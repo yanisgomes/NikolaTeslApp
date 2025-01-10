@@ -277,7 +277,7 @@ class VoltageSource(Component):
         Returns:
             sympy.Expr: The Voltage-Current equation for the voltage source.
         """
-        return unknownCurrents[node]
+        return unknownCurrents[self.name]
 
     def getAdditionalEquation(self, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -318,7 +318,7 @@ class CurrentSource(Component):
         Returns:
             sympy.Expr: The Voltage-Current equation for the current source.
         """
-        return unknownCurrents[node]
+        return unknownCurrents[self.name]
 class Inductor(Component):
     """
     Represents an inductor component in the circuit.
@@ -593,10 +593,11 @@ class Solver:
                 self.nodeVoltages['0'] = 0 # TODO améliorer cette partie, ce n'est pas très rigoureux de mettre la masse dans nodeVoltages
 
         # Populate the unknownCurrents dictionary with branch names
-        # For each voltage source we add a unknown branch current, this is how MNA solvers parametrize the problem
+        # For each voltage source we add a unknown current, this is how MNA solvers parametrize the problem. 
+        # The keys of the dictionnary are the name of the source and the value is the unknown current.
         for component in self.circuit.components:
-            if isinstance(component, VoltageSource):
-                self.unknownCurrents[component.nodes[0]] = sympy.symbols(f'i_{component.nodes[0]}')
+            if isinstance(component, VoltageSource) or isinstance(component, CurrentSource):
+                self.unknownCurrents[component.name] = sympy.symbols(f'i_{component.name}')
 
 
     def getEqSys(self):
