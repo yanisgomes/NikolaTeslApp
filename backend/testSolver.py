@@ -45,9 +45,11 @@ response = query_LLM(prompt)
 print(response)
 #sys.exit("Stopping the code execution here.")
 
+# Simulation
 num, denom = solver.getNumericalTransferFunction('3', '2')
 simu = Simulator(circuit, num, denom)
 
+## Afficher reponse indicielle et bode
 t, x, y = simu.getStepResponse()
 w, mag, phase = simu.getFrequencyResponse() 
 

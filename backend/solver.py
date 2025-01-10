@@ -77,8 +77,11 @@ class Parser:
                     component = Capacitor(name, nodes, value)
                 elif component_type == 'O': # Opamp
                     component = Opamp(name, nodes)
+                elif component_type == 'I': # Current source
+                    component = CurrentSource(name, nodes, value)
                 else:
-                    logging.error(f"Unknown component type '{component_type}' in line: {line}")
+                    logging.error(f"Unknown component type: {component_type}")
+                    raise ValueError(f"Unknown component type: {component_type}")
                 
                 component_list.append(component)
 
@@ -290,6 +293,32 @@ class VoltageSource(Component):
         """
         return (sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], knownParameters[self.name]), f"valeur de la source de tension {self.name}")
 
+class CurrentSource(Component):
+    """
+    Represent a current source. The current source is handled in MNA by adding a new unknown branch current and no additional equation is needed.
+
+    Attributes:
+        name (str): The name of the current source (e.g., 'I1').
+        value (float): The current value in Amperes.
+        nodes (list): The list of nodes this current source is connected to.
+    """
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
+    
+    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the Voltage-Current equation for the current source.
+
+        Args:
+            node (str): The node for which the equation is being generated.
+            nodeVoltages (dict): Dictionary of node voltages.
+            unknownCurrents (dict): Dictionary of unknown branch currents.
+            knownParameters (dict): Dictionary of known parameters.
+
+        Returns:
+            sympy.Expr: The Voltage-Current equation for the current source.
+        """
+        return unknownCurrents[node]
 class Inductor(Component):
     """
     Represents an inductor component in the circuit.
