@@ -77,8 +77,11 @@ class Parser:
                     component = Capacitor(name, nodes, value)
                 elif component_type == 'O': # Opamp
                     component = Opamp(name, nodes)
+                elif component_type == 'I': # Current source
+                    component = CurrentSource(name, nodes, value)
                 else:
-                    logging.error(f"Unknown component type '{component_type}' in line: {line}")
+                    logging.error(f"Unknown component type: {component_type}")
+                    raise ValueError(f"Unknown component type: {component_type}")
                 
                 component_list.append(component)
 
@@ -251,6 +254,8 @@ class Resistor(Component):
 class VoltageSource(Component):
     """
     Represents a voltage source component in the circuit.
+    The voltage of the source V = V_node[0] - V_node[1].
+    To solve the circuit, we add a new unknown branch current for the voltage source defined as I_voltage_source_name. It is positive if it flows from the node[1] to node[0].
 
     Attributes:
         name (str): The name of the voltage source (e.g., 'V1').
@@ -263,7 +268,7 @@ class VoltageSource(Component):
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
-        Return the Voltage-Current equation for the voltage source.
+        Return the Voltage-Current equation for the voltage source. It is positive if it flows from the node[1] to node[0].
 
         Args:
             node (str): The node for which the equation is being generated.
@@ -274,7 +279,10 @@ class VoltageSource(Component):
         Returns:
             sympy.Expr: The Voltage-Current equation for the voltage source.
         """
-        return unknownCurrents[node]
+        if node == self.nodes[0]: # The current is positive if it flows from the node[1] to node[0]
+            return unknownCurrents[self.name]
+        else :
+            return -unknownCurrents[self.name]
 
     def getAdditionalEquation(self, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -290,6 +298,35 @@ class VoltageSource(Component):
         """
         return (sympy.Eq(nodeVoltages[self.nodes[0]] - nodeVoltages[self.nodes[1]], knownParameters[self.name]), f"valeur de la source de tension {self.name}")
 
+class CurrentSource(Component):
+    """
+    Represent a current source. The current source is handled in MNA by adding a new unknown branch current and no additional equation is needed.
+
+    Attributes:
+        name (str): The name of the current source (e.g., 'I1').
+        value (float): The current value in Amperes.
+        nodes (list): The list of nodes this current source is connected to.
+    """
+    def __init__(self, name, nodes, value=None):
+        super().__init__(name, nodes, value)
+    
+    def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
+        """
+        Return the Voltage-Current equation for the current source.
+
+        Args:
+            node (str): The node for which the equation is being generated.
+            nodeVoltages (dict): Dictionary of node voltages.
+            unknownCurrents (dict): Dictionary of unknown branch currents.
+            knownParameters (dict): Dictionary of known parameters.
+
+        Returns:
+            sympy.Expr: The Voltage-Current equation for the current source.
+        """
+        if node == self.nodes[0]: # The current is positive if it flows from the node[1] to node[0]
+            return unknownCurrents[self.name]
+        else :
+            return -unknownCurrents[self.name]
 class Inductor(Component):
     """
     Represents an inductor component in the circuit.
@@ -564,10 +601,11 @@ class Solver:
                 self.nodeVoltages['0'] = 0 # TODO améliorer cette partie, ce n'est pas très rigoureux de mettre la masse dans nodeVoltages
 
         # Populate the unknownCurrents dictionary with branch names
-        # For each voltage source we add a unknown branch current, this is how MNA solvers parametrize the problem
+        # For each voltage source we add a unknown current, this is how MNA solvers parametrize the problem. 
+        # The keys of the dictionnary are the name of the source and the value is the unknown current.
         for component in self.circuit.components:
-            if isinstance(component, VoltageSource):
-                self.unknownCurrents[component.nodes[0]] = sympy.symbols(f'i_{component.nodes[0]}')
+            if isinstance(component, VoltageSource) or isinstance(component, CurrentSource):
+                self.unknownCurrents[component.name] = sympy.symbols(f'i_{component.name}')
 
 
     def getEqSys(self):

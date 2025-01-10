@@ -12,12 +12,12 @@ import sys
 
 netlist = '''
 * https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
-Vin 3 0 Symbolic      
-R2 3 2 1000
-R1 1 0 1000
-C1 1 0 1u
-C2 2 1 10u
-L1 1 0 0.001
+Vg 1 0 4
+Vx 3 2 6
+R1 1 2 1
+R2 2 0 4
+R3 3 0 2
+It 1 2 1
 .end
 '''
 
@@ -43,11 +43,13 @@ print(f"Transfer Function: {transferFunction}")
 prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations)
 response = query_LLM(prompt)
 print(response)
-#sys.exit("Stopping the code execution here.")
+sys.exit("Stopping the code execution here. No simulation will be done as numerical values are not specified in netlist.")
 
+# Simulation
 num, denom = solver.getNumericalTransferFunction('3', '2')
 simu = Simulator(circuit, num, denom)
 
+## Afficher reponse indicielle et bode
 t, x, y = simu.getStepResponse()
 w, mag, phase = simu.getFrequencyResponse() 
 
