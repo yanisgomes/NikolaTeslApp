@@ -254,6 +254,8 @@ class Resistor(Component):
 class VoltageSource(Component):
     """
     Represents a voltage source component in the circuit.
+    The voltage of the source V = V_node[0] - V_node[1].
+    To solve the circuit, we add a new unknown branch current for the voltage source defined as I_voltage_source_name. It is positive if it flows from the node[1] to node[0].
 
     Attributes:
         name (str): The name of the voltage source (e.g., 'V1').
@@ -266,7 +268,7 @@ class VoltageSource(Component):
     
     def getEquation(self, node, nodeVoltages, unknownCurrents, knownParameters):
         """
-        Return the Voltage-Current equation for the voltage source.
+        Return the Voltage-Current equation for the voltage source. It is positive if it flows from the node[1] to node[0].
 
         Args:
             node (str): The node for which the equation is being generated.
@@ -277,7 +279,10 @@ class VoltageSource(Component):
         Returns:
             sympy.Expr: The Voltage-Current equation for the voltage source.
         """
-        return unknownCurrents[self.name]
+        if node == self.nodes[0]: # The current is positive if it flows from the node[1] to node[0]
+            return unknownCurrents[self.name]
+        else :
+            return -unknownCurrents[self.name]
 
     def getAdditionalEquation(self, nodeVoltages, unknownCurrents, knownParameters):
         """
@@ -318,7 +323,10 @@ class CurrentSource(Component):
         Returns:
             sympy.Expr: The Voltage-Current equation for the current source.
         """
-        return unknownCurrents[self.name]
+        if node == self.nodes[0]: # The current is positive if it flows from the node[1] to node[0]
+            return unknownCurrents[self.name]
+        else :
+            return -unknownCurrents[self.name]
 class Inductor(Component):
     """
     Represents an inductor component in the circuit.

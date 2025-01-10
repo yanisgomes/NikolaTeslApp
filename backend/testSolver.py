@@ -43,7 +43,7 @@ print(f"Transfer Function: {transferFunction}")
 prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations)
 response = query_LLM(prompt)
 print(response)
-#sys.exit("Stopping the code execution here.")
+sys.exit("Stopping the code execution here. No simulation will be done as numerical values are not specified in netlist.")
 
 # Simulation
 num, denom = solver.getNumericalTransferFunction('3', '2')
