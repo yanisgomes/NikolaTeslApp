@@ -1,8 +1,14 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext, createContext } from 'react';
 import styled from 'styled-components';
 
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
+
+import * as joint from 'jointjs';
+import 'jointjs/dist/joint.css';
+
+import JointWorkspace from '../Circuit/CircuitWorkspace';
+import Sharedgraph from '../Circuit/CircuitWorkspace';
 
 import item1 from '../../assets/Resistance.png';
 import item2 from '../../assets/Bobine.png';
@@ -444,6 +450,33 @@ function CircuitInterface() {
         setOffsetY(0);
     };
 
+    const graph = useContext(Sharedgraph);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Empêche le rechargement de la page
+        
+        try {
+            const response = await fetch('http://localhost:3000', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(graph.getLinks()), // Conversion des données en JSON
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de l’envoi des données');
+            }
+
+            const result = await response.json();
+            console.log(result); // Réponse du backend
+            alert('Données envoyées avec succès');
+        } catch (error) {
+            console.error(error);
+            alert('Erreur lors de l’envoi des données');
+        }
+    };
+
     return (
         <>
             <Header />
@@ -456,8 +489,19 @@ function CircuitInterface() {
                 {/* Contenu principal (top tab + workspace) */}
                 <MainVerticalContainer>
                     <TabbedMenu pages={topMenuPages} theme={theme} />
+                    <button onClick={handleSubmit}>Résoudre</button>
+                    {/* Placement du circuit drawer JointJS */}
+                    <JointWorkspace />
+                    
+                </MainVerticalContainer>
+            </MainHorizontalContainer>
+        </>
+    );
+}
 
-                    <Workspace
+export default CircuitInterface;
+
+/* <Workspace
                         theme={theme}
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
@@ -547,11 +591,4 @@ function CircuitInterface() {
                                 })}
                             </CircuitContent>
                         </CircuitContainer>
-                    </Workspace>
-                </MainVerticalContainer>
-            </MainHorizontalContainer>
-        </>
-    );
-}
-
-export default CircuitInterface;
+                    </Workspace>*/
