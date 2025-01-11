@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from solver import Solver
 from parser import Parser
 from circuit import Circuit
+import json
 
 solver_bp = Blueprint('solver', __name__, url_prefix='/solver')
 
@@ -13,14 +14,20 @@ solver_bp = Blueprint('solver', __name__, url_prefix='/solver')
 def get_equation(circuit_id):
     circuit_db = Circuit_db.query.get_or_404(circuit_id)
     
+    #TODO for debug always true
     if not circuit_db.equations:
         # Run the function to generate equations
         component_list, node_list = Parser.parse_netlist(circuit_db.netlist)
         circuit = Circuit(component_list, node_list)
         solver = Solver(circuit)
-        circuit_db.equations = str(solver.equations)
+        circuit_db.equations = json.dumps(solver.equations_to_strings())
+        circuit_db.explanations = json.dumps(solver.explanations)
         db.session.commit()  # Save the newly generated equations to the database
     
+    # Convert the JSON string back to a list of equations
+    equations = json.loads(circuit_db.equations)
+    explanations = json.loads(circuit_db.explanations)
+
     return jsonify({
         "id": circuit_db.id,
         "nom": circuit_db.nom,
@@ -29,21 +36,26 @@ def get_equation(circuit_id):
         "auteur": circuit_db.auteur,
         "date": circuit_db.date.strftime('%Y-%m-%d'),
         "netlist": circuit_db.netlist,
-        "equations": circuit_db.equations
+        "equations": equations,
+        "explanations": explanations
     })
 
 @solver_bp.route('/solution/<int:circuit_id>', methods=['GET'])
 def get_solution(circuit_id):
     circuit_db = Circuit_db.query.get_or_404(circuit_id)
     
-    if not circuit_db.equations:
+    #TODO for debug always true
+    if not circuit_db.solutions:
         # Run the function to generate equations
         component_list, node_list = Parser.parse_netlist(circuit_db.netlist)
         circuit = Circuit(component_list, node_list)
         solver = Solver(circuit)
-        circuit_db.equations = str(solver.solutions)
+        circuit_db.solutions = json.dumps(solver.solutions_to_strings())
         db.session.commit()  # Save the newly generated equations to the database
     
+    # Convert the JSON string back to a list of equations
+    solutions = json.loads(circuit_db.solutions)
+
     return jsonify({
         "id": circuit_db.id,
         "nom": circuit_db.nom,
@@ -52,7 +64,7 @@ def get_solution(circuit_id):
         "auteur": circuit_db.auteur,
         "date": circuit_db.date.strftime('%Y-%m-%d'),
         "netlist": circuit_db.netlist,
-        "solution": circuit_db.equations
+        "solution": solutions
     })
 
 @solver_bp.route('/<int:circuit_id>', methods=['DELETE'])

@@ -50,6 +50,7 @@ class Solver:
         self.unknownCurrents = {} # Dictionary of unknown branch currents
         self.knownParameters = {} # Dictionary of known values (e.g., resistors, input voltages, etc.)
         self.equations = [] # List of equations used to solve every current and voltage in the circuit
+        self.explanations = [] # List of explanations for each equation
         self.solutions = None # Dictionary of solutions for the unknowns parameters expressed in terms of the known parameters
         self.analyticTransferFunction = None # Symbols are still used for known parameters
         self.paramValues = {} # Dictionary to replace the symbolic parameters with numerical values
@@ -110,14 +111,16 @@ class Solver:
                         expr += component.getEquation(node, self.nodeVoltages, self.unknownCurrents, self.knownParameters)
                 equation = sympy.Eq(expr, 0)
                 explanation = f"Loi des noeuds pour le noeud {node}"
-                self.equations.append((equation,explanation)) 
+                self.equations.append(equation) 
+                self.explanations.append(explanation)
 
         # Ajout des equations pour les composants spéciaux (sources de tension, courant, etc.)
         for component in self.circuit.components:
             if component.isLinear:
                 if component.needsAdditionalEquation:
                     (equ,explanation)=component.getAdditionalEquation(self.nodeVoltages, self.unknownCurrents, self.knownParameters)
-                    self.equations.append((equ, explanation))
+                    self.equations.append(equ)
+                    self.explanations.append(explanation)
         logging.info("Finished establishing the system of equations.")
 
     def solveEqSys(self):
@@ -133,7 +136,7 @@ class Solver:
         try:
             logging.info("Starting to solve the system of equations.")
             unknowns = [x for x in list(self.nodeVoltages.values()) if x != 0] + list(self.unknownCurrents.values()) 
-            self.solutions = sympy.solve([equ for equ,expl in self.equations], unknowns)
+            self.solutions = sympy.solve([equ for equ in self.equations], unknowns)
             logging.info("Finished solving the system of equations.")
         except Exception as e:
             logging.error(f"Error solving equation system: {e}")
@@ -199,5 +202,24 @@ class Solver:
         except Exception as e:
             logging.error(f"Error getting numerical transfer function: {e}")
             raise
+
+    def equations_to_strings(self):
+        """
+        Convert the list of SymPy equations to a list of strings.
+        Used to store the equations in the database as json strings.
+        Returns:
+            list: A list of strings representing the SymPy equations.
+        """
+        pretty_equ = [sympy.latex(equ) for equ in self.equations]
+        return pretty_equ
+        
+    def solutions_to_strings(self):
+        """
+        Convert the dictionary of solutions to a dictionary of strings.
+        Used to store the solutions in the database as json strings.
+        Returns:
+            dict: A dictionary of strings representing the solutions.
+        """
+        return {sympy.latex(k): sympy.latex(v) for k, v in self.solutions.items()}
 
 
