@@ -9,3 +9,4 @@ class Circuit(db.Model):
     auteur = db.Column(db.String(255), nullable=False)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     netlist = db.Column(db.Text, nullable=False)
+    

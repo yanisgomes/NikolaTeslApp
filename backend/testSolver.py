@@ -35,6 +35,8 @@ print("--- System of Equations ---")
 for equ,expl in solver.equations:
     print(f"{expl} : {sp.latex(equ)}")
 
+print(len(str(solver.equations)))
+
 print("--- Solutions ---")
 for sol in solver.solutions:
     print(f"{sp.latex(sol)} = {sp.latex(solver.solutions[sol])}")

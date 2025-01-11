@@ -8,7 +8,7 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
     CORS(app)
-
+    
     # Configuration de l'application
     BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     DB_DIR = os.path.join(BASE_DIR, 'data')
