@@ -252,6 +252,37 @@ function CircuitInterface() {
         { id: 1, src: symbol_resistor, type: 'Résistance', symbole: 'R' },
         { id: 2, src: symbol_inductor, type: 'Inductance', symbole: 'L' },
         { id: 3, src: symbol_capacitor, type: 'Condensateur', symbole: 'C' },
+        { id: 4, src: symbol_aop, type: 'AOP', symbole: 'AOP' },
+        { id: 5, src: symbol_bip_npn, type: 'Transistor NPN', symbole: 'Q' },
+        { id: 6, src: symbol_bip_pnp, type: 'Transistor PNP', symbole: 'Q' },
+        {
+            id: 7,
+            src: symbol_current_src,
+            type: 'Source de courant',
+            symbole: 'I',
+        },
+        {
+            id: 8,
+            src: symbol_voltage_src,
+            type: 'Source de tension',
+            symbole: 'V',
+        },
+        { id: 9, src: symbol_gnd, type: 'GND', symbole: 'GND' },
+        { id: 10, src: symbol_ground, type: 'Ground', symbole: 'GND' },
+        {
+            id: 11,
+            src: symbol_switch_open,
+            type: 'Interrupteur ouvert',
+            symbole: 'S',
+        },
+        {
+            id: 12,
+            src: symbol_switch_close,
+            type: 'Interrupteur fermé',
+            symbole: 'S',
+        },
+        { id: 13, src: symbol_voltmeter, type: 'Voltmètre', symbole: 'V' },
+        { id: 14, src: symbol_amperometer, type: 'Ampèremètre', symbole: 'A' },
     ]);
 
     // PLACED ITEMS (Workspace)

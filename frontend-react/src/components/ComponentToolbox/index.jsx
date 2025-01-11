@@ -1,5 +1,3 @@
-// src/components/ComponentToolbox/index.jsx
-
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
@@ -42,46 +40,50 @@ const FilterPanel = styled.div`
     border: 1px solid ${colors.lightGrey2};
     border-radius: 4px;
     padding: 8px;
-
-    /* On pourra gérer la visibilité via isOpen s'il on veut 
-     animer ou conditionnellement rendre visible. */
 `;
 
-/**
- * Zone de scroll horizontal
- */
-const CardScroller = styled.div`
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    scroll-behavior: smooth; /* pour un défilement plus doux */
+const ScrollWrapper = styled.div`
+    width: 94vh;
+    max-width: 94vh;
+    overflow-x: auto; /* Active un défilement horizontal localisé */
+    padding-bottom: 8px; /* Espace sous les éléments pour le scroll */
+    display: grid;
+    scrollbar-width: thin;
 
     &::-webkit-scrollbar {
         height: 8px;
     }
     &::-webkit-scrollbar-thumb {
-        background-color: ${colors.darkGrey};
+        background: ${colors.lightGrey2};
         border-radius: 4px;
     }
+    &::-webkit-scrollbar-thumb:hover {
+        background: ${colors.grey};
+    }
+`;
+
+const GridContainer = styled.div`
+    display: grid;
+    grid-auto-flow: column; /* Organise les éléments en ligne (défilement horizontal) */
+    grid-auto-columns: minmax(
+        200px,
+        1fr
+    ); /* Taille minimale et flexible des colonnes */
+    gap: 4px; /* Espace entre les cartes */
+    align-items: center;
+    padding: 8px;
 `;
 
 const ToolboxHeaderContainer = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    overflow-x: hidden;
 `;
 
-/**
- * @param {Array} props.items Tableau des composants { id, src, name, tag }
- * @param {function} props.handleDragStartFromToolbox Callback pour le drag
- */
 const ComponentToolbox = ({ items, handleDragStartFromToolbox }) => {
-    // Gestion du filtre
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedTag, setSelectedTag] = useState('all');
 
-    // Tableau des tags disponibles
     const availableTags = [
         'all',
         'linear components',
@@ -93,12 +95,10 @@ const ComponentToolbox = ({ items, handleDragStartFromToolbox }) => {
         'basic logic blocks',
     ];
 
-    // Ouverture/fermeture du panneau de filtre
     const toggleFilterPanel = () => {
         setIsFilterOpen(!isFilterOpen);
     };
 
-    // Filtrer les items en fonction du tag choisi
     const filteredItems =
         selectedTag === 'all'
             ? items
@@ -133,15 +133,17 @@ const ComponentToolbox = ({ items, handleDragStartFromToolbox }) => {
                 />
             </ToolboxHeaderContainer>
 
-            <CardScroller>
-                {filteredItems.map((item) => (
-                    <ComponentToolboxCard
-                        key={item.id}
-                        item={item}
-                        onDragStart={handleDragStartFromToolbox}
-                    />
-                ))}
-            </CardScroller>
+            <ScrollWrapper>
+                <GridContainer>
+                    {filteredItems.map((item) => (
+                        <ComponentToolboxCard
+                            key={item.id}
+                            item={item}
+                            onDragStart={handleDragStartFromToolbox}
+                        />
+                    ))}
+                </GridContainer>
+            </ScrollWrapper>
         </Container>
     );
 };

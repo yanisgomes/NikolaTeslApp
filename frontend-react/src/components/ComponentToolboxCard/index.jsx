@@ -11,6 +11,7 @@ const CardContainer = styled.div`
     margin: 0 8px;
     background-color: ${colors.backgroundLight};
     border: 1px solid ${colors.lightGrey2};
+    color: ${colors.primary};
     border-radius: 8px;
     display: flex;
     flex-direction: column;
