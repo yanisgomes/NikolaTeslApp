@@ -82,152 +82,10 @@ export const Output = IO.define('logic.Output', {
             port: 'in',
         },
         text: { text: 'output' },
-=======
-        circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
         text: { text: 'output' }
     }
-});
-
-export const Gate11 = Gate.define('logic.Gate11', {
-    attrs: {
-        '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
         '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
     }
-}, {
-    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/><text class="label"/></g>',
-});
-
-export const Gate21 = Gate.define('logic.Gate21', {
-    attrs: {
-        '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
-        '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
-        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
-    }
-}, {
-    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
-});
-
-export const Resistance = Gate11.define('Resistance', {
-    attrs: {
-        image: { 
-            'xlink:href': imRes,  // Image de la résistance
-            width: 50,            // Largeur de l'image
-            height: 50            // Hauteur de l'image
-        },
-        label: {  // Ajout du label pour afficher la valeur sous l'image
-            text: 'Valeur: 100 Ω', 
-            'ref-x': 0.5,        // Centré horizontalement
-            'ref-y': 1.5,        // Position sous l'image (ajuster selon taille de l'image)
-            'text-anchor': 'middle',
-            fill: 'black',
-            fontWeight: 'bold',
-            cursor: 'text',
-            style: {
-                userSelect: 'text'
-            },
-            fontSize: 12,        // Taille de la police
-        },
-    },
-    props: {
-        valeur: 100  // Valeur initiale
-    }
-}, {
-    // Méthode pour modifier dynamiquement la valeur
-    setValeur: function(nouvelleValeur) {
-        this.prop('valeur', nouvelleValeur);
-        // Met à jour le texte du label avec la nouvelle valeur
-        this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`);
-    },
-
-    // Méthode pour récupérer la valeur actuelle
-    getValeur: function() {
-        return this.prop('valeur');  // Récupère la valeur du modèle
-    }
-});
-
-
-export const Condensateur = Gate11.define('Condensateur', {
-    attrs: {
-        image: { 
-            'xlink:href': imCond,  // Image de la résistance
-            width: 50,            // Largeur de l'image
-            height: 50            // Hauteur de l'image
-        },
-        label: {  // Ajout du label pour afficher la valeur sous l'image
-            text: 'Valeur: 100 F', 
-            'ref-x': 0.5,        // Centré horizontalement
-            'ref-y': 1.5,        // Position sous l'image (ajuster selon taille de l'image)
-            'text-anchor': 'middle',
-            fill: 'black',
-            fontWeight: 'bold',
-            cursor: 'text',
-            style: {
-                userSelect: 'text'
-            },
-            fontSize: 12,        // Taille de la police
-        },
-    },
-    props: {
-        valeur: 100  // Valeur initiale
-    }
-}, {
-    // Méthode pour modifier dynamiquement la valeur
-    setValeur: function(nouvelleValeur) {
-        this.prop('valeur', nouvelleValeur);
-        // Met à jour le texte du label avec la nouvelle valeur
-        this.attr('label/text', `Valeur: ${nouvelleValeur} F`);
-    },
-
-    // Méthode pour récupérer la valeur actuelle
-    getValeur: function() {
-        return this.prop('valeur');  // Récupère la valeur du modèle
-    }
-});
-
-
-export const Bobine = Gate11.define('Bobine', {
-    attrs: {
-        image: { 
-            'xlink:href': imBob,  // Image de la résistance
-            width: 50,            // Largeur de l'image
-            height: 50            // Hauteur de l'image
-        },
-        label: {  // Ajout du label pour afficher la valeur sous l'image
-            text: 'Valeur: 100 H', 
-            'ref-x': 0.5,        // Centré horizontalement
-            'ref-y': 1.5,        // Position sous l'image (ajuster selon taille de l'image)
-            'text-anchor': 'middle',
-            fill: 'black',
-            fontWeight: 'bold',
-            cursor: 'text',
-            style: {
-                userSelect: 'text'
-            },
-            fontSize: 12,        // Taille de la police
-        },
-    },
-    props: {
-        valeur: 100  // Valeur initiale
-    }
-}, {
-    // Méthode pour modifier dynamiquement la valeur
-    setValeur: function(nouvelleValeur) {
-        this.prop('valeur', nouvelleValeur);
-        // Met à jour le texte du label avec la nouvelle valeur
-        this.attr('label/text', `Valeur: ${nouvelleValeur} H`);
-    },
-
-    // Méthode pour récupérer la valeur actuelle
-    getValeur: function() {
-        return this.prop('valeur');  // Récupère la valeur du modèle
-    }
-});
-
-export const Wire = joint.dia.Link.define('logic.Wire', {
-    attrs: {
-        '.connection': { 'stroke-width': 2 },
-        '.marker-vertex': { r: 7 }
->>>>>>> Stashed changes
     },
 });
 
@@ -493,7 +351,6 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
 
         setCircuitGraph(graph);
 
-<<<<<<< Updated upstream
         // Activer le zoom et le déplacement
         enableZoom(paper);
         enablePanning(paper);
@@ -501,8 +358,6 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
 
         // Update zoom level in state on scale change
         paper.on('scale', setPaper(paper)); // Assuming uniform scaling
-=======
->>>>>>> Stashed changes
     }, []);
 
     return (
