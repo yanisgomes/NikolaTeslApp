@@ -72,6 +72,7 @@ export const Input = IO.define('logic.Input', {
 export const Output = IO.define('logic.Output', {
     attrs: {
         '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
+<<<<<<< Updated upstream
         circle: {
             ref: '.body',
             'ref-x': -30,
@@ -81,6 +82,152 @@ export const Output = IO.define('logic.Output', {
             port: 'in',
         },
         text: { text: 'output' },
+=======
+        circle: { ref: '.body', 'ref-x': -30, 'ref-y': 0.5, magnet: 'passive', 'class': 'input', port: 'in' },
+        text: { text: 'output' }
+    }
+});
+
+export const Gate11 = Gate.define('logic.Gate11', {
+    attrs: {
+        '.input': { ref: '.body', 'ref-x': -2, 'ref-y': 0.5, magnet: 'passive', port: 'in' },
+        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input"/><circle class="output"/><text class="label"/></g>',
+});
+
+export const Gate21 = Gate.define('logic.Gate21', {
+    attrs: {
+        '.input1': { ref: '.body', 'ref-x': -2, 'ref-y': 0.3, magnet: 'passive', port: 'in1' },
+        '.input2': { ref: '.body', 'ref-x': -2, 'ref-y': 0.7, magnet: 'passive', port: 'in2' },
+        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
+    }
+}, {
+    markup: '<g class="rotatable"><g class="scalable"><image class="body"/></g><circle class="input input1"/><circle  class="input input2"/><circle class="output"/></g>',
+});
+
+export const Resistance = Gate11.define('Resistance', {
+    attrs: {
+        image: { 
+            'xlink:href': imRes,  // Image de la résistance
+            width: 50,            // Largeur de l'image
+            height: 50            // Hauteur de l'image
+        },
+        label: {  // Ajout du label pour afficher la valeur sous l'image
+            text: 'Valeur: 100 Ω', 
+            'ref-x': 0.5,        // Centré horizontalement
+            'ref-y': 1.5,        // Position sous l'image (ajuster selon taille de l'image)
+            'text-anchor': 'middle',
+            fill: 'black',
+            fontWeight: 'bold',
+            cursor: 'text',
+            style: {
+                userSelect: 'text'
+            },
+            fontSize: 12,        // Taille de la police
+        },
+    },
+    props: {
+        valeur: 100  // Valeur initiale
+    }
+}, {
+    // Méthode pour modifier dynamiquement la valeur
+    setValeur: function(nouvelleValeur) {
+        this.prop('valeur', nouvelleValeur);
+        // Met à jour le texte du label avec la nouvelle valeur
+        this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`);
+    },
+
+    // Méthode pour récupérer la valeur actuelle
+    getValeur: function() {
+        return this.prop('valeur');  // Récupère la valeur du modèle
+    }
+});
+
+
+export const Condensateur = Gate11.define('Condensateur', {
+    attrs: {
+        image: { 
+            'xlink:href': imCond,  // Image de la résistance
+            width: 50,            // Largeur de l'image
+            height: 50            // Hauteur de l'image
+        },
+        label: {  // Ajout du label pour afficher la valeur sous l'image
+            text: 'Valeur: 100 F', 
+            'ref-x': 0.5,        // Centré horizontalement
+            'ref-y': 1.5,        // Position sous l'image (ajuster selon taille de l'image)
+            'text-anchor': 'middle',
+            fill: 'black',
+            fontWeight: 'bold',
+            cursor: 'text',
+            style: {
+                userSelect: 'text'
+            },
+            fontSize: 12,        // Taille de la police
+        },
+    },
+    props: {
+        valeur: 100  // Valeur initiale
+    }
+}, {
+    // Méthode pour modifier dynamiquement la valeur
+    setValeur: function(nouvelleValeur) {
+        this.prop('valeur', nouvelleValeur);
+        // Met à jour le texte du label avec la nouvelle valeur
+        this.attr('label/text', `Valeur: ${nouvelleValeur} F`);
+    },
+
+    // Méthode pour récupérer la valeur actuelle
+    getValeur: function() {
+        return this.prop('valeur');  // Récupère la valeur du modèle
+    }
+});
+
+
+export const Bobine = Gate11.define('Bobine', {
+    attrs: {
+        image: { 
+            'xlink:href': imBob,  // Image de la résistance
+            width: 50,            // Largeur de l'image
+            height: 50            // Hauteur de l'image
+        },
+        label: {  // Ajout du label pour afficher la valeur sous l'image
+            text: 'Valeur: 100 H', 
+            'ref-x': 0.5,        // Centré horizontalement
+            'ref-y': 1.5,        // Position sous l'image (ajuster selon taille de l'image)
+            'text-anchor': 'middle',
+            fill: 'black',
+            fontWeight: 'bold',
+            cursor: 'text',
+            style: {
+                userSelect: 'text'
+            },
+            fontSize: 12,        // Taille de la police
+        },
+    },
+    props: {
+        valeur: 100  // Valeur initiale
+    }
+}, {
+    // Méthode pour modifier dynamiquement la valeur
+    setValeur: function(nouvelleValeur) {
+        this.prop('valeur', nouvelleValeur);
+        // Met à jour le texte du label avec la nouvelle valeur
+        this.attr('label/text', `Valeur: ${nouvelleValeur} H`);
+    },
+
+    // Méthode pour récupérer la valeur actuelle
+    getValeur: function() {
+        return this.prop('valeur');  // Récupère la valeur du modèle
+    }
+});
+
+export const Wire = joint.dia.Link.define('logic.Wire', {
+    attrs: {
+        '.connection': { 'stroke-width': 2 },
+        '.marker-vertex': { r: 7 }
+>>>>>>> Stashed changes
     },
 });
 
@@ -191,6 +338,7 @@ export const shapes = {
     logic: {
         Input,
         Output,
+        Resistance,
         Gate,
         Wire,
     },
@@ -251,34 +399,101 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
         const paper = new joint.dia.Paper({
             el: graphContainerRef.current,
             model: graph,
-            width: 2000,
+            width: 1000,
             height: 1000,
             gridSize: 20,
             drawGrid: true,
         });
 
+        if (!graph.getElements().length) {
         // Ajout d'éléments
         const input1 = new Input().position(50, 150).addTo(graph);
         const andGate = new Resistance().position(300, 200).addTo(graph);
         const output = new Output().position(550, 200).addTo(graph);
+        const Bobine1 = new Bobine().position(50, 150).addTo(graph);
+        const Resistance1 = new Resistance().position(300, 200).addTo(graph);
+        const Condensateur1 = new Condensateur().position(550, 200).addTo(graph);
 
+
+        Resistance1.setValeur(200);  // Modifie la valeur de la résistance
+        
         // Connexions
         new joint.dia.Link({
             source: { id: input1.id, port: 'out' },
             target: { id: andGate.id, port: 'in1' },
+            source: { id: Bobine1.id, port: 'out' },
+            target: { id: Resistance1.id, port: 'in' },
         }).addTo(graph);
 
         new joint.dia.Link({
             source: { id: andGate.id, port: 'out' },
             target: { id: output.id, port: 'in' },
+            source: { id: Resistance1.id, port: 'out' },
+            target: { id: Condensateur1.id, port: 'in' },
         }).addTo(graph);
 
+        }
+        
+        paper.on('cell:pointerdblclick', function(cellView) {
+            const cell = cellView.model;
+        
+            // Vérifie si l'élément cliqué est une résistance
+            if (cell.isElement() && cell instanceof Resistance) {
+                // Demande la nouvelle valeur
+                const nouvelleValeur = prompt(
+                    'Entrez la nouvelle valeur de la résistance (Ω) :', 
+                    cell.getValeur() // Pré-remplit avec la valeur actuelle
+                );
+        
+                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
+                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
+                    cell.setValeur(parseFloat(nouvelleValeur));
+                } else {
+                    alert("Veuillez entrer une valeur numérique valide.");
+                }
+            }
+
+            // Vérifie si l'élément cliqué est un condensateur
+            if (cell.isElement() && cell instanceof Condensateur) {
+                // Demande la nouvelle valeur
+                const nouvelleValeur = prompt(
+                    'Entrez la nouvelle valeur du condensateur (F) :', 
+                    cell.getValeur() // Pré-remplit avec la valeur actuelle
+                );
+        
+                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
+                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
+                    cell.setValeur(parseFloat(nouvelleValeur));
+                } else {
+                    alert("Veuillez entrer une valeur numérique valide.");
+                }
+            }
+
+            // Vérifie si l'élément cliqué est une Bobine
+            if (cell.isElement() && cell instanceof Bobine) {
+                // Demande la nouvelle valeur
+                const nouvelleValeur = prompt(
+                    'Entrez la nouvelle valeur de la bobine (H) :', 
+                    cell.getValeur() // Pré-remplit avec la valeur actuelle
+                );
+        
+                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
+                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
+                    cell.setValeur(parseFloat(nouvelleValeur));
+                } else {
+                    alert("Veuillez entrer une valeur numérique valide.");
+                }
+            }
+        });
+        
+        
         var allEdges = graph.getLinks();
         console.log('Test');
         console.log(allEdges);
 
         setCircuitGraph(graph);
 
+<<<<<<< Updated upstream
         // Activer le zoom et le déplacement
         enableZoom(paper);
         enablePanning(paper);
@@ -286,6 +501,8 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
 
         // Update zoom level in state on scale change
         paper.on('scale', setPaper(paper)); // Assuming uniform scaling
+=======
+>>>>>>> Stashed changes
     }, []);
 
     return (
