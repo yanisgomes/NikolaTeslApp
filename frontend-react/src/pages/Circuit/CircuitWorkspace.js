@@ -122,7 +122,6 @@ export const shapes = {
     }
 };
 
-
 const JointWorkspace = () => {
     const graphContainerRef = useRef(null);
     const graph = new joint.dia.Graph();

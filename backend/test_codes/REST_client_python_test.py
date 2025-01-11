@@ -15,9 +15,15 @@ data = {
 }
 
 # Route GET pour récupérer tous les circuits
-@app.route('/api/circuits', methods=['GET'])
+@app.route('/api/circuits', methods=['POST'])
 def get_circuits():
-    return jsonify(data['circuits'])
+    try :
+        
+        return jsonify(data['circuits'])
+    
+    except Exception as e :
+        
+        return "erreur"
 
 # Route GET pour récupérer un circuit par ID
 @app.route('/api/circuits/<int:circuit_id>', methods=['GET'])
@@ -41,4 +47,4 @@ def create_circuit():
     return jsonify(new_circuit), 201
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='127.0.0.1', port=5000)
