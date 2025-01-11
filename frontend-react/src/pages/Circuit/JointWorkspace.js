@@ -1,11 +1,11 @@
 import * as joint from 'jointjs';
-import React, { useEffect, useRef, createContext } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import imRes from '../../assets/Resistance.png';
 import imBob from '../../assets/Bobine.png';
 import imCond from '../../assets/Condensateur.png';
+import { CircuitGraphContext } from '../../utils/context/';
 
-//Création du contexte graph. Fournisseur : CircuitWorkspace/JointWorkspace, Utilisation dans handleSubmit pour envoyer dans le back
-export const Sharedgraph = createContext();
+
 
 export const Gate = joint.dia.Element.define('logic.Gate', {
     size: { width: 80, height: 40 },
@@ -123,6 +123,9 @@ export const shapes = {
 };
 
 const JointWorkspace = () => {
+
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
+    
     const graphContainerRef = useRef(null);
     const graph = new joint.dia.Graph();
 
@@ -158,12 +161,13 @@ const JointWorkspace = () => {
         console.log("Test");
         console.log(allEdges);
 
+        setCircuitGraph(graph);
+        
     }, []);
 
     return (
     <>
-        <div ref={graphContainerRef} style={{ border: '1px solid black' }} />
-        <Sharedgraph.Provider value={graph} />
+            <div ref={graphContainerRef} style={{ border: '1px solid black' }} />
     </>
 
     );

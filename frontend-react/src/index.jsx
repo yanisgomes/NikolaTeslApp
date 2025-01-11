@@ -10,7 +10,7 @@ import Gallery from './pages/Gallery';
 import GlobalStyle from './utils/style/GlobalStyle';
 import ProfileContainer from './components/ProfileContainer/';
 
-import { ThemeProvider, CircuitProvider } from './utils/context/';
+import { ThemeProvider, CircuitGraphProvider } from './utils/context/';
 
 import styled from 'styled-components';
 
@@ -30,7 +30,7 @@ root.render(
     <React.StrictMode>
         <Router>
             <ThemeProvider>
-                <CircuitProvider>
+                <CircuitGraphProvider>
                     <MainContainer>
                         <GlobalStyle />
 
@@ -48,7 +48,7 @@ root.render(
                             />
                         </Routes>
                     </MainContainer>
-                </CircuitProvider>
+                </CircuitGraphProvider>
             </ThemeProvider>
         </Router>
     </React.StrictMode>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext, createContext } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import styled from 'styled-components';
 
 import colors from '../../utils/style/colors';
@@ -7,13 +7,12 @@ import fonts from './../../utils/style/fonts';
 import * as joint from 'jointjs';
 import 'jointjs/dist/joint.css';
 
-import JointWorkspace from '../Circuit/CircuitWorkspace';
-import Sharedgraph from '../Circuit/CircuitWorkspace';
+import JointWorkspace from './JointWorkspace';
 
 import item1 from '../../assets/Resistance.png';
 import item2 from '../../assets/Bobine.png';
 import item3 from '../../assets/Condensateur.png';
-import { ThemeContext } from '../../utils/context/';
+import { ThemeContext, CircuitGraphContext } from '../../utils/context';
 
 import Header from '../../components/Header';
 import TabbedMenu from '../../components/TabbedMenu/';
@@ -187,6 +186,7 @@ function useNetlist() {
 
 function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
 
     // ÉTATS ZOOM + PAN ...
     const [zoom, setZoom] = useState(1);
@@ -450,8 +450,6 @@ function CircuitInterface() {
         setOffsetY(0);
     };
 
-    const graph = useContext(Sharedgraph);
-
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
         
@@ -461,8 +459,8 @@ function CircuitInterface() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                
-                //body: JSON.stringify(graph.getLinks()), // Conversion des données en JSON
+
+                body: JSON.stringify(circuitGraph.getLinks()), // Conversion des données en JSON
             });
 
             if (!response.ok) {

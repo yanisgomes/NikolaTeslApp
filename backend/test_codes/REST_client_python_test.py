@@ -17,9 +17,12 @@ data = {
 # Route GET pour récupérer tous les circuits
 @app.route('/api/circuits', methods=['POST'])
 def get_circuits():
+    
+    data = request.get_json()
+    
     try :
         
-        return jsonify(data['circuits'])
+        return jsonify(data)
     
     except Exception as e :
         
