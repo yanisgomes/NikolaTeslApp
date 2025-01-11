@@ -222,4 +222,14 @@ class Solver:
         """
         return {sympy.latex(k): sympy.latex(v) for k, v in self.solutions.items()}
 
+    def transferFunction_to_string(self, inputNode, outputNode):
+        """
+        Convert the transfer function to a string.
+        Used to store the transfer function in the database as a json string.
+        Returns:
+            str: A string representing the transfer function.
+        """
+        analytictf = self.getTransferFunction(inputNode, outputNode)
+        return sympy.latex(analytictf)
+
 

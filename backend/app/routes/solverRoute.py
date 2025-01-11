@@ -5,11 +5,12 @@ from datetime import datetime, timezone
 from solver import Solver
 from parser import Parser
 from circuit import Circuit
+from simulator import Simulator
 import json
 
 solver_bp = Blueprint('solver', __name__, url_prefix='/solver')
 
-
+# GET request at http://127.0.0.1:3000/solver/equation/1 
 @solver_bp.route('/equation/<int:circuit_id>', methods=['GET'])
 def get_equation(circuit_id):
     circuit_db = Circuit_db.query.get_or_404(circuit_id)
@@ -40,6 +41,7 @@ def get_equation(circuit_id):
         "explanations": explanations
     })
 
+# GET request at http://127.0.0.1:3000/solver/solution/1 
 @solver_bp.route('/solution/<int:circuit_id>', methods=['GET'])
 def get_solution(circuit_id):
     circuit_db = Circuit_db.query.get_or_404(circuit_id)
@@ -65,6 +67,136 @@ def get_solution(circuit_id):
         "date": circuit_db.date.strftime('%Y-%m-%d'),
         "netlist": circuit_db.netlist,
         "solution": solutions
+    })
+
+# GET request at http://127.0.0.1:3000/solver/tf/1?i=3&o=1
+@solver_bp.route('/tf/<int:circuit_id>', methods=['GET'])
+def get_transfer_function(circuit_id):
+    circuit_db = Circuit_db.query.get_or_404(circuit_id)
+    # Access query parameters
+    inputNode = request.args.get('i')
+    outputNode = request.args.get('o')
+    #TODO for debug always true
+    if not circuit_db.transfer_function or True:
+        # Run the function to generate equations
+        component_list, node_list = Parser.parse_netlist(circuit_db.netlist)
+        circuit = Circuit(component_list, node_list)
+        solver = Solver(circuit)
+        analytictf = solver.transferFunction_to_string(inputNode, outputNode)
+
+        circuit_db.transfer_function = json.dumps(analytictf)
+        db.session.commit()  # Save the newly generated equations to the database
+    
+    # Convert the JSON string back to a list of equations
+    analytictf = json.loads(circuit_db.transfer_function)
+
+    return jsonify({
+        "id": circuit_db.id,
+        "nom": circuit_db.nom,
+        "description": circuit_db.description,
+        "image": circuit_db.image,
+        "auteur": circuit_db.auteur,
+        "date": circuit_db.date.strftime('%Y-%m-%d'),
+        "netlist": circuit_db.netlist,
+        "transfer function": analytictf
+    })
+
+# GET request at http://127.0.0.1:3000/solver/step/1?i=3&o=1
+@solver_bp.route('/step/<int:circuit_id>', methods=['GET'])
+def get_step_response(circuit_id):
+    circuit_db = Circuit_db.query.get_or_404(circuit_id)
+    # Access query parameters
+    inputNode = request.args.get('i')
+    outputNode = request.args.get('o')
+    #TODO for debug always true
+    if not circuit_db.transfer_function or True:
+        # Run the function to generate equations
+        component_list, node_list = Parser.parse_netlist(circuit_db.netlist)
+        circuit = Circuit(component_list, node_list)
+        solver = Solver(circuit)
+        analytictf = solver.transferFunction_to_string(inputNode, outputNode)
+        num, denom = solver.getNumericalTransferFunction(inputNode, outputNode)
+        simu = Simulator(circuit, num, denom)
+
+        # Calculer reponse indicielle
+        t, x, y = simu.getStepResponse()
+
+        # Combine the lists into a dictionary
+        step_data = {
+            "time_list": t.tolist(),  # Convert numpy array to list
+            "step_list": x.tolist(),  # Convert numpy array to list
+            "step_response": y.tolist()  # Convert numpy array to list
+        }
+
+        # Enregistrer les valeurs dans la base de données
+        circuit_db.step_data = json.dumps(step_data)
+        db.session.commit()  # Save the newly generated equations to the database
+    
+    # Convert the JSON string back to a dictionary
+    step_data = json.loads(circuit_db.step_data)
+
+    return jsonify({
+        "id": circuit_db.id,
+        "nom": circuit_db.nom,
+        "description": circuit_db.description,
+        "image": circuit_db.image,
+        "auteur": circuit_db.auteur,
+        "date": circuit_db.date.strftime('%Y-%m-%d'),
+        "netlist": circuit_db.netlist,
+        "step response": {
+            "time_list": step_data["time_list"],
+            "step_list": step_data["step_list"],
+            "step_response": step_data["step_response"]
+        }
+    })
+
+# GET request at http://127.0.0.1:3000/solver/bode/1?i=3&o=1
+@solver_bp.route('/bode/<int:circuit_id>', methods=['GET'])
+def get_bode_response(circuit_id):
+    circuit_db = Circuit_db.query.get_or_404(circuit_id)
+    # Access query parameters
+    inputNode = request.args.get('i')
+    outputNode = request.args.get('o')
+    #TODO for debug always true
+    if not circuit_db.transfer_function or True:
+        # Run the function to generate equations
+        component_list, node_list = Parser.parse_netlist(circuit_db.netlist)
+        circuit = Circuit(component_list, node_list)
+        solver = Solver(circuit)
+        analytictf = solver.transferFunction_to_string(inputNode, outputNode)
+        num, denom = solver.getNumericalTransferFunction(inputNode, outputNode)
+        simu = Simulator(circuit, num, denom)
+
+        # Calculer reponse fréquentielle
+        w, mag, phase = simu.getFrequencyResponse()
+
+        # Combine the lists into a dictionary
+        bode_data = {
+            "frequency_list": w.tolist(),  # Convert numpy array to list
+            "magnitude_list": mag.tolist(),  # Convert numpy array to list
+            "phase_list": phase.tolist()  # Convert numpy array to list
+        }
+
+        # Enregistrer les valeurs dans la base de données
+        circuit_db.bode_data = json.dumps(bode_data)
+        db.session.commit()
+
+    # Convert the JSON string back to a dictionary
+    bode_data = json.loads(circuit_db.bode_data)
+
+    return jsonify({
+        "id": circuit_db.id,
+        "nom": circuit_db.nom,
+        "description": circuit_db.description,
+        "image": circuit_db.image,
+        "auteur": circuit_db.auteur,
+        "date": circuit_db.date.strftime('%Y-%m-%d'),
+        "netlist": circuit_db.netlist,
+        "bode response": {
+            "frequency_list": bode_data["frequency_list"],
+            "magnitude_list": bode_data["magnitude_list"],
+            "phase_list": bode_data["phase_list"]
+        }
     })
 
 @solver_bp.route('/<int:circuit_id>', methods=['DELETE'])

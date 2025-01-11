@@ -12,6 +12,6 @@ class Circuit_db(db.Model):
     equations = db.Column(db.String(2048), nullable=True) # Store equations as JSON string
     explanations = db.Column(db.String(2048), nullable=True) # Explanations for each equation
     solutions = db.Column(db.String(2048), nullable=True)
-    time_data = db.Column(db.String, nullable=True)  # Store time list and response as JSON string
-    frequency_response = db.Column(db.String, nullable=True)  # Store as JSON string
-    frequency_list = db.Column(db.String, nullable=True)      # Store as JSON string
+    bode_data = db.Column(db.String, nullable=True)  # contains frequency, magnitude and phase as a json string
+    step_data = db.Column(db.String, nullable=True)  # Contains time, input, and output as a json string
+    transfer_function = db.Column(db.String, nullable=True)  # Store as JSON string
