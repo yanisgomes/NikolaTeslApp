@@ -169,6 +169,27 @@ const PlacedImage = styled.img`
     cursor: grab;
 `;
 
+const Line = ({ x1, y1, x2, y2, color = 'black', strokeWidth = 2 }) => {
+    return (
+        <svg
+            style={{
+                position: 'absolute',
+                pointerEvents: 'none',
+                overflow: 'visible',
+            }}
+        >
+            <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke={color}
+                strokeWidth={strokeWidth}
+            />
+        </svg>
+    );
+};
+
 function useNetlist() {
     const [netlist, setNetlist] = useState([]);
 
@@ -231,6 +252,8 @@ function CircuitInterface() {
     const [placedItems, setPlacedItems] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
     const [history, setHistory] = useState([]);
+    const [lastPole, setLastPole] = useState(null);
+    const [connections, setConnections] = useState([]);
 
     // Sélection / Survol
     const [selectedItemId, setSelectedItemId] = useState(null);
@@ -242,6 +265,8 @@ function CircuitInterface() {
         const workspaceBounds = e.target.getBoundingClientRect();
         const x = (e.clientX - workspaceBounds.left) / zoom;
         const y = (e.clientY - workspaceBounds.top) / zoom;
+        const idplus = [];
+        const idmoins = [];
 
         if (draggingItem) {
             // On déplace un item déjà existant
@@ -265,6 +290,8 @@ function CircuitInterface() {
                 src: draggedItem.src,
                 x,
                 y,
+                idplus,
+                idmoins,
                 type: draggedItem.type,
                 symbole: draggedItem.symbole,
             };
@@ -307,12 +334,53 @@ function CircuitInterface() {
 
     // Historique
     const saveHistory = () => {
-        setHistory((prev) => [...prev, [...placedItems]]);
+        setHistory((prev) => [
+            ...prev,
+            {
+                connections: [...connections],
+                placedItems: [...placedItems],
+                netlist: [...netlist],
+            },
+        ]);
     };
 
     // Pôles
     const handlePoleClick = (pole, item) => {
-        alert(`Pôle ${pole} cliqué pour l'item #${item.id}`);
+        if (lastPole) {
+            const newConnection = {
+                from: { id: lastPole.item.id, pole: lastPole.pole },
+                to: { id: item.id, pole },
+            };
+
+            // Vérifiez si la connexion existe déjà
+            const connectionIndex = connections.findIndex(
+                (conn) =>
+                    (conn.from.id === newConnection.from.id &&
+                        conn.from.pole === newConnection.from.pole &&
+                        conn.to.id === newConnection.to.id &&
+                        conn.to.pole === newConnection.to.pole) ||
+                    (conn.from.id === newConnection.to.id &&
+                        conn.from.pole === newConnection.to.pole &&
+                        conn.to.id === newConnection.from.id &&
+                        conn.to.pole === newConnection.from.pole)
+            );
+
+            saveHistory(); // Sauvegarde avant de modifier
+
+            if (connectionIndex !== -1) {
+                // Supprimez la connexion existante
+                setConnections((prev) =>
+                    prev.filter((_, index) => index !== connectionIndex)
+                );
+            } else {
+                // Ajoutez une nouvelle connexion
+                setConnections((prev) => [...prev, newConnection]);
+            }
+            setLastPole(null); // Réinitialisez après le lien
+        } else {
+            // Enregistrez ce pôle pour le prochain clic
+            setLastPole({ pole, item });
+        }
     };
 
     // Sélection / Survol
@@ -371,6 +439,16 @@ function CircuitInterface() {
             content: <h2>Résolution fréquentielle</h2>,
         },
     ];
+
+    const handleUndo = () => {
+        if (history.length > 0) {
+            const lastState = history[history.length - 1];
+            setPlacedItems(lastState.placedItems); // Restaure l'état des éléments placés
+            setConnections(lastState.connections); // Restaure l'état des connexions
+            setNetlist(lastState.netlist); // Restaure l'état de la netlist
+            setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
+        }
+    };
 
     // Menu gauche
     const leftMenuPages = [
@@ -514,9 +592,7 @@ export default CircuitInterface;
                             zoom={zoom}
                             setZoom={setZoom}
                             resetZoomAndPan={resetZoomAndPan}
-                            handleUndo={() =>
-                                console.log('Undo not implemented')
-                            }
+                            handleUndo={handleUndo}
                             handleDropInTrash={(e) =>
                                 console.log('Dropped in trash')
                             }
@@ -533,6 +609,40 @@ export default CircuitInterface;
                                 offsetY={offsetY}
                                 onMouseDown={handleMouseDownCircuitContent}
                             >
+                                {connections.map((conn, index) => {
+                                    const fromItem = placedItems.find(
+                                        (item) => item.id === conn.from.id
+                                    );
+                                    const toItem = placedItems.find(
+                                        (item) => item.id === conn.to.id
+                                    );
+
+                                    if (!fromItem || !toItem) return null; // Ignorez les connexions invalides
+
+                                    // Calcul des positions des pôles
+                                    const fromX =
+                                        fromItem.x +
+                                        (conn.from.pole === 'positif'
+                                            ? -60
+                                            : 60);
+                                    const fromY = fromItem.y;
+                                    const toX =
+                                        toItem.x +
+                                        (conn.to.pole === 'positif' ? -60 : 60);
+                                    const toY = toItem.y;
+
+                                    return (
+                                        <Line
+                                            key={index}
+                                            x1={fromX}
+                                            y1={fromY}
+                                            x2={toX}
+                                            y2={toY}
+                                            components={placedItems}
+                                        />
+                                    );
+                                })}
+
                                 {placedItems.map((item) => {
                                     const isSelected =
                                         selectedItemId === item.id;
