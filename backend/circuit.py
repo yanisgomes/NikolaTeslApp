@@ -5,8 +5,11 @@ This module defines the class and methods necessary for building an analytical e
 It uses Component objects defined in the component.py module
 The solver.py code will then produce transfer functions using Sympy for equation manipulation and solving.
 
-Classes:
-    Circuit: Represents the entire electronic circuit and provides methods to analyze and solve it.
+Input :
+- Component list
+- Node list
+Output :
+- Circuit object
 """
 
 import logging

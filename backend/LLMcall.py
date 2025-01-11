@@ -2,6 +2,14 @@
 LLMcall.py
 
 This module contains the functions to build a prompt for querying the LLM and to query the LLM with the prompt.
+
+Input :
+- netlist string
+- solutions dictionary (from solver.py)
+- transferFunction (from solver.py)
+- equations list (from solver.py)
+Output :
+- The string response from the LLM
 """
 
 import sympy

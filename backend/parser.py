@@ -1,3 +1,16 @@
+"""
+parser.py
+
+This module contains the Parser class which is responsible for parsing the netlist string and returning a Circuit object with the components.
+
+Input : netlist string
+Output : 
+- component_list
+- node_list
+
+Used in the solver.py module to parse the netlist string and get the components of the circuit.
+"""
+
 import numpy as np
 import logging
 from component import VoltageSource, Resistor, Inductor, Capacitor, Opamp, CurrentSource
@@ -39,7 +52,7 @@ class Parser:
                 
                 if compute_numeric:
                     value_token = Parser.extract_value_token(component_type, tokens)
-                    if value_token != 'SYMBOLIC': # Symbolic is used to indicate that the value is not known (input variable for instance)
+                    if value_token != None: # Symbolic is used to indicate that the value is not known (input variable for instance)
                         value = Parser.parse_value(value_token)
                 
                 if component_type == 'R': # Resistor
@@ -137,9 +150,9 @@ class Parser:
             elif 'AC' in tokens: # TODO numeric computation of AC is not handled
                 logging.warning("AC voltage sources are not supported.")
                 raise ValueError("AC voltage sources are not supported.")
-            else:
-                # Assume the value is in the third position
-                return tokens[3]
+            # else:
+            #     # Assume the value is in the third position
+            #     return tokens[3]
         else:
             return tokens[3]
     
