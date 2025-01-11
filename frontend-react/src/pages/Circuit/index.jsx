@@ -4,9 +4,21 @@ import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
 
-import item1 from '../../assets/Resistance.png';
-import item2 from '../../assets/Bobine.png';
-import item3 from '../../assets/Condensateur.png';
+import symbol_resistor from '../../assets/symbol_resistor.png';
+import symbol_inductor from '../../assets/symbol_inductor.png';
+import symbol_capacitor from '../../assets/symbol_capacitor.png';
+import symbol_aop from '../../assets/symbol_aop.png';
+import symbol_bip_npn from '../../assets/symbol_bip_npn.png';
+import symbol_bip_pnp from '../../assets/symbol_bip_pnp.png';
+import symbol_current_src from '../../assets/symbol_current_src.png';
+import symbol_voltage_src from '../../assets/symbol_voltage_src.png';
+import symbol_gnd from '../../assets/symbol_gnd.png';
+import symbol_ground from '../../assets/symbol_ground.png';
+import symbol_switch_open from '../../assets/symbol_switch_open.png';
+import symbol_switch_close from '../../assets/symbol_switch_close.png';
+import symbol_voltmeter from '../../assets/symbol_voltmeter.png';
+import symbol_amperometer from '../../assets/symbol_amperometer.png';
+
 import { ThemeContext } from '../../utils/context/';
 
 import Header from '../../components/Header';
@@ -237,9 +249,9 @@ function CircuitInterface() {
 
     // ITEMS DISPONIBLES (TOOLBOX)
     const [items] = useState([
-        { id: 1, src: item1, type: 'resistance', symbole: 'R' },
-        { id: 2, src: item2, type: 'bobine', symbole: 'L' },
-        { id: 3, src: item3, type: 'condensateur', symbole: 'C' },
+        { id: 1, src: symbol_resistor, type: 'Résistance', symbole: 'R' },
+        { id: 2, src: symbol_inductor, type: 'Inductance', symbole: 'L' },
+        { id: 3, src: symbol_capacitor, type: 'Condensateur', symbole: 'C' },
     ]);
 
     // PLACED ITEMS (Workspace)
