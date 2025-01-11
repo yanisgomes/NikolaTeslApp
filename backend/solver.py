@@ -3,6 +3,13 @@ solver.py
 
 This module contains the Solver class which handles the symbolic manipulation of the circuit equations.
 It uses sympy for symbolic manipulation. It builds upon the Circuit class.
+
+Input : Circuit object (given by parser.py)
+Output : 
+- A list of Sympy equations representing the circuit
+- A dictionary of solutions for the unknown parameters
+- The transfer function of the circuit 
+- Numerical transfer function coefficients (for later simulation in simulator.py)
 """
 
 import sympy

@@ -5,6 +5,13 @@ This module contains the Simulator class which handles the numerical simulation 
 Conversely to solver.py which contains the symbolic manipulation of the circuit equations, this module uses scipy to simulate the circuit and get the step and frequency responses.
 It builds upon the Circuit class and the equations obtained from the Solver class.
 The solver class has a getNumericalTransferFunction which is used by the Simulator class to get the numerical transfer function of the circuit.
+
+Input : 
+- Circuit object (given by parser.py)
+- numerator and denominator coefficients of the transfer function (obtained from solver.py)
+Output :
+- Step response of the circuit (time array, input array, output array)
+- Frequency response of the circuit (frequency array, magnitude array, phase array)
 """
 
 import logging 

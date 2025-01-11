@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from ..models import Circuit
+from ..models import Circuit_db
 from .. import db
 from datetime import datetime, timezone
 
@@ -7,7 +7,7 @@ galerie_bp = Blueprint('galerie', __name__, url_prefix='/galerie')
 
 @galerie_bp.route('/', methods=['GET'])
 def get_galerie():
-    circuits = Circuit.query.all()
+    circuits = Circuit_db.query.all()
     return jsonify([
         {
             "id": circuit.id,
@@ -32,7 +32,7 @@ def add_circuit():
     if 'nom' not in data or 'description' not in data or 'auteur' not in data or 'netlist' not in data:
         return jsonify({"message": "Données manquantes."}), 400
 
-    new_circuit = Circuit(
+    new_circuit = Circuit_db(
         nom=data['nom'],
         description=data['description'],
         image=f"{data['nom']}.png",
@@ -56,10 +56,23 @@ def add_circuit():
         }
     }), 201
 
+"""Exemple de json a envoyer pour ajouter un circuit :
+
+{
+    "id": 1,
+    "nom": "circuit",
+    "description": "Circuit test disponible ici https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html",
+    "image": "Capacitor",
+    "auteur": "Basile",
+    "date": "11/01",
+    "netlist": "Vin 3 0 R2 3 2 1000 R1 1 0 1000 C1 1 0 1E-6 C2 2 1 10E-6 L1 1 0 0.001"
+}
+
+"""
 
 @galerie_bp.route('/<int:circuit_id>', methods=['DELETE'])
 def delete_circuit(circuit_id):
-    circuit = Circuit.query.get(circuit_id)
+    circuit = Circuit_db.query.get(circuit_id)
     if circuit is None:
         return jsonify({"message": "Circuit introuvable."}), 404
     
@@ -71,7 +84,7 @@ def delete_circuit(circuit_id):
 
 @galerie_bp.route('/<int:circuit_id>', methods=['PUT'])
 def update_circuit(circuit_id):
-    circuit = Circuit.query.get(circuit_id)
+    circuit = Circuit_db.query.get(circuit_id)
     if circuit is None:
         return jsonify({"message": "Circuit introuvable."}), 404
     
