@@ -522,36 +522,6 @@ function CircuitInterface() {
         setOffsetY(0);
     };
 
-<<<<<<< Updated upstream
-=======
-    const graph = useContext(Sharedgraph);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Empêche le rechargement de la page
-        
-        try {
-            const response = await fetch('http://localhost:5000/api/circuits', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(graph.getLinks()), // Conversion des données en JSON
-            });
-
-            if (!response.ok) {
-                throw new Error('Erreur lors de l’envoi des données');
-            }
-
-            const result = await response.json();
-            console.log(result); // Réponse du backend
-            alert('Données envoyées avec succès');
-        } catch (error) {
-            console.error(error);
-            alert('Erreur lors de l’envoi des données');
-        }
-    };
-
->>>>>>> Stashed changes
     return (
         <>
             <Header />
