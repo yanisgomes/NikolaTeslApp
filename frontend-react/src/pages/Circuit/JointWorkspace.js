@@ -82,10 +82,6 @@ export const Output = IO.define('logic.Output', {
             port: 'in',
         },
         text: { text: 'output' },
-        text: { text: 'output' }
-    }
-        '.output': { ref: '.body', 'ref-dx': 2, 'ref-y': 0.5, magnet: true, port: 'out' }
-    }
     },
 });
 
