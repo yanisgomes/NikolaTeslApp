@@ -12,7 +12,11 @@ import JointWorkspace from './JointWorkspace';
 import item1 from '../../assets/Resistance.png';
 import item2 from '../../assets/Bobine.png';
 import item3 from '../../assets/Condensateur.png';
-import { ThemeContext, CircuitGraphContext } from '../../utils/context';
+import {
+    ThemeContext,
+    CircuitGraphContext,
+    PaperContext,
+} from '../../utils/context';
 
 import Header from '../../components/Header';
 import TabbedMenu from '../../components/TabbedMenu/';
@@ -187,6 +191,7 @@ function useNetlist() {
 function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
+    const { paper, setPaper } = useContext(PaperContext);
 
     // ÉTATS ZOOM + PAN ...
     const [zoom, setZoom] = useState(1);
@@ -239,9 +244,18 @@ function CircuitInterface() {
     // GESTION DU DRAG & DROP
     const handleDrop = (e) => {
         e.preventDefault();
-        const workspaceBounds = e.target.getBoundingClientRect();
-        const x = (e.clientX - workspaceBounds.left) / zoom;
-        const y = (e.clientY - workspaceBounds.top) / zoom;
+
+        const currentScale = paper.scale(); // Current zoom scale
+        const currentTranslate = paper.translate(); // Current translation (panning offsets)
+        const workspaceBounds = e.target.getBoundingClientRect(); // Workspace bounding box
+
+        // Calculate logical coordinates considering scaling and translation
+        const x =
+            (e.clientX - workspaceBounds.left - currentTranslate.tx) /
+            currentScale.sx;
+        const y =
+            (e.clientY - workspaceBounds.top - currentTranslate.ty) /
+            currentScale.sy;
 
         if (draggingItem) {
             // On déplace un item déjà existant
@@ -254,7 +268,7 @@ function CircuitInterface() {
             );
             saveHistory();
 
-            // NEW / UPDATED - Incrémente le compteur pour ce type
+            // Increment component count for this type
             setComponentCount((prev) => {
                 const oldCount = prev[draggedItem.type] || 0;
                 return {
@@ -263,8 +277,7 @@ function CircuitInterface() {
                 };
             });
 
-            // NEW - Ajouter un élément JointJS IO via setCircuitGraph
-            // Création du nouvel élément
+            // Add a new JointJS element at the calculated position
             const ioElement = new joint.shapes.logic.IO({
                 position: { x, y },
                 attrs: {
@@ -276,7 +289,7 @@ function CircuitInterface() {
                 },
             });
 
-            // Mise à jour du graph via setCircuitGraph
+            // Update the graph using setCircuitGraph
             circuitGraph.addCell(ioElement);
         }
     };

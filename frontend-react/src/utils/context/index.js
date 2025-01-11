@@ -16,16 +16,26 @@ export const ThemeProvider = ({ children }) => {
     );
 };
 
-
 export const CircuitGraphContext = createContext();
+export const PaperContext = createContext();
 
 export const CircuitGraphProvider = ({ children }) => {
     const defaultGraph = new joint.dia.Graph();
-    const [circuitGraph, setCircuitGraph] = useState( defaultGraph ); // A completer
+    const [circuitGraph, setCircuitGraph] = useState(defaultGraph); // A completer
 
     return (
         <CircuitGraphContext.Provider value={{ circuitGraph, setCircuitGraph }}>
             {children}
         </CircuitGraphContext.Provider>
+    );
+};
+
+export const PaperProvider = ({ children }) => {
+    const [paper, setPaper] = useState(null);
+
+    return (
+        <PaperContext.Provider value={{ paper, setPaper }}>
+            {children}
+        </PaperContext.Provider>
     );
 };

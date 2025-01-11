@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useContext } from 'react';
 import imRes from '../../assets/Resistance.png';
 import imBob from '../../assets/Bobine.png';
 import imCond from '../../assets/Condensateur.png';
-import { CircuitGraphContext } from '../../utils/context/';
+import { CircuitGraphContext, PaperContext } from '../../utils/context/';
 
 export const Gate = joint.dia.Element.define(
     'logic.Gate',
@@ -196,9 +196,52 @@ export const shapes = {
     },
 };
 
+const enablePanning = (paper) => {
+    let isPanning = false;
+    let startX, startY;
+
+    paper.on('blank:pointerdown', (evt, x, y) => {
+        isPanning = true;
+        startX = evt.clientX;
+        startY = evt.clientY;
+    });
+
+    document.addEventListener('mousemove', (evt) => {
+        if (!isPanning) return;
+
+        const dx = evt.clientX - startX;
+        const dy = evt.clientY - startY;
+        startX = evt.clientX;
+        startY = evt.clientY;
+
+        const translate = paper.translate();
+        paper.translate(translate.tx + dx, translate.ty + dy);
+    });
+
+    document.addEventListener('mouseup', () => {
+        isPanning = false;
+    });
+};
+
+const enableZoom = (paper) => {
+    const zoomStep = 0.1; // Incrément du zoom
+    const minZoom = 0.5; // Zoom minimal
+    const maxZoom = 2; // Zoom maximal
+
+    paper.on('blank:mousewheel', (evt, x, y, delta) => {
+        const currentScale = paper.scale();
+        const newScale = Math.min(
+            Math.max(currentScale.sx + delta * zoomStep, minZoom),
+            maxZoom
+        );
+
+        paper.scale(newScale, newScale, x, y); // Zoom au niveau du pointeur
+    });
+};
+
 const JointWorkspace = ({ onDrop, onDragOver }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
-
+    const { paper, setPaper } = useContext(PaperContext);
     const graphContainerRef = useRef(null);
     const graph = new joint.dia.Graph();
 
@@ -235,6 +278,14 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
         console.log(allEdges);
 
         setCircuitGraph(graph);
+
+        // Activer le zoom et le déplacement
+        enableZoom(paper);
+        enablePanning(paper);
+        setPaper(paper);
+
+        // Update zoom level in state on scale change
+        paper.on('scale', setPaper(paper)); // Assuming uniform scaling
     }, []);
 
     return (
