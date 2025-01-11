@@ -246,11 +246,6 @@ function CircuitInterface() {
         if (draggingItem) {
             // On déplace un item déjà existant
             saveHistory();
-            setPlacedItems((prev) =>
-                prev.map((item) =>
-                    item.id === draggingItem.id ? { ...item, x, y } : item
-                )
-            );
             setDraggingItem(null);
         } else {
             // On drop depuis la toolbox => nouvelle instance
@@ -258,17 +253,6 @@ function CircuitInterface() {
                 e.dataTransfer.getData('text/plain')
             );
             saveHistory();
-
-            const newId = Date.now(); // Identifiant interne unique
-            const newItem = {
-                id: newId,
-                src: draggedItem.src,
-                x,
-                y,
-                type: draggedItem.type,
-                symbole: draggedItem.symbole,
-            };
-            setPlacedItems((prev) => [...prev, newItem]);
 
             // NEW / UPDATED - Incrémente le compteur pour ce type
             setComponentCount((prev) => {
@@ -279,17 +263,21 @@ function CircuitInterface() {
                 };
             });
 
-            // On ajoute aussi au netlist
-            addComponent({
-                id: newId,
-                // NEW / UPDATED : Calcul du name
-                name: `${typeToShortSymbol[draggedItem.type]}_${
-                    componentCount[draggedItem.type] + 1
-                }`,
-                symbole: draggedItem.symbole,
-                type: draggedItem.type,
-                value: defaultValues[draggedItem.type] || 1,
+            // NEW - Ajouter un élément JointJS IO via setCircuitGraph
+            // Création du nouvel élément
+            const ioElement = new joint.shapes.logic.IO({
+                position: { x, y },
+                attrs: {
+                    text: {
+                        text: `${draggedItem.symbole} ${
+                            componentCount[draggedItem.type] + 1
+                        }`,
+                    },
+                },
             });
+
+            // Mise à jour du graph via setCircuitGraph
+            circuitGraph.addCell(ioElement);
         }
     };
 
@@ -452,7 +440,7 @@ function CircuitInterface() {
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
-        
+
         try {
             const response = await fetch('http://localhost:5000/api/circuits', {
                 method: 'POST',
@@ -490,8 +478,10 @@ function CircuitInterface() {
                     <TabbedMenu pages={topMenuPages} theme={theme} />
                     <button onClick={handleSubmit}>Résoudre</button>
                     {/* Placement du circuit drawer JointJS */}
-                    <JointWorkspace />
-                    
+                    <JointWorkspace
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver} // Empêche le comportement par défaut pour permettre le drop
+                    />
                 </MainVerticalContainer>
             </MainHorizontalContainer>
         </>
