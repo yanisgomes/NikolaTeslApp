@@ -461,7 +461,6 @@ function CircuitInterface() {
                     'Content-Type': 'application/json',
                 },
 
-                body: JSON.stringify(circuitGraph.getLinks()), // Conversion des données en JSON
                 body: JSON.stringify(circuitGraph.getCells()), // Conversion des données en JSON
             });
 

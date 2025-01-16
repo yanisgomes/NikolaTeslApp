@@ -72,7 +72,6 @@ export const Input = IO.define('logic.Input', {
 export const Output = IO.define('logic.Output', {
     attrs: {
         '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
-<<<<<<< Updated upstream
         circle: {
             ref: '.body',
             'ref-x': -30,
@@ -93,15 +92,15 @@ export const Gate11 = Gate.define(
                 ref: '.body',
                 'ref-x': -2,
                 'ref-y': 0.5,
-                magnet: 'passive',
-                port: 'in',
+                magnet: true, //mettre true pour pouvoir connecter les fils sur les deux ports, 'passive' sinon
+                port: 'in', 
             },
             '.output': {
                 ref: '.body',
                 'ref-dx': 2,
                 'ref-y': 0.5,
                 magnet: true,
-                port: 'out',
+                port: 'in',
             },
         },
     },
@@ -142,17 +141,24 @@ export const Gate21 = Gate.define(
     }
 );
 
-export const Resistance = Gate11.define(
-    'logic.Resistance',
-    {
-        attrs: { image: { 'xlink:href': imRes } },
+export const Resistance = Gate11.define('Resistance', {
+    attrs: {
+        image: { 'xlink:href': imRes },
+        label: { text: 'Valeur: 100 Ω', fill: 'black' }
     },
-    {
-        operation: function (input) {
-            return !input;
-        },
+    valeur: 100, // Valeur par défaut
+}, {
+    // Méthode pour modifier dynamiquement la valeur
+    setValeur: function(nouvelleValeur) {
+        this.valeur = nouvelleValeur; // Met à jour la propriété
+        this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
+    },
+
+    // Méthode pour récupérer la valeur actuelle
+    getValeur: function() {
+        return this.valeur;
     }
-);
+});
 
 export const Wire = joint.dia.Link.define(
     'logic.Wire',
@@ -197,6 +203,19 @@ export const shapes = {
         Wire,
     },
 };
+
+// Fonction pour créer un hub
+function createNode(graph, position) {
+    const hub = new joint.shapes.standard.Circle();
+    hub.position(position.x - 20, position.y - 20); // Ajuster la position
+    hub.resize(40, 40); // Taille du hub
+    hub.attr({
+        body: { fill: 'blue' },
+        label: { text: 'node', fill: 'white' }
+    });
+    hub.addTo(graph);
+    return hub;
+}
 
 const enablePanning = (paper) => {
     let isPanning = false;
@@ -261,30 +280,33 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
 
         if (!graph.getElements().length) {
         // Ajout d'éléments
-        const input1 = new Input().position(50, 150).addTo(graph);
-        const andGate = new Resistance().position(300, 200).addTo(graph);
-        const output = new Output().position(550, 200).addTo(graph);
-        const Bobine1 = new Bobine().position(50, 150).addTo(graph);
+        const Bobine1 = new Resistance().position(50, 150).addTo(graph);
         const Resistance1 = new Resistance().position(300, 200).addTo(graph);
-        const Condensateur1 = new Condensateur().position(550, 200).addTo(graph);
+        const Condensateur1 = new Resistance().position(550, 200).addTo(graph);
 
 
         Resistance1.setValeur(200);  // Modifie la valeur de la résistance
         
         // Connexions
         new joint.dia.Link({
-            source: { id: input1.id, port: 'out' },
-            target: { id: andGate.id, port: 'in1' },
             source: { id: Bobine1.id, port: 'out' },
             target: { id: Resistance1.id, port: 'in' },
         }).addTo(graph);
 
         new joint.dia.Link({
-            source: { id: andGate.id, port: 'out' },
-            target: { id: output.id, port: 'in' },
             source: { id: Resistance1.id, port: 'out' },
             target: { id: Condensateur1.id, port: 'in' },
         }).addTo(graph);
+
+        const Hub = new joint.shapes.standard.Circle();
+        Hub.position(300, 300);
+        Hub.resize(4, 4);
+        Hub.attr({
+            body: { fill: 'blue' },
+            label: { text: 'Hub', fill: 'white' }
+        });
+        Hub.addTo(graph);
+
 
         }
         
@@ -306,7 +328,7 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                     alert("Veuillez entrer une valeur numérique valide.");
                 }
             }
-
+            /*    
             // Vérifie si l'élément cliqué est un condensateur
             if (cell.isElement() && cell instanceof Condensateur) {
                 // Demande la nouvelle valeur
@@ -337,9 +359,39 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                 } else {
                     alert("Veuillez entrer une valeur numérique valide.");
                 }
+            }*/
+        });
+
+        // Surveiller les liens pour créer des hubs dynamiquement
+        graph.on('change:target', function(link) {
+            console.log("surpassement détecté")
+            const target = link.get('target');
+
+            // Vérifier si la cible est un autre lien
+            if (target.id && graph.getCell(target.id) instanceof joint.dia.Link) {
+                const targetLink = graph.getCell(target.id);
+
+                // Positionner le hub à l'intersection (ou à une position intermédiaire)
+                const sourcePosition = link.source().id
+                    ? graph.getCell(link.source().id).position()
+                    : link.source();
+                const targetPosition = targetLink.target().id
+                    ? graph.getCell(targetLink.target().id).position()
+                    : targetLink.target();
+
+                const nodePosition = {
+                    x: (sourcePosition.x + targetPosition.x) / 2,
+                    y: (sourcePosition.y + targetPosition.y) / 2,
+                };
+
+                // Créer un hub
+                const hub = createNode(graph, nodePosition);
+
+                // Reconnecter les liens au hub
+                link.set('target', { id: hub.id, port: 'in' });
+                targetLink.set('source', { id: hub.id, port: 'out' });
             }
         });
-        
         
         var allEdges = graph.getLinks();
         console.log('Test');
