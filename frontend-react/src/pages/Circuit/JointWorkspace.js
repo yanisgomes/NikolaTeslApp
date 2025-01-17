@@ -160,6 +160,13 @@ export const Resistance = Gate11.define('Resistance', {
     }
 });
 
+export const AOP = Gate21.define('AOP', {
+    attrs: {
+        image: { 'xlink:href': imBob },
+        label: { text: 'AOP', fill: 'black' }
+    },
+});
+
 export const Wire = joint.dia.Link.define(
     'logic.Wire',
     {
@@ -204,18 +211,41 @@ export const shapes = {
     },
 };
 
-// Fonction pour créer un hub
+// Fonction pour créer un noeud
 function createNode(graph, position) {
     const hub = new joint.shapes.standard.Circle();
-    hub.position(position.x - 20, position.y - 20); // Ajuster la position
-    hub.resize(40, 40); // Taille du hub
+    hub.position(position.x, position.y);
+    hub.resize(20, 20); // Taille du nœud
     hub.attr({
         body: { fill: 'blue' },
-        label: { text: 'node', fill: 'white' }
+        label: { text: '', fill: 'white' },
     });
     hub.addTo(graph);
     return hub;
 }
+
+function getIntersection(p1, p2, p3, p4) {
+    const det = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
+
+    if (det === 0) return null; // Les segments sont parallèles ou colinéaires
+
+    const lambda =
+        ((p4.y - p3.y) * (p4.x - p1.x) - (p4.x - p3.x) * (p4.y - p1.y)) / det;
+    const gamma =
+        ((p1.y - p2.y) * (p4.x - p1.x) - (p1.x - p2.x) * (p4.y - p1.y)) / det;
+
+    // Vérifie si l'intersection est dans les limites des deux segments
+    if (lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1) {
+        return {
+            x: p1.x + lambda * (p2.x - p1.x),
+            y: p1.y + lambda * (p2.y - p1.y),
+        };
+    }
+
+    return null; // Pas d'intersection
+}
+
+
 
 const enablePanning = (paper) => {
     let isPanning = false;
@@ -363,36 +393,72 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
         });
 
         // Surveiller les liens pour créer des hubs dynamiquement
-        graph.on('change:target', function(link) {
-            console.log("surpassement détecté")
-            const target = link.get('target');
-
-            // Vérifier si la cible est un autre lien
-            if (target.id && graph.getCell(target.id) instanceof joint.dia.Link) {
-                const targetLink = graph.getCell(target.id);
-
-                // Positionner le hub à l'intersection (ou à une position intermédiaire)
-                const sourcePosition = link.source().id
-                    ? graph.getCell(link.source().id).position()
-                    : link.source();
-                const targetPosition = targetLink.target().id
-                    ? graph.getCell(targetLink.target().id).position()
-                    : targetLink.target();
-
-                const nodePosition = {
-                    x: (sourcePosition.x + targetPosition.x) / 2,
-                    y: (sourcePosition.y + targetPosition.y) / 2,
-                };
-
-                // Créer un hub
-                const hub = createNode(graph, nodePosition);
-
-                // Reconnecter les liens au hub
-                link.set('target', { id: hub.id, port: 'in' });
-                targetLink.set('source', { id: hub.id, port: 'out' });
-            }
+        graph.on('change:target', function (link) {
+            const target = link.get('target'); // Récupère la cible actuelle du lien déplacé
+            if (!target || target.id) return; // Assurez-vous que la cible est une position libre (pas un élément)
+        
+            const sourcePosition = link.source().id
+                ? graph.getCell(link.source().id).position()
+                : link.source(); // Position de la source du lien déplacé
+            const targetPosition = target; // Position actuelle de l'extrémité déplacée
+        
+            // Vérifier les intersections avec d'autres liens
+            graph.getLinks().forEach((otherLink) => {
+                if (otherLink === link) return; // Ignore le lien lui-même
+        
+                const otherSourcePosition = otherLink.source().id
+                    ? graph.getCell(otherLink.source().id).position()
+                    : otherLink.source();
+                const otherTargetPosition = otherLink.target().id
+                    ? graph.getCell(otherLink.target().id).position()
+                    : otherLink.target();
+        
+                // Vérifie si les deux segments de liens se croisent
+                const intersection = getIntersection(
+                    sourcePosition,
+                    targetPosition,
+                    otherSourcePosition,
+                    otherTargetPosition
+                );
+        
+                if (intersection) {
+                    // Vérifie s'il existe déjà un nœud proche de l'intersection
+                    const radius = 70; // Rayon de proximité (en pixels)
+                    const existingNode = graph.getElements().find((element) => {
+                        const position = element.position();
+                        return (
+                            Math.abs(position.x - intersection.x) < radius &&
+                            Math.abs(position.y - intersection.y) < radius
+                        );
+                    });
+        
+                    if (!existingNode) {
+                        
+                        // Crée un nœud à la position de l'intersection
+                        const hub = createNode(graph, intersection);
+        
+                        // Connecte immédiatement le lien déplacé au nœud
+                        link.set('target', { id: hub.id, port: 'in' });
+        
+                        // Coupe le lien existant en deux et connecte les segments au nœud
+                        const newLink = new joint.dia.Link({
+                            source: { id: hub.id, port: 'out' },
+                            target: otherLink.target(),
+                        }).addTo(graph);
+                        otherLink.set('target', { id: hub.id, port: 'in' });
+        
+                        console.log('Intersection détectée, nœud créé et lien connecté !');
+                    } else {
+                        // Connecte directement le lien au nœud existant
+                        link.set('target', { id: existingNode.id, port: 'in' });
+                        console.log('Un nœud existant a été utilisé pour connecter le lien.');
+                    }
+                }
+            });
         });
         
+        
+
         var allEdges = graph.getLinks();
         console.log('Test');
         console.log(allEdges);
