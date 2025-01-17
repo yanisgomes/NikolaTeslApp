@@ -9,6 +9,14 @@ import 'jointjs/dist/joint.css';
 
 import JointWorkspace from './JointWorkspace';
 
+import { Resistance } from './JointWorkspace';
+
+import {
+    ThemeContext,
+    CircuitGraphContext,
+    PaperContext,
+} from '../../utils/context';
+
 import symbol_resistor from '../../assets/symbol_resistor.png';
 import symbol_inductor from '../../assets/symbol_inductor.png';
 import symbol_capacitor from '../../assets/symbol_capacitor.png';
@@ -21,8 +29,6 @@ import symbol_ground from '../../assets/symbol_ground.png';
 import symbol_switch from '../../assets/symbol_switch_open.png';
 import symbol_voltmeter from '../../assets/symbol_voltmeter.png';
 import symbol_amperometer from '../../assets/symbol_amperometer.png';
-
-import { ThemeContext } from '../../utils/context/';
 
 import Header from '../../components/Header';
 import TabbedMenu from '../../components/TabbedMenu/';
@@ -376,8 +382,8 @@ function CircuitInterface() {
             let element;
 
             // Ajoutez la logique en fonction du type d'élément
-            switch (draggedItem.type) {
-                case 'resistance':
+            switch (draggedItem.name) {
+                case 'Résistance':
                     element = new Resistance();
                     element.attr('label/text', `Valeur: 100 Ω`); // Afficher la valeur par défaut de la résistance
                     break;
