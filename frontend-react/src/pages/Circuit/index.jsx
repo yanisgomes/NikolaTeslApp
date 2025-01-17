@@ -9,21 +9,29 @@ import 'jointjs/dist/joint.css';
 
 import JointWorkspace from './JointWorkspace';
 
-import item1 from '../../assets/Resistance.png';
-import item2 from '../../assets/Bobine.png';
-import item3 from '../../assets/Condensateur.png';
-import {
-    ThemeContext,
-    CircuitGraphContext,
-    PaperContext,
-} from '../../utils/context';
+import symbol_resistor from '../../assets/symbol_resistor.png';
+import symbol_inductor from '../../assets/symbol_inductor.png';
+import symbol_capacitor from '../../assets/symbol_capacitor.png';
+import symbol_aop from '../../assets/symbol_aop.png';
+import symbol_bip_npn from '../../assets/symbol_bip_npn.png';
+import symbol_bip_pnp from '../../assets/symbol_bip_pnp.png';
+import symbol_current_src from '../../assets/symbol_current_src.png';
+import symbol_voltage_src from '../../assets/symbol_voltage_src.png';
+import symbol_ground from '../../assets/symbol_ground.png';
+import symbol_switch from '../../assets/symbol_switch_open.png';
+import symbol_voltmeter from '../../assets/symbol_voltmeter.png';
+import symbol_amperometer from '../../assets/symbol_amperometer.png';
+
+import { ThemeContext } from '../../utils/context/';
 
 import Header from '../../components/Header';
 import TabbedMenu from '../../components/TabbedMenu/';
 import CircuitToolbar from '../../components/CircuitToolbar';
 import ChatInterface from '../../components/ChatInterface';
 import ComponentToolbox from '../../components/ComponentToolbox';
-import { Resistance } from './JointWorkspace';
+import TemporalToolbox from '../../components/TemporalToolbox';
+import FrequentialToolbox from '../../components/FrequentialToolbox';
+
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
 /********************************************
@@ -248,9 +256,84 @@ function CircuitInterface() {
 
     // ITEMS DISPONIBLES (TOOLBOX)
     const [items] = useState([
-        { id: 1, src: item1, type: 'resistance', symbole: 'R' },
-        { id: 2, src: item2, type: 'bobine', symbole: 'L' },
-        { id: 3, src: item3, type: 'condensateur', symbole: 'C' },
+        {
+            id: 1,
+            src: symbol_resistor,
+            name: 'Résistance',
+            symbole: 'R',
+            tag: 'linear',
+        },
+        {
+            id: 2,
+            src: symbol_inductor,
+            name: 'Inductance',
+            symbole: 'L',
+            tag: 'linear',
+        },
+        {
+            id: 3,
+            src: symbol_capacitor,
+            name: 'Condensateur',
+            symbole: 'C',
+            tag: 'linear',
+        },
+        { id: 4, src: symbol_aop, name: 'AOP', symbole: 'AOP', tag: 'linear' },
+        {
+            id: 5,
+            src: symbol_bip_npn,
+            name: 'Transistor NPN',
+            symbole: 'Q',
+            tag: 'transistors',
+        },
+        {
+            id: 6,
+            src: symbol_bip_pnp,
+            name: 'Transistor PNP',
+            symbole: 'Q',
+            tag: 'transistors',
+        },
+        {
+            id: 7,
+            src: symbol_current_src,
+            name: 'Source de courant',
+            symbole: 'I',
+            tag: 'sources',
+        },
+        {
+            id: 8,
+            src: symbol_voltage_src,
+            name: 'Source de tension',
+            symbole: 'V',
+            tag: 'sources',
+        },
+        {
+            id: 10,
+            src: symbol_ground,
+            name: 'Ground',
+            symbole: 'GND',
+            tag: 'others',
+        },
+        {
+            id: 11,
+            src: symbol_switch,
+            name: 'Interrupteur',
+            symbole: 'S',
+            tag: 'others',
+        },
+        {
+            id: 13,
+            src: symbol_voltmeter,
+            name: 'Voltmètre',
+            symbole: 'V',
+            tag: 'others',
+        },
+        {
+            id: 14,
+            src: symbol_amperometer,
+            name: 'Ampèremètre',
+            symbole: 'A',
+            tag: 'others',
+        },
     ]);
 
     // PLACED ITEMS (Workspace)
@@ -452,11 +535,11 @@ function CircuitInterface() {
         },
         {
             name: 'Réponse temporelle',
-            content: <h2>Résolution temporelle</h2>,
+            content: <TemporalToolbox />,
         },
         {
             name: 'Réponse fréquentielle',
-            content: <h2>Résolution fréquentielle</h2>,
+            content: <FrequentialToolbox />,
         },
     ];
 

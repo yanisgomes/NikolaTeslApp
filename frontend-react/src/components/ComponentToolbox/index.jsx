@@ -1,15 +1,15 @@
-// src/components/ComponentToolbox/index.jsx
-
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 import ComponentToolboxCard from '../ComponentToolboxCard';
-import { VscBook } from 'react-icons/vsc';
 
 import ToolbarButton from './../ToolbarButton';
+
 import { getIconAsUrl } from '../../utils/utils';
 
-const VscBookUrl = getIconAsUrl(<VscBook />);
+import { VscSparkle } from 'react-icons/vsc';
+
+const VscSparkleUrl = getIconAsUrl(<VscSparkle />);
 
 const Container = styled.div`
     width: 100%;
@@ -17,131 +17,113 @@ const Container = styled.div`
     flex-direction: column;
 `;
 
-const FilterHeader = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-
-    button {
-        background: ${colors.primary};
-        color: white;
-        border: none;
-        padding: 8px;
-        cursor: pointer;
-        border-radius: 4px;
-
-        &:hover {
-            opacity: 0.9;
-        }
-    }
-`;
-
-const FilterPanel = styled.div`
-    margin-bottom: 8px;
-    border: 1px solid ${colors.lightGrey2};
-    border-radius: 4px;
-    padding: 8px;
-
-    /* On pourra gérer la visibilité via isOpen s'il on veut 
-     animer ou conditionnellement rendre visible. */
-`;
-
-/**
- * Zone de scroll horizontal
- */
-const CardScroller = styled.div`
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    scroll-behavior: smooth; /* pour un défilement plus doux */
-
-    &::-webkit-scrollbar {
-        height: 8px;
-    }
-    &::-webkit-scrollbar-thumb {
-        background-color: ${colors.darkGrey};
-        border-radius: 4px;
-    }
-`;
-
 const ToolboxHeaderContainer = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    overflow-x: hidden;
+`;
+
+/** Conteneur du select, si besoin de marger ou styliser autour. */
+const FilterContainer = styled.div``;
+
+/**
+ * On stylise le <select> pour être plus grand et avoir un style "hover" cohérent.
+ */
+const FilterSelect = styled.select`
+    font-size: 16px;
+    padding: 8px 12px;
+    border: 1px solid ${colors.lightGrey2};
+    border-radius: 6px;
+    background-color: ${colors.backgroundLight};
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 1px ${colors.primary};
+    }
 `;
 
 /**
- * @param {Array} props.items Tableau des composants { id, src, name, tag }
- * @param {function} props.handleDragStartFromToolbox Callback pour le drag
+ * Conteneur global qui gère le scroll horizontal.
+ * On conserve le style de scrollbar que vous aviez.
  */
+const ScrollWrapper = styled.div`
+    width: 96vh;
+    overflow-x: auto;
+    padding-bottom: 24px; /* Espace sous les éléments pour laisser de la place en bas */
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+        height: 8px; /* Hauteur de la barre de scroll horizontale */
+    }
+    &::-webkit-scrollbar-thumb {
+        background: ${colors.lightGrey2};
+        border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: ${colors.grey};
+    }
+`;
+
+/**
+ * Conteneur horizontal (flex) pour les cartes.
+ * - flex-wrap: nowrap => pour scroller en horizontal quand ça déborde
+ * - gap => espace entre les cartes
+ */
+const HorizontalCardsRow = styled.div`
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 16px;
+    padding: 8px;
+    align-items: flex-start;
+`;
+
 const ComponentToolbox = ({ items, handleDragStartFromToolbox }) => {
-    // Gestion du filtre
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [selectedTag, setSelectedTag] = useState('all');
+    const [filter, setFilter] = useState('all');
 
-    // Tableau des tags disponibles
-    const availableTags = [
-        'all',
-        'linear components',
-        'transistors',
-        'transformers',
-        'diodes',
-        'semiconductor devices',
-        'sources',
-        'basic logic blocks',
-    ];
-
-    // Ouverture/fermeture du panneau de filtre
-    const toggleFilterPanel = () => {
-        setIsFilterOpen(!isFilterOpen);
+    const handleFilterChange = (e) => {
+        setFilter(e.target.value);
     };
 
-    // Filtrer les items en fonction du tag choisi
-    const filteredItems =
-        selectedTag === 'all'
-            ? items
-            : items.filter((item) => item.tag === selectedTag);
+    // Filtrage (optionnel)
+    const filteredItems = items.filter((item) => {
+        if (filter === 'all') return true;
+        return item.tag === filter;
+    });
 
     return (
         <Container>
             <ToolboxHeaderContainer>
                 <h2>Composants</h2>
-
-                {isFilterOpen && (
-                    <FilterPanel>
-                        <label htmlFor="tag-filter">Filtre : </label>
-                        <select
-                            id="tag-filter"
-                            value={selectedTag}
-                            onChange={(e) => setSelectedTag(e.target.value)}
-                        >
-                            {availableTags.map((tag) => (
-                                <option value={tag} key={tag}>
-                                    {tag}
-                                </option>
-                            ))}
-                        </select>
-                    </FilterPanel>
-                )}
-
-                <ToolbarButton
-                    onClick={toggleFilterPanel}
-                    logoUrl={VscBookUrl}
-                    size="30px"
-                />
+                <FilterContainer>
+                    <FilterSelect value={filter} onChange={handleFilterChange}>
+                        <option value="all">All</option>
+                        <option value="linear">Linear</option>
+                        <option value="transistors">Transistors</option>
+                        <option value="sources">Sources</option>
+                        <option value="others">Others</option>
+                    </FilterSelect>
+                </FilterContainer>
             </ToolboxHeaderContainer>
 
-            <CardScroller>
-                {filteredItems.map((item) => (
-                    <ComponentToolboxCard
-                        key={item.id}
-                        item={item}
-                        onDragStart={handleDragStartFromToolbox}
-                    />
-                ))}
-            </CardScroller>
+            {/* Zone d’affichage des cartes (défilement horizontal) */}
+            <ScrollWrapper>
+                <HorizontalCardsRow>
+                    {filteredItems.map((item) => (
+                        <ComponentToolboxCard
+                            key={item.id}
+                            item={item}
+                            onDragStart={handleDragStartFromToolbox}
+                        />
+                    ))}
+                </HorizontalCardsRow>
+            </ScrollWrapper>
         </Container>
     );
 };
