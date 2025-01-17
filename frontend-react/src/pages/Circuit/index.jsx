@@ -4,9 +4,24 @@ import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
 
-import item1 from '../../assets/Resistance.png';
-import item2 from '../../assets/Bobine.png';
-import item3 from '../../assets/Condensateur.png';
+import * as joint from 'jointjs';
+import 'jointjs/dist/joint.css';
+
+import JointWorkspace from './JointWorkspace';
+
+import symbol_resistor from '../../assets/symbol_resistor.png';
+import symbol_inductor from '../../assets/symbol_inductor.png';
+import symbol_capacitor from '../../assets/symbol_capacitor.png';
+import symbol_aop from '../../assets/symbol_aop.png';
+import symbol_bip_npn from '../../assets/symbol_bip_npn.png';
+import symbol_bip_pnp from '../../assets/symbol_bip_pnp.png';
+import symbol_current_src from '../../assets/symbol_current_src.png';
+import symbol_voltage_src from '../../assets/symbol_voltage_src.png';
+import symbol_ground from '../../assets/symbol_ground.png';
+import symbol_switch from '../../assets/symbol_switch_open.png';
+import symbol_voltmeter from '../../assets/symbol_voltmeter.png';
+import symbol_amperometer from '../../assets/symbol_amperometer.png';
+
 import { ThemeContext } from '../../utils/context/';
 
 import Header from '../../components/Header';
@@ -14,6 +29,8 @@ import TabbedMenu from '../../components/TabbedMenu/';
 import CircuitToolbar from '../../components/CircuitToolbar';
 import ChatInterface from '../../components/ChatInterface';
 import ComponentToolbox from '../../components/ComponentToolbox';
+import TemporalToolbox from '../../components/TemporalToolbox';
+import FrequentialToolbox from '../../components/FrequentialToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
@@ -202,6 +219,8 @@ function useNetlist() {
 
 function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
+    const { paper, setPaper } = useContext(PaperContext);
 
     // ÉTATS ZOOM + PAN ...
     const [zoom, setZoom] = useState(1);
@@ -237,9 +256,84 @@ function CircuitInterface() {
 
     // ITEMS DISPONIBLES (TOOLBOX)
     const [items] = useState([
-        { id: 1, src: item1, type: 'resistance', symbole: 'R' },
-        { id: 2, src: item2, type: 'bobine', symbole: 'L' },
-        { id: 3, src: item3, type: 'condensateur', symbole: 'C' },
+        {
+            id: 1,
+            src: symbol_resistor,
+            name: 'Résistance',
+            symbole: 'R',
+            tag: 'linear',
+        },
+        {
+            id: 2,
+            src: symbol_inductor,
+            name: 'Inductance',
+            symbole: 'L',
+            tag: 'linear',
+        },
+        {
+            id: 3,
+            src: symbol_capacitor,
+            name: 'Condensateur',
+            symbole: 'C',
+            tag: 'linear',
+        },
+        { id: 4, src: symbol_aop, name: 'AOP', symbole: 'AOP', tag: 'linear' },
+        {
+            id: 5,
+            src: symbol_bip_npn,
+            name: 'Transistor NPN',
+            symbole: 'Q',
+            tag: 'transistors',
+        },
+        {
+            id: 6,
+            src: symbol_bip_pnp,
+            name: 'Transistor PNP',
+            symbole: 'Q',
+            tag: 'transistors',
+        },
+        {
+            id: 7,
+            src: symbol_current_src,
+            name: 'Source de courant',
+            symbole: 'I',
+            tag: 'sources',
+        },
+        {
+            id: 8,
+            src: symbol_voltage_src,
+            name: 'Source de tension',
+            symbole: 'V',
+            tag: 'sources',
+        },
+        {
+            id: 10,
+            src: symbol_ground,
+            name: 'Ground',
+            symbole: 'GND',
+            tag: 'others',
+        },
+        {
+            id: 11,
+            src: symbol_switch,
+            name: 'Interrupteur',
+            symbole: 'S',
+            tag: 'others',
+        },
+        {
+            id: 13,
+            src: symbol_voltmeter,
+            name: 'Voltmètre',
+            symbole: 'V',
+            tag: 'others',
+        },
+        {
+            id: 14,
+            src: symbol_amperometer,
+            name: 'Ampèremètre',
+            symbole: 'A',
+            tag: 'others',
+        },
     ]);
 
     // PLACED ITEMS (Workspace)
@@ -256,60 +350,75 @@ function CircuitInterface() {
     // GESTION DU DRAG & DROP
     const handleDrop = (e) => {
         e.preventDefault();
+
+        const currentScale = paper.scale();
+        const currentTranslate = paper.translate();
         const workspaceBounds = e.target.getBoundingClientRect();
-        const x = (e.clientX - workspaceBounds.left) / zoom;
-        const y = (e.clientY - workspaceBounds.top) / zoom;
-        const idplus = [];
-        const idmoins = [];
+
+        const x =
+            (e.clientX - workspaceBounds.left - currentTranslate.tx) /
+            currentScale.sx;
+        const y =
+            (e.clientY - workspaceBounds.top - currentTranslate.ty) /
+            currentScale.sy;
 
         if (draggingItem) {
-            // On déplace un item déjà existant
             saveHistory();
-            setPlacedItems((prev) =>
-                prev.map((item) =>
-                    item.id === draggingItem.id ? { ...item, x, y } : item
-                )
-            );
             setDraggingItem(null);
         } else {
-            // On drop depuis la toolbox => nouvelle instance
             const draggedItem = JSON.parse(
                 e.dataTransfer.getData('text/plain')
             );
+
             saveHistory();
 
-            const newId = Date.now(); // Identifiant interne unique
-            const newItem = {
-                id: newId,
-                src: draggedItem.src,
-                x,
-                y,
-                idplus,
-                idmoins,
-                type: draggedItem.type,
-                symbole: draggedItem.symbole,
-            };
-            setPlacedItems((prev) => [...prev, newItem]);
+            // Déclarez une variable pour l'élément à ajouter au graphique
+            let element;
 
-            // NEW / UPDATED - Incrémente le compteur pour ce type
+            // Ajoutez la logique en fonction du type d'élément
+            switch (draggedItem.type) {
+                case 'resistance':
+                    element = new Resistance();
+                    element.attr('label/text', `Valeur: 100 Ω`); // Afficher la valeur par défaut de la résistance
+                    break;
+
+                case 'Gate11':
+                    element = new joint.shapes.logic.Gate11();
+                    break;
+
+                case 'Gate21':
+                    element = new joint.shapes.logic.Gate21();
+                    break;
+
+                case 'Input':
+                    element = new joint.shapes.logic.Input();
+                    break;
+
+                case 'Output':
+                    element = new joint.shapes.logic.Output();
+                    break;
+
+                default:
+                    console.log(
+                        "Type d'élément non reconnu:",
+                        draggedItem.type
+                    );
+                    return; // Si le type n'est pas reconnu, on arrête la fonction
+            }
+
+            // Positionner l'élément au bon endroit
+            element.position(x, y);
+
+            // Ajouter l'élément au graphique
+            element.addTo(circuitGraph);
+
+            // Mettre à jour le comptage des composants
             setComponentCount((prev) => {
                 const oldCount = prev[draggedItem.type] || 0;
                 return {
                     ...prev,
                     [draggedItem.type]: oldCount + 1,
                 };
-            });
-
-            // On ajoute aussi au netlist
-            addComponent({
-                id: newId,
-                // NEW / UPDATED : Calcul du name
-                name: `${typeToShortSymbol[draggedItem.type]}_${
-                    componentCount[draggedItem.type] + 1
-                }`,
-                symbole: draggedItem.symbole,
-                type: draggedItem.type,
-                value: defaultValues[draggedItem.type] || 1,
             });
         }
     };
@@ -426,11 +535,11 @@ function CircuitInterface() {
         },
         {
             name: 'Réponse temporelle',
-            content: <h2>Résolution temporelle</h2>,
+            content: <TemporalToolbox />,
         },
         {
             name: 'Réponse fréquentielle',
-            content: <h2>Résolution fréquentielle</h2>,
+            content: <FrequentialToolbox />,
         },
     ];
 
@@ -522,20 +631,17 @@ function CircuitInterface() {
         setOffsetY(0);
     };
 
-<<<<<<< Updated upstream
-=======
-    const graph = useContext(Sharedgraph);
-
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
-        
+
         try {
             const response = await fetch('http://localhost:5000/api/circuits', {
-                method: 'GET',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(graph.getLinks()), // Conversion des données en JSON
+
+                body: JSON.stringify(circuitGraph.getCells()), // Conversion des données en JSON
             });
 
             if (!response.ok) {
@@ -551,7 +657,6 @@ function CircuitInterface() {
         }
     };
 
->>>>>>> Stashed changes
     return (
         <>
             <Header />
@@ -564,8 +669,21 @@ function CircuitInterface() {
                 {/* Contenu principal (top tab + workspace) */}
                 <MainVerticalContainer>
                     <TabbedMenu pages={topMenuPages} theme={theme} />
+                    <button onClick={handleSubmit}>Résoudre</button>
+                    {/* Placement du circuit drawer JointJS */}
+                    <JointWorkspace
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver} // Empêche le comportement par défaut pour permettre le drop
+                    />
+                </MainVerticalContainer>
+            </MainHorizontalContainer>
+        </>
+    );
+}
 
-                    <Workspace
+export default CircuitInterface;
+
+/* <Workspace
                         theme={theme}
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
@@ -687,11 +805,4 @@ function CircuitInterface() {
                                 })}
                             </CircuitContent>
                         </CircuitContainer>
-                    </Workspace>
-                </MainVerticalContainer>
-            </MainHorizontalContainer>
-        </>
-    );
-}
-
-export default CircuitInterface;
+                    </Workspace>*/
