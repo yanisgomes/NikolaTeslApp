@@ -23,9 +23,6 @@ from component import *
 # Configure logging at the beginning of the file
 logging.basicConfig(level=logging.ERROR)
 
-
-
-
 class Solver:
     """
     Handles Sympy manipulations for solving the circuit equations.

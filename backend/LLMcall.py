@@ -22,7 +22,7 @@ import requests
 load_dotenv()
 api_key = os.getenv('OPENROUTER_API_KEY')
 
-def build_prompt(netlist, solutions, transferFunction, equations):
+def build_prompt(netlist, solutions, transferFunction, equations, explanations):
     """
     Build a prompt string for querying the LLM.
 
@@ -36,8 +36,8 @@ def build_prompt(netlist, solutions, transferFunction, equations):
         str: The prompt string for querying the LLM.
     """
     prompt = f"Voici la netlist d'un circuit d'électornique \n --- {netlist} \n ---Les équations sont \n ---"
-    for equ,expl in equations:
-        prompt+= str((f"{expl} : {sympy.latex(equ)}")) + "\n"
+    for i in range(len(equations)):
+        prompt+= str((f"{explanations[i]} : {sympy.latex(equations[i])}")) + "\n"
     prompt += "Voici les résultats de la résolution \n ---"
     for sol in solutions:
         prompt += str(f"{sympy.latex(sol)} = {sympy.latex(solutions[sol])}") + "\n"

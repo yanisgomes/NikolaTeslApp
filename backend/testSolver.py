@@ -32,8 +32,8 @@ circuit = Circuit(component_list, node_list)
 solver = Solver(circuit)
 
 print("--- System of Equations ---")
-for equ,expl in solver.equations:
-    print(f"{expl} : {sp.latex(equ)}")
+for i in range(len(solver.equations)):
+    print(f"{solver.explanations[i]} : {sp.latex(solver.equations[i])}")
 
 print(len(str(solver.equations)))
 
@@ -46,7 +46,7 @@ transferFunction = solver.getTransferFunction('3', '2')
 print(f"Transfer Function: {transferFunction}")
 
 # Call the API
-prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations)
+prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations, solver.explanations)
 response = query_LLM(prompt)
 print(response)
 #sys.exit("Stopping the code execution here. No simulation will be done as numerical values are not specified in netlist.")
