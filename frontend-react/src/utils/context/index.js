@@ -1,4 +1,5 @@
 import { useState, createContext } from 'react';
+import * as joint from 'jointjs';
 
 export const ThemeContext = createContext();
 
@@ -15,17 +16,26 @@ export const ThemeProvider = ({ children }) => {
     );
 };
 
-export const CircuitContext = createContext();
+export const CircuitGraphContext = createContext();
+export const PaperContext = createContext();
 
-export const CircuitProvider = ({ children }) => {
-    const [answers, setAnswers] = useState({});
-    const saveAnswers = (newAnswers) => {
-        setAnswers({ ...answers, ...newAnswers });
-    };
+export const CircuitGraphProvider = ({ children }) => {
+    const defaultGraph = new joint.dia.Graph();
+    const [circuitGraph, setCircuitGraph] = useState(defaultGraph); // A completer
 
     return (
-        <CircuitContext.Provider value={{ answers, saveAnswers }}>
+        <CircuitGraphContext.Provider value={{ circuitGraph, setCircuitGraph }}>
             {children}
-        </CircuitContext.Provider>
+        </CircuitGraphContext.Provider>
+    );
+};
+
+export const PaperProvider = ({ children }) => {
+    const [paper, setPaper] = useState(null);
+
+    return (
+        <PaperContext.Provider value={{ paper, setPaper }}>
+            {children}
+        </PaperContext.Provider>
     );
 };
