@@ -17,6 +17,7 @@ export const Gate = joint.dia.Element.define(
                 stroke: 'black',
                 fill: 'transparent',
                 'stroke-width': 2,
+                magnet: true,
             },
         },
     },
@@ -100,7 +101,7 @@ export const Gate11 = Gate.define(
                 'ref-dx': 2,
                 'ref-y': 0.5,
                 magnet: true,
-                port: 'in',
+                port: 'out',
             },
         },
     },
@@ -433,7 +434,7 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                     });
         
                     if (!existingNode) {
-                        
+
                         // Crée un nœud à la position de l'intersection
                         const hub = createNode(graph, intersection);
         
