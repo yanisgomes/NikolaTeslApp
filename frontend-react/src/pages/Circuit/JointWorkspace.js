@@ -94,7 +94,7 @@ export const Gate11 = Gate.define(
                 'ref-x': -2,
                 'ref-y': 0.5,
                 magnet: true, //mettre true pour pouvoir connecter les fils sur les deux ports, 'passive' sinon
-                port: 'in', 
+                port: 'in',
             },
             '.output': {
                 ref: '.body',
@@ -142,29 +142,33 @@ export const Gate21 = Gate.define(
     }
 );
 
-export const Resistance = Gate11.define('Resistance', {
-    attrs: {
-        image: { 'xlink:href': imRes },
-        label: { text: 'Valeur: 100 Ω', fill: 'black' }
+export const Resistance = Gate11.define(
+    'Resistance',
+    {
+        attrs: {
+            image: { 'xlink:href': imRes },
+            label: { text: 'Valeur: 100 Ω', fill: 'black' },
+        },
+        valeur: 100, // Valeur par défaut
     },
-    valeur: 100, // Valeur par défaut
-}, {
-    // Méthode pour modifier dynamiquement la valeur
-    setValeur: function(nouvelleValeur) {
-        this.valeur = nouvelleValeur; // Met à jour la propriété
-        this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
-    },
+    {
+        // Méthode pour modifier dynamiquement la valeur
+        setValeur: function (nouvelleValeur) {
+            this.valeur = nouvelleValeur; // Met à jour la propriété
+            this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
+        },
 
-    // Méthode pour récupérer la valeur actuelle
-    getValeur: function() {
-        return this.valeur;
+        // Méthode pour récupérer la valeur actuelle
+        getValeur: function () {
+            return this.valeur;
+        },
     }
-});
+);
 
 export const AOP = Gate21.define('AOP', {
     attrs: {
         image: { 'xlink:href': imBob },
-        label: { text: 'AOP', fill: 'black' }
+        label: { text: 'AOP', fill: 'black' },
     },
 });
 
@@ -246,8 +250,6 @@ function getIntersection(p1, p2, p3, p4) {
     return null; // Pas d'intersection
 }
 
-
-
 const enablePanning = (paper) => {
     let isPanning = false;
     let startX, startY;
@@ -303,60 +305,61 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
         const paper = new joint.dia.Paper({
             el: graphContainerRef.current,
             model: graph,
-            width: 1000,
-            height: 1000,
+            width: '100vh',
+            height: '45vh',
             gridSize: 20,
             drawGrid: true,
         });
 
         if (!graph.getElements().length) {
-        // Ajout d'éléments
-        const Bobine1 = new Resistance().position(50, 150).addTo(graph);
-        const Resistance1 = new Resistance().position(300, 200).addTo(graph);
-        const Condensateur1 = new Resistance().position(550, 200).addTo(graph);
+            // Ajout d'éléments
+            const Bobine1 = new Resistance().position(50, 150).addTo(graph);
+            const Resistance1 = new Resistance()
+                .position(300, 200)
+                .addTo(graph);
+            const Condensateur1 = new Resistance()
+                .position(550, 200)
+                .addTo(graph);
 
+            Resistance1.setValeur(200); // Modifie la valeur de la résistance
 
-        Resistance1.setValeur(200);  // Modifie la valeur de la résistance
-        
-        // Connexions
-        new joint.dia.Link({
-            source: { id: Bobine1.id, port: 'out' },
-            target: { id: Resistance1.id, port: 'in' },
-        }).addTo(graph);
+            // Connexions
+            new joint.dia.Link({
+                source: { id: Bobine1.id, port: 'out' },
+                target: { id: Resistance1.id, port: 'in' },
+            }).addTo(graph);
 
-        new joint.dia.Link({
-            source: { id: Resistance1.id, port: 'out' },
-            target: { id: Condensateur1.id, port: 'in' },
-        }).addTo(graph);
+            new joint.dia.Link({
+                source: { id: Resistance1.id, port: 'out' },
+                target: { id: Condensateur1.id, port: 'in' },
+            }).addTo(graph);
 
-        const Hub = new joint.shapes.standard.Circle();
-        Hub.position(300, 300);
-        Hub.resize(4, 4);
-        Hub.attr({
-            body: { fill: 'blue' },
-            label: { text: 'Hub', fill: 'white' }
-        });
-        Hub.addTo(graph);
-
-
+            const Hub = new joint.shapes.standard.Circle();
+            Hub.position(300, 300);
+            Hub.resize(4, 4);
+            Hub.attr({
+                body: { fill: 'blue' },
+                label: { text: 'Hub', fill: 'white' },
+            });
+            Hub.addTo(graph);
         }
-        
-        paper.on('cell:pointerdblclick', function(cellView) {
+
+        paper.on('cell:pointerdblclick', function (cellView) {
             const cell = cellView.model;
-        
+
             // Vérifie si l'élément cliqué est une résistance
             if (cell.isElement() && cell instanceof Resistance) {
                 // Demande la nouvelle valeur
                 const nouvelleValeur = prompt(
-                    'Entrez la nouvelle valeur de la résistance (Ω) :', 
+                    'Entrez la nouvelle valeur de la résistance (Ω) :',
                     cell.getValeur() // Pré-remplit avec la valeur actuelle
                 );
-        
+
                 // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
                 if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
                     cell.setValeur(parseFloat(nouvelleValeur));
                 } else {
-                    alert("Veuillez entrer une valeur numérique valide.");
+                    alert('Veuillez entrer une valeur numérique valide.');
                 }
             }
             /*    
@@ -393,27 +396,28 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
             }*/
         });
 
+        // NOEUDS
         // Surveiller les liens pour créer des hubs dynamiquement
         graph.on('change:target', function (link) {
             const target = link.get('target'); // Récupère la cible actuelle du lien déplacé
             if (!target || target.id) return; // Assurez-vous que la cible est une position libre (pas un élément)
-        
+
             const sourcePosition = link.source().id
                 ? graph.getCell(link.source().id).position()
                 : link.source(); // Position de la source du lien déplacé
             const targetPosition = target; // Position actuelle de l'extrémité déplacée
-        
+
             // Vérifier les intersections avec d'autres liens
             graph.getLinks().forEach((otherLink) => {
                 if (otherLink === link) return; // Ignore le lien lui-même
-        
+
                 const otherSourcePosition = otherLink.source().id
                     ? graph.getCell(otherLink.source().id).position()
                     : otherLink.source();
                 const otherTargetPosition = otherLink.target().id
                     ? graph.getCell(otherLink.target().id).position()
                     : otherLink.target();
-        
+
                 // Vérifie si les deux segments de liens se croisent
                 const intersection = getIntersection(
                     sourcePosition,
@@ -421,7 +425,7 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                     otherSourcePosition,
                     otherTargetPosition
                 );
-        
+
                 if (intersection) {
                     // Vérifie s'il existe déjà un nœud proche de l'intersection
                     const radius = 70; // Rayon de proximité (en pixels)
@@ -432,33 +436,34 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                             Math.abs(position.y - intersection.y) < radius
                         );
                     });
-        
-                    if (!existingNode) {
 
+                    if (!existingNode) {
                         // Crée un nœud à la position de l'intersection
                         const hub = createNode(graph, intersection);
-        
+
                         // Connecte immédiatement le lien déplacé au nœud
                         link.set('target', { id: hub.id, port: 'in' });
-        
+
                         // Coupe le lien existant en deux et connecte les segments au nœud
                         const newLink = new joint.dia.Link({
                             source: { id: hub.id, port: 'out' },
                             target: otherLink.target(),
                         }).addTo(graph);
                         otherLink.set('target', { id: hub.id, port: 'in' });
-        
-                        console.log('Intersection détectée, nœud créé et lien connecté !');
+
+                        console.log(
+                            'Intersection détectée, nœud créé et lien connecté !'
+                        );
                     } else {
                         // Connecte directement le lien au nœud existant
                         link.set('target', { id: existingNode.id, port: 'in' });
-                        console.log('Un nœud existant a été utilisé pour connecter le lien.');
+                        console.log(
+                            'Un nœud existant a été utilisé pour connecter le lien.'
+                        );
                     }
                 }
             });
         });
-        
-        
 
         var allEdges = graph.getLinks();
         console.log('Test');
@@ -478,19 +483,10 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
     return (
         <>
             <div
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    border: '1px solid black',
-                }}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
-            >
-                <div
-                    ref={graphContainerRef}
-                    style={{ border: '1px solid black' }}
-                />
-            </div>
+                ref={graphContainerRef}
+            />
         </>
     );
 };

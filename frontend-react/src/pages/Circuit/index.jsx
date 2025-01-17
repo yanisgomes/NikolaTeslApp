@@ -207,6 +207,18 @@ const Line = ({ x1, y1, x2, y2, color = 'black', strokeWidth = 2 }) => {
     );
 };
 
+const JointWorkspaceContainer = styled.div`
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: ${colors.backgroundLight};
+    border-radius: 16px;
+    padding: 8px;
+    border: 1px solid ${colors.lightGrey2};
+`;
+
 function useNetlist() {
     const [netlist, setNetlist] = useState([]);
 
@@ -675,12 +687,15 @@ function CircuitInterface() {
                 {/* Contenu principal (top tab + workspace) */}
                 <MainVerticalContainer>
                     <TabbedMenu pages={topMenuPages} theme={theme} />
-                    <button onClick={handleSubmit}>Résoudre</button>
-                    {/* Placement du circuit drawer JointJS */}
-                    <JointWorkspace
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver} // Empêche le comportement par défaut pour permettre le drop
-                    />
+
+                    <JointWorkspaceContainer>
+                        <button onClick={handleSubmit}>Résoudre</button>
+                        {/* Placement du circuit drawer JointJS */}
+                        <JointWorkspace
+                            onDrop={handleDrop}
+                            onDragOver={handleDragOver} // Empêche le comportement par défaut pour permettre le drop
+                        />
+                    </JointWorkspaceContainer>
                 </MainVerticalContainer>
             </MainHorizontalContainer>
         </>
