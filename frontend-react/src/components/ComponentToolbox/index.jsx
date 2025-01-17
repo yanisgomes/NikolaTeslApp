@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 import ComponentToolboxCard from '../ComponentToolboxCard';
-import { VscBook } from 'react-icons/vsc';
 
 import ToolbarButton from './../ToolbarButton';
+
 import { getIconAsUrl } from '../../utils/utils';
 
-const VscBookUrl = getIconAsUrl(<VscBook />);
+import { VscSparkle } from 'react-icons/vsc';
+
+const VscSparkleUrl = getIconAsUrl(<VscSparkle />);
 
 const Container = styled.div`
     width: 100%;
@@ -15,43 +17,50 @@ const Container = styled.div`
     flex-direction: column;
 `;
 
-const FilterHeader = styled.div`
+const ToolboxHeaderContainer = styled.div`
     display: flex;
-    align-items: center;
+    flex-direction: row;
     justify-content: space-between;
-    margin-bottom: 8px;
+`;
 
-    button {
-        background: ${colors.primary};
-        color: white;
-        border: none;
-        padding: 8px;
+/** Conteneur du select, si besoin de marger ou styliser autour. */
+const FilterContainer = styled.div``;
+
+/**
+ * On stylise le <select> pour être plus grand et avoir un style "hover" cohérent.
+ */
+const FilterSelect = styled.select`
+    font-size: 16px;
+    padding: 8px 12px;
+    border: 1px solid ${colors.lightGrey2};
+    border-radius: 6px;
+    background-color: ${colors.backgroundLight};
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
         cursor: pointer;
-        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
 
-        &:hover {
-            opacity: 0.9;
-        }
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 1px ${colors.primary};
     }
 `;
 
-const FilterPanel = styled.div`
-    margin-bottom: 8px;
-    border: 1px solid ${colors.lightGrey2};
-    border-radius: 4px;
-    padding: 8px;
-`;
-
+/**
+ * Conteneur global qui gère le scroll horizontal.
+ * On conserve le style de scrollbar que vous aviez.
+ */
 const ScrollWrapper = styled.div`
-    width: 94vh;
-    max-width: 94vh;
-    overflow-x: auto; /* Active un défilement horizontal localisé */
-    padding-bottom: 8px; /* Espace sous les éléments pour le scroll */
-    display: grid;
+    width: 96vh;
+    overflow-x: auto;
+    padding-bottom: 24px; /* Espace sous les éléments pour laisser de la place en bas */
     scrollbar-width: thin;
 
     &::-webkit-scrollbar {
-        height: 8px;
+        height: 8px; /* Hauteur de la barre de scroll horizontale */
     }
     &::-webkit-scrollbar-thumb {
         background: ${colors.lightGrey2};
@@ -62,79 +71,50 @@ const ScrollWrapper = styled.div`
     }
 `;
 
-const GridContainer = styled.div`
-    display: grid;
-    grid-auto-flow: column; /* Organise les éléments en ligne (défilement horizontal) */
-    grid-auto-columns: minmax(
-        200px,
-        1fr
-    ); /* Taille minimale et flexible des colonnes */
-    gap: 4px; /* Espace entre les cartes */
-    align-items: center;
-    padding: 8px;
-`;
-
-const ToolboxHeaderContainer = styled.div`
+/**
+ * Conteneur horizontal (flex) pour les cartes.
+ * - flex-wrap: nowrap => pour scroller en horizontal quand ça déborde
+ * - gap => espace entre les cartes
+ */
+const HorizontalCardsRow = styled.div`
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 16px;
+    padding: 8px;
+    align-items: flex-start;
 `;
 
 const ComponentToolbox = ({ items, handleDragStartFromToolbox }) => {
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [selectedTag, setSelectedTag] = useState('all');
+    const [filter, setFilter] = useState('all');
 
-    const availableTags = [
-        'all',
-        'linear components',
-        'transistors',
-        'transformers',
-        'diodes',
-        'semiconductor devices',
-        'sources',
-        'basic logic blocks',
-    ];
-
-    const toggleFilterPanel = () => {
-        setIsFilterOpen(!isFilterOpen);
+    const handleFilterChange = (e) => {
+        setFilter(e.target.value);
     };
 
-    const filteredItems =
-        selectedTag === 'all'
-            ? items
-            : items.filter((item) => item.tag === selectedTag);
+    // Filtrage (optionnel)
+    const filteredItems = items.filter((item) => {
+        if (filter === 'all') return true;
+        return item.tag === filter;
+    });
 
     return (
         <Container>
             <ToolboxHeaderContainer>
                 <h2>Composants</h2>
-
-                {isFilterOpen && (
-                    <FilterPanel>
-                        <label htmlFor="tag-filter">Filtre : </label>
-                        <select
-                            id="tag-filter"
-                            value={selectedTag}
-                            onChange={(e) => setSelectedTag(e.target.value)}
-                        >
-                            {availableTags.map((tag) => (
-                                <option value={tag} key={tag}>
-                                    {tag}
-                                </option>
-                            ))}
-                        </select>
-                    </FilterPanel>
-                )}
-
-                <ToolbarButton
-                    onClick={toggleFilterPanel}
-                    logoUrl={VscBookUrl}
-                    size="30px"
-                />
+                <FilterContainer>
+                    <FilterSelect value={filter} onChange={handleFilterChange}>
+                        <option value="all">All</option>
+                        <option value="linear">Linear</option>
+                        <option value="transistors">Transistors</option>
+                        <option value="sources">Sources</option>
+                        <option value="others">Others</option>
+                    </FilterSelect>
+                </FilterContainer>
             </ToolboxHeaderContainer>
 
+            {/* Zone d’affichage des cartes (défilement horizontal) */}
             <ScrollWrapper>
-                <GridContainer>
+                <HorizontalCardsRow>
                     {filteredItems.map((item) => (
                         <ComponentToolboxCard
                             key={item.id}
@@ -142,7 +122,7 @@ const ComponentToolbox = ({ items, handleDragStartFromToolbox }) => {
                             onDragStart={handleDragStartFromToolbox}
                         />
                     ))}
-                </GridContainer>
+                </HorizontalCardsRow>
             </ScrollWrapper>
         </Container>
     );
