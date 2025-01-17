@@ -23,7 +23,7 @@ import TabbedMenu from '../../components/TabbedMenu/';
 import CircuitToolbar from '../../components/CircuitToolbar';
 import ChatInterface from '../../components/ChatInterface';
 import ComponentToolbox from '../../components/ComponentToolbox';
-
+import { Resistance } from './JointWorkspace';
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
 /********************************************
@@ -245,11 +245,10 @@ function CircuitInterface() {
     const handleDrop = (e) => {
         e.preventDefault();
 
-        const currentScale = paper.scale(); // Current zoom scale
-        const currentTranslate = paper.translate(); // Current translation (panning offsets)
-        const workspaceBounds = e.target.getBoundingClientRect(); // Workspace bounding box
+        const currentScale = paper.scale();
+        const currentTranslate = paper.translate();
+        const workspaceBounds = e.target.getBoundingClientRect();
 
-        // Calculate logical coordinates considering scaling and translation
         const x =
             (e.clientX - workspaceBounds.left - currentTranslate.tx) /
             currentScale.sx;
@@ -258,17 +257,56 @@ function CircuitInterface() {
             currentScale.sy;
 
         if (draggingItem) {
-            // On déplace un item déjà existant
             saveHistory();
             setDraggingItem(null);
         } else {
-            // On drop depuis la toolbox => nouvelle instance
             const draggedItem = JSON.parse(
                 e.dataTransfer.getData('text/plain')
             );
+
             saveHistory();
 
-            // Increment component count for this type
+            // Déclarez une variable pour l'élément à ajouter au graphique
+            let element;
+
+            // Ajoutez la logique en fonction du type d'élément
+            switch (draggedItem.type) {
+                case 'resistance':
+                    element = new Resistance();
+                    element.attr('label/text', `Valeur: 100 Ω`); // Afficher la valeur par défaut de la résistance
+                    break;
+
+                case 'Gate11':
+                    element = new joint.shapes.logic.Gate11();
+                    break;
+
+                case 'Gate21':
+                    element = new joint.shapes.logic.Gate21();
+                    break;
+
+                case 'Input':
+                    element = new joint.shapes.logic.Input();
+                    break;
+
+                case 'Output':
+                    element = new joint.shapes.logic.Output();
+                    break;
+
+                default:
+                    console.log(
+                        "Type d'élément non reconnu:",
+                        draggedItem.type
+                    );
+                    return; // Si le type n'est pas reconnu, on arrête la fonction
+            }
+
+            // Positionner l'élément au bon endroit
+            element.position(x, y);
+
+            // Ajouter l'élément au graphique
+            element.addTo(circuitGraph);
+
+            // Mettre à jour le comptage des composants
             setComponentCount((prev) => {
                 const oldCount = prev[draggedItem.type] || 0;
                 return {
@@ -276,21 +314,6 @@ function CircuitInterface() {
                     [draggedItem.type]: oldCount + 1,
                 };
             });
-
-            // Add a new JointJS element at the calculated position
-            const ioElement = new joint.shapes.logic.IO({
-                position: { x, y },
-                attrs: {
-                    text: {
-                        text: `${draggedItem.symbole} ${
-                            componentCount[draggedItem.type] + 1
-                        }`,
-                    },
-                },
-            });
-
-            // Update the graph using setCircuitGraph
-            circuitGraph.addCell(ioElement);
         }
     };
 
