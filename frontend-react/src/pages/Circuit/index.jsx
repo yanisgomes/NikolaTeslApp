@@ -540,27 +540,6 @@ function CircuitInterface() {
     const handleHoverFromNetlist = (id) => setHoveredItemId(id);
     const handleUnhoverFromNetlist = () => setHoveredItemId(null);
 
-    // Menu haut
-    const topMenuPages = [
-        {
-            name: 'Composants',
-            content: (
-                <ComponentToolbox
-                    items={items}
-                    handleDragStartFromToolbox={handleDragStartFromToolbox}
-                />
-            ),
-        },
-        {
-            name: 'Réponse temporelle',
-            content: <TemporalToolbox />,
-        },
-        {
-            name: 'Réponse fréquentielle',
-            content: <FrequentialToolbox />,
-        },
-    ];
-
     const handleUndo = () => {
         if (history.length > 0) {
             const lastState = history[history.length - 1];
@@ -570,31 +549,6 @@ function CircuitInterface() {
             setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
         }
     };
-
-    // Menu gauche
-    const leftMenuPages = [
-        {
-            name: 'Résolution analytique',
-            content: (
-                <AnalyticResolutionPage
-                    netlist={netlist}
-                    onChangeValue={handleChangeValue}
-                    onRequestAI={handleRequestAI}
-                    onRemoveComponent={handleRemoveComponent}
-                    // Sélection / Survol
-                    selectedItemId={selectedItemId}
-                    hoveredItemId={hoveredItemId}
-                    onSelect={handleSelectFromNetlist}
-                    onHover={handleHoverFromNetlist}
-                    onUnhover={handleUnhoverFromNetlist}
-                />
-            ),
-        },
-        {
-            name: 'Nikola',
-            content: <ChatInterface />,
-        },
-    ];
 
     // ZOOM + PAN logic …
     const handleMouseDown = (e) => {
@@ -675,6 +629,53 @@ function CircuitInterface() {
         }
     };
 
+    // Menu haut
+    const topMenuPages = [
+        {
+            name: 'Composants',
+            content: (
+                <ComponentToolbox
+                    items={items}
+                    handleDragStartFromToolbox={handleDragStartFromToolbox}
+                />
+            ),
+        },
+        {
+            name: 'Réponse temporelle',
+            content: <TemporalToolbox />,
+        },
+        {
+            name: 'Réponse fréquentielle',
+            content: <FrequentialToolbox />,
+        },
+    ];
+
+    // Menu gauche
+    const leftMenuPages = [
+        {
+            name: 'Résolution analytique',
+            content: (
+                <AnalyticResolutionPage
+                    netlist={netlist}
+                    onChangeValue={handleChangeValue}
+                    onResolutionSubmit={handleSubmit}
+                    onRequestAI={handleRequestAI}
+                    onRemoveComponent={handleRemoveComponent}
+                    // Sélection / Survol
+                    selectedItemId={selectedItemId}
+                    hoveredItemId={hoveredItemId}
+                    onSelect={handleSelectFromNetlist}
+                    onHover={handleHoverFromNetlist}
+                    onUnhover={handleUnhoverFromNetlist}
+                />
+            ),
+        },
+        {
+            name: 'Nikola',
+            content: <ChatInterface />,
+        },
+    ];
+
     return (
         <>
             <Header />
@@ -689,7 +690,6 @@ function CircuitInterface() {
                     <TabbedMenu pages={topMenuPages} theme={theme} />
 
                     <JointWorkspaceContainer>
-                        <button onClick={handleSubmit}>Résoudre</button>
                         {/* Placement du circuit drawer JointJS */}
                         <JointWorkspace
                             onDrop={handleDrop}
@@ -703,127 +703,3 @@ function CircuitInterface() {
 }
 
 export default CircuitInterface;
-
-/* <Workspace
-                        theme={theme}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onMouseLeave={handleMouseUp}
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                    >
-                        <CircuitToolbar
-                            zoom={zoom}
-                            setZoom={setZoom}
-                            resetZoomAndPan={resetZoomAndPan}
-                            handleUndo={handleUndo}
-                            handleDropInTrash={(e) =>
-                                console.log('Dropped in trash')
-                            }
-                            handleDragOver={(e) => e.preventDefault()}
-                        />
-                        <CircuitContainer
-                            theme={theme}
-                            onWheel={handleWheel}
-                            onMouseDown={handleMouseDownWorkspace}
-                        >
-                            <CircuitContent
-                                zoom={zoom}
-                                offsetX={offsetX}
-                                offsetY={offsetY}
-                                onMouseDown={handleMouseDownCircuitContent}
-                            >
-                                {connections.map((conn, index) => {
-                                    const fromItem = placedItems.find(
-                                        (item) => item.id === conn.from.id
-                                    );
-                                    const toItem = placedItems.find(
-                                        (item) => item.id === conn.to.id
-                                    );
-
-                                    if (!fromItem || !toItem) return null; // Ignorez les connexions invalides
-
-                                    // Calcul des positions des pôles
-                                    const fromX =
-                                        fromItem.x +
-                                        (conn.from.pole === 'positif'
-                                            ? -60
-                                            : 60);
-                                    const fromY = fromItem.y;
-                                    const toX =
-                                        toItem.x +
-                                        (conn.to.pole === 'positif' ? -60 : 60);
-                                    const toY = toItem.y;
-
-                                    return (
-                                        <Line
-                                            key={index}
-                                            x1={fromX}
-                                            y1={fromY}
-                                            x2={toX}
-                                            y2={toY}
-                                            components={placedItems}
-                                        />
-                                    );
-                                })}
-
-                                {placedItems.map((item) => {
-                                    const isSelected =
-                                        selectedItemId === item.id;
-                                    const isHovered = hoveredItemId === item.id;
-                                    return (
-                                        <PlacedItemContainer
-                                            key={item.id}
-                                            style={{
-                                                top: item.y,
-                                                left: item.x,
-                                            }}
-                                            isSelected={isSelected}
-                                            isHovered={isHovered}
-                                            onMouseEnter={() =>
-                                                handleHoverItem(item.id)
-                                            }
-                                            onMouseLeave={() =>
-                                                handleUnhoverItem()
-                                            }
-                                            onClick={() =>
-                                                handleSelectItem(item.id)
-                                            }
-                                        >
-                                            <PoleButton
-                                                onClick={() =>
-                                                    handlePoleClick(
-                                                        'positif',
-                                                        item
-                                                    )
-                                                }
-                                            >
-                                                +
-                                            </PoleButton>
-
-                                            <PlacedImage
-                                                src={item.src}
-                                                draggable
-                                                onDragStart={() =>
-                                                    handleDragStartPlacedItem(
-                                                        item
-                                                    )
-                                                }
-                                            />
-
-                                            <PoleButton
-                                                onClick={() =>
-                                                    handlePoleClick(
-                                                        'negatif',
-                                                        item
-                                                    )
-                                                }
-                                            >
-                                                -
-                                            </PoleButton>
-                                        </PlacedItemContainer>
-                                    );
-                                })}
-                            </CircuitContent>
-                        </CircuitContainer>
-                    </Workspace>*/

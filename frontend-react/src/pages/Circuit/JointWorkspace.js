@@ -1,8 +1,11 @@
 import * as joint from 'jointjs';
 import React, { useEffect, useRef, useContext } from 'react';
-import imRes from '../../assets/Resistance.png';
-import imBob from '../../assets/Bobine.png';
-import imCond from '../../assets/Condensateur.png';
+
+import symbol_resistor from '../../assets/symbol_resistor.png';
+import symbol_inductor from '../../assets/symbol_inductor.png';
+import symbol_capacitor from '../../assets/symbol_capacitor.png';
+import symbol_aop from '../../assets/symbol_aop.png';
+
 import { CircuitGraphContext, PaperContext } from '../../utils/context/';
 
 export const Gate = joint.dia.Element.define(
@@ -146,7 +149,7 @@ export const Resistance = Gate11.define(
     'Resistance',
     {
         attrs: {
-            image: { 'xlink:href': imRes },
+            image: { 'xlink:href': symbol_resistor },
             label: { text: 'Valeur: 100 Ω', fill: 'black' },
         },
         valeur: 100, // Valeur par défaut
@@ -167,7 +170,7 @@ export const Resistance = Gate11.define(
 
 export const AOP = Gate21.define('AOP', {
     attrs: {
-        image: { 'xlink:href': imBob },
+        image: { 'xlink:href': symbol_inductor },
         label: { text: 'AOP', fill: 'black' },
     },
 });
@@ -310,39 +313,6 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
             gridSize: 20,
             drawGrid: true,
         });
-
-        if (!graph.getElements().length) {
-            // Ajout d'éléments
-            const Bobine1 = new Resistance().position(50, 150).addTo(graph);
-            const Resistance1 = new Resistance()
-                .position(300, 200)
-                .addTo(graph);
-            const Condensateur1 = new Resistance()
-                .position(550, 200)
-                .addTo(graph);
-
-            Resistance1.setValeur(200); // Modifie la valeur de la résistance
-
-            // Connexions
-            new joint.dia.Link({
-                source: { id: Bobine1.id, port: 'out' },
-                target: { id: Resistance1.id, port: 'in' },
-            }).addTo(graph);
-
-            new joint.dia.Link({
-                source: { id: Resistance1.id, port: 'out' },
-                target: { id: Condensateur1.id, port: 'in' },
-            }).addTo(graph);
-
-            const Hub = new joint.shapes.standard.Circle();
-            Hub.position(300, 300);
-            Hub.resize(4, 4);
-            Hub.attr({
-                body: { fill: 'blue' },
-                label: { text: 'Hub', fill: 'white' },
-            });
-            Hub.addTo(graph);
-        }
 
         paper.on('cell:pointerdblclick', function (cellView) {
             const cell = cellView.model;
