@@ -1,17 +1,42 @@
-import * as joint from 'jointjs';
 import React, { useEffect, useRef, useContext } from 'react';
+import * as joint from 'jointjs';
 
-import symbol_resistor from '../../assets/symbol_resistor.png';
-import symbol_inductor from '../../assets/symbol_inductor.png';
-import symbol_capacitor from '../../assets/symbol_capacitor.png';
-import symbol_aop from '../../assets/symbol_aop.png';
+// Import CSS depuis un fichier externe
+import './JointWorkspace.css';
 
-import { CircuitGraphContext, PaperContext } from '../../utils/context/';
+// Contexts
+import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
-export const Gate = joint.dia.Element.define(
-    'logic.Gate',
+/* --------------------------------------------------------------------------------
+   1) CLASSE ABSTRAITE : Composant
+   --------------------------------------------------------------------------------
+   Base commune à tous les composants du circuit (rectangle + label).
+   On ne l'instancie pas directement, mais on en hérite.
+*/
+export const Composant = joint.dia.Element.define(
+    'app.Composant', // Nom du type dans le namespace "app"
     {
+        // Propriétés par défaut
         size: { width: 80, height: 40 },
+        //attrs: {
+        //    '.label': {
+        //        text: 'Composant (abstract)',
+        //        fill: '#000',
+        //        'text-anchor': 'middle',
+        //        'ref-x': 0.5,
+        //        'ref-y': 0.5,
+        //        'y-alignment': 'middle',
+        //        'font-size': 12,
+        //    },
+        //    '.body': {
+        //        fill: '#FFFFFF',
+        //        stroke: '#000000',
+        //        'stroke-width': 2,
+        //        width: 80,
+        //        height: 40,
+        //    },
+        //
+        //},
         attrs: {
             '.': { magnet: false },
             '.body': { width: 100, height: 50 },
@@ -20,83 +45,28 @@ export const Gate = joint.dia.Element.define(
                 stroke: 'black',
                 fill: 'transparent',
                 'stroke-width': 2,
-                magnet: true,
             },
         },
     },
     {
         useCSSSelectors: true,
-        operation: function () {
-            return true;
-        },
     }
 );
 
-export const IO = Gate.define(
-    'logic.IO',
-    {
-        size: { width: 60, height: 30 },
-        attrs: {
-            '.body': { fill: 'white', stroke: 'black', 'stroke-width': 2 },
-            '.wire': { ref: '.body', 'ref-y': 0.5, stroke: 'black' },
-            text: {
-                fill: 'black',
-                ref: '.body',
-                'ref-x': 0.5,
-                'ref-y': 0.5,
-                'y-alignment': 'middle',
-                'text-anchor': 'middle',
-                'font-weight': 'bold',
-                'font-variant': 'small-caps',
-                'text-transform': 'capitalize',
-                'font-size': '14px',
-            },
-        },
-    },
-    {
-        markup: '<g class="rotatable"><g class="scalable"><rect class="body"/></g><path class="wire"/><circle/><text/></g>',
-    }
-);
-
-export const Input = IO.define('logic.Input', {
-    attrs: {
-        '.wire': { 'ref-dx': 0, d: 'M 0 0 L 23 0' },
-        circle: {
-            ref: '.body',
-            'ref-dx': 30,
-            'ref-y': 0.5,
-            magnet: true,
-            class: 'output',
-            port: 'out',
-        },
-        text: { text: 'input' },
-    },
-});
-
-export const Output = IO.define('logic.Output', {
-    attrs: {
-        '.wire': { 'ref-x': 0, d: 'M 0 0 L -23 0' },
-        circle: {
-            ref: '.body',
-            'ref-x': -30,
-            'ref-y': 0.5,
-            magnet: 'passive',
-            class: 'input',
-            port: 'in',
-        },
-        text: { text: 'output' },
-    },
-});
-
-export const Gate11 = Gate.define(
-    'logic.Gate11',
+/* --------------------------------------------------------------------------------
+   2) DIPÔLE
+   --------------------------------------------------------------------------------
+   Hérite de Composant, possède 2 ports (gauche, droite).
+*/
+export const Dipole = Composant.define(
+    'app.Dipole',
     {
         attrs: {
             '.input': {
                 ref: '.body',
                 'ref-x': -2,
                 'ref-y': 0.5,
-                magnet: true, //mettre true pour pouvoir connecter les fils sur les deux ports, 'passive' sinon
+                magnet: 'passive',
                 port: 'in',
             },
             '.output': {
@@ -106,6 +76,7 @@ export const Gate11 = Gate.define(
                 magnet: true,
                 port: 'out',
             },
+            '.label': { text: 'Dipole' },
         },
     },
     {
@@ -113,8 +84,13 @@ export const Gate11 = Gate.define(
     }
 );
 
-export const Gate21 = Gate.define(
-    'logic.Gate21',
+/* --------------------------------------------------------------------------------
+   3) TRIPÔLE
+   --------------------------------------------------------------------------------
+   Hérite de Composant, possède 3 ports (top, left, right).
+*/
+export const Tripole = Composant.define(
+    'app.Tripole',
     {
         attrs: {
             '.input1': {
@@ -138,6 +114,7 @@ export const Gate21 = Gate.define(
                 magnet: true,
                 port: 'out',
             },
+            '.label': { text: 'Tripole' },
         },
     },
     {
@@ -145,37 +122,86 @@ export const Gate21 = Gate.define(
     }
 );
 
-export const Resistance = Gate11.define(
-    'Resistance',
+/* --------------------------------------------------------------------------------
+   4) NOEUD
+   --------------------------------------------------------------------------------
+   Composant minimaliste (un petit point noir).
+   Peut avoir un port unique (et donc on pourra y connecter plusieurs liens).
+*/
+export const Noeud = joint.dia.Element.define(
+    'app.Noeud',
     {
+        size: { width: 10, height: 10 },
         attrs: {
-            image: { 'xlink:href': symbol_resistor },
-            label: { text: 'Valeur: 100 Ω', fill: 'black' },
+            '.body': {
+                fill: 'black',
+                stroke: 'black',
+                'stroke-width': 1,
+                width: 10,
+                height: 10,
+            },
         },
-        valeur: 100, // Valeur par défaut
+        ports: {
+            // Un seul port "any" (mais on peut y connecter un nombre illimité de wires)
+            items: [{ id: 'p-any', group: 'any' }],
+            groups: {
+                any: {
+                    position: { name: 'center' },
+                    attrs: {
+                        circle: {
+                            r: 0, // pas de cercle visible ; on se base sur l'élément .body
+                        },
+                    },
+                },
+            },
+        },
     },
     {
-        // Méthode pour modifier dynamiquement la valeur
-        setValeur: function (nouvelleValeur) {
-            this.valeur = nouvelleValeur; // Met à jour la propriété
-            this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
-        },
-
-        // Méthode pour récupérer la valeur actuelle
-        getValeur: function () {
-            return this.valeur;
-        },
+        markup: `
+      <g class="rotatable">
+        <g class="scalable">
+          <rect class="body"/>
+        </g>
+      </g>
+    `,
     }
 );
 
-export const AOP = Gate21.define('AOP', {
-    attrs: {
-        image: { 'xlink:href': symbol_inductor },
-        label: { text: 'AOP', fill: 'black' },
-    },
-});
+/* --------------------------------------------------------------------------------
+   5) WIRE (lien)
+   --------------------------------------------------------------------------------
+   Lien minimaliste qui peut relier n'importe quel port d'un composant à un autre.
+   On utilise un router orthogonal, un style basique pour la ligne, etc.
+*/
+//export const Wire = joint.dia.Link.define(
+//    'app.Wire',
+//    {
+//        attrs: {
+//            '.connection': {
+//                stroke: '#000000',
+//                'stroke-width': 2,
+//            },
+//            '.marker-vertex': {
+//                stroke: '#000000',
+//                fill: '#FFFFFF',
+//                r: 6,
+//            },
+//        },
+//        router: { name: 'orthogonal' },
+//        connector: { name: 'normal', args: { radius: 10 } },
+//    },
+//    {
+//        useCSSSelectors: true,
+//
+//        vertexMarkup: [
+//            '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
+//            '<circle class="marker-vertex" idx="<%= idx %>" r="6" />',
+//            '</g>',
+//        ].join(''),
+//    }
+//);
 
-export const Wire = joint.dia.Link.define(
+const Wire = joint.dia.Link.define(
     'logic.Wire',
     {
         attrs: {
@@ -208,246 +234,140 @@ export const Wire = joint.dia.Link.define(
     }
 );
 
+export const Resistor = Dipole.define('app.Resistor', {
+    attrs: {
+        '.label': { text: 'Resistor' },
+        '.body': {
+            'xlink:href':
+                'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIENyZWF0ZWQgd2l0aCBJbmtzY2FwZSAoaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvKSAtLT4NCg0KPHN2Zw0KICAgd2lkdGg9IjY2LjUiDQogICBoZWlnaHQ9IjE1LjU2NTI0NyINCiAgIHZpZXdCb3g9IjAgMCAxNy41OTQ3ODkgNC4xMTgzMDUxIg0KICAgdmVyc2lvbj0iMS4xIg0KICAgaWQ9InN2ZzEiDQogICBpbmtzY2FwZTpleHBvcnQtZmlsZW5hbWU9InN5bWJvbF9jYXBhY2l0b3Iuc3ZnIg0KICAgaW5rc2NhcGU6ZXhwb3J0LXhkcGk9Ijk2Ig0KICAgaW5rc2NhcGU6ZXhwb3J0LXlkcGk9Ijk2Ig0KICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiDQogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiDQogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCiAgPHNvZGlwb2RpOm5hbWVkdmlldw0KICAgICBpZD0ibmFtZWR2aWV3MSINCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIg0KICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiINCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIg0KICAgICBpbmtzY2FwZTpzaG93cGFnZXNoYWRvdz0iMiINCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCINCiAgICAgaW5rc2NhcGU6cGFnZWNoZWNrZXJib2FyZD0iMCINCiAgICAgaW5rc2NhcGU6ZGVza2NvbG9yPSIjZDFkMWQxIg0KICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0ibW0iIC8+DQogIDxkZWZzDQogICAgIGlkPSJkZWZzMSIgLz4NCiAgPGcNCiAgICAgaW5rc2NhcGU6bGFiZWw9IkNhbHF1ZSAxIg0KICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIg0KICAgICBpZD0ibGF5ZXIxIg0KICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC4wOTAxNTAyNSwtMC4wNzA5NjM2OCkiPg0KICAgIDxwYXRoDQogICAgICAgaWQ9InBhdGgzOTcwIg0KICAgICAgIHN0eWxlPSJkaXNwbGF5OmlubGluZTtmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjAuOTI2MDQyO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpiZXZlbDtzdHJva2UtbWl0ZXJsaW1pdDo0O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxIg0KICAgICAgIGQ9Ik0gMTcuMjIxOTIxLDIuMTMwMTE2MyBIIDE0LjQ0Mzc5NiBMIDEzLjUxNzc1NSwwLjI3ODAzMzA0IDExLjY2NTY3MSwzLjk4MjE5OTQgOS44MTM1ODc4LDAuMjc4MDMzMDQgNy45NjE1MDQ1LDMuOTgyMTk5NCA2LjEwOTQyMTIsMC4yNzgwMzMwNCA0LjI1NzMzNzksMy45ODIxOTk0IDMuMzMxMjk2MiwyLjEzMDExNjMgSCAwLjU1MzE3MTI2Ig0KICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiDQogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NjY2NjIiAvPg0KICA8L2c+DQo8L3N2Zz4NCg==',
+        },
+    },
+});
+
 export const shapes = {
     ...joint.shapes,
-    logic: {
-        Input,
-        Output,
-        Resistance,
-        Gate,
-        Wire,
+    app: {
+        Resistor,
     },
 };
 
-// Fonction pour créer un noeud
-function createNode(graph, position) {
-    const hub = new joint.shapes.standard.Circle();
-    hub.position(position.x, position.y);
-    hub.resize(20, 20); // Taille du nœud
-    hub.attr({
-        body: { fill: 'blue' },
-        label: { text: '', fill: 'white' },
-    });
-    hub.addTo(graph);
-    return hub;
-}
-
-function getIntersection(p1, p2, p3, p4) {
-    const det = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
-
-    if (det === 0) return null; // Les segments sont parallèles ou colinéaires
-
-    const lambda =
-        ((p4.y - p3.y) * (p4.x - p1.x) - (p4.x - p3.x) * (p4.y - p1.y)) / det;
-    const gamma =
-        ((p1.y - p2.y) * (p4.x - p1.x) - (p1.x - p2.x) * (p4.y - p1.y)) / det;
-
-    // Vérifie si l'intersection est dans les limites des deux segments
-    if (lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1) {
-        return {
-            x: p1.x + lambda * (p2.x - p1.x),
-            y: p1.y + lambda * (p2.y - p1.y),
-        };
-    }
-
-    return null; // Pas d'intersection
-}
-
-const enablePanning = (paper) => {
-    let isPanning = false;
-    let startX, startY;
-
-    paper.on('blank:pointerdown', (evt, x, y) => {
-        isPanning = true;
-        startX = evt.clientX;
-        startY = evt.clientY;
-    });
-
-    document.addEventListener('mousemove', (evt) => {
-        if (!isPanning) return;
-
-        const dx = evt.clientX - startX;
-        const dy = evt.clientY - startY;
-        startX = evt.clientX;
-        startY = evt.clientY;
-
-        const translate = paper.translate();
-        paper.translate(translate.tx + dx, translate.ty + dy);
-    });
-
-    document.addEventListener('mouseup', () => {
-        isPanning = false;
-    });
-};
-
-const enableZoom = (paper) => {
-    const zoomStep = 0.1; // Incrément du zoom
-    const minZoom = 0.5; // Zoom minimal
-    const maxZoom = 2; // Zoom maximal
-
-    paper.on('blank:mousewheel', (evt, x, y, delta) => {
-        const currentScale = paper.scale();
-        const newScale = Math.min(
-            Math.max(currentScale.sx + delta * zoomStep, minZoom),
-            maxZoom
-        );
-
-        paper.scale(newScale, newScale, x, y); // Zoom au niveau du pointeur
-    });
-};
-
+/* --------------------------------------------------------------------------------
+   6) JOINTWORKSPACE
+   --------------------------------------------------------------------------------
+   Composant React qui crée le paper JointJS et gère le container <div>.
+   - onDrop / onDragOver : pour la gestion Drag & Drop
+   - circuitGraph, setCircuitGraph : stocker le graph dans un contexte
+   - paper, setPaper : stocker le paper dans un contexte
+   - graphContainerRef : référence DOM pour y monter le paper JointJS
+*/
 const JointWorkspace = ({ onDrop, onDragOver }) => {
-    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
-    const { paper, setPaper } = useContext(PaperContext);
+    const { setCircuitGraph } = useContext(CircuitGraphContext);
+    const { setPaper } = useContext(PaperContext);
     const graphContainerRef = useRef(null);
     const graph = new joint.dia.Graph();
 
-    useEffect(() => {
-        // Initialisation du graphe et du papier
+    // Dans un useEffect, on crée le paper JointJS une fois le composant monté
+    //useEffect(() => {
+    //    // Création du paper
+    //    const paperInstance = new joint.dia.Paper({
+    //        el: graphContainerRef.current,
+    //        model: graph,
+    //        width: '100vh',
+    //        height: '45vh',
+    //        gridSize: 20,
+    //        drawGrid: true,
+    //        // Pour activer certains boutons/outils par défaut
+    //        interactive: { linkMove: true },
+    //        defaultLink: () => new Wire(), // pour que le drag-link crée un Wire
+    //        // Autoriser la liaison de tout port à tout autre port :
+    //        validateConnection: function (
+    //            _unusedVs,
+    //            ms,
+    //            _unusedVt,
+    //            mt,
+    //            _unusedEnd,
+    //            _unusedLinkView
+    //        ) {
+    //            // vs = source view ; ms = source magnet (SVG)
+    //            // vt = target view ; mt = target magnet
+    //            // end = 'source' ou 'target'
+    //            // On autorise la connexion si on a au moins un magnet source et un magnet target
+    //            if (ms && mt) return true;
+    //            return false;
+    //        },
+    //    });
+    //
+    //    // On stocke le paper et le graph dans le contexte
+    //    setCircuitGraph(graph);
+    //    setPaper(paperInstance);
+    //
+    //    // Exemple : on peut ajouter du code ici pour intercepter "change:target"
+    //    // si on veut créer un Noeud automatique à l'intersection d'un link, etc.
+    //}, []);
 
-        const paper = new joint.dia.Paper({
+    useEffect(() => {
+        // Création du paper
+        const paperInstance = new joint.dia.Paper({
             el: graphContainerRef.current,
             model: graph,
             width: '100vh',
             height: '45vh',
             gridSize: 20,
             drawGrid: true,
-        });
+            snapLinks: true,
+            linkPinning: true,
+            cellViewNamespace: shapes,
+            //linkView: joint.dia.LegacyLinkView,
+            //defaultLink: new shapes.logic.Wire({
+            //    source: { x: 100, y: 100 },
+            //    target: { x: 400, y: 400 },
+            //    router: { name: 'orthogonal' },
+            //    connector: { name: 'normal' },
+            //    attrs: {
+            //        '.connection': { 'stroke-width': 2, stroke: '#000' },
+            //    },
+            //}),
+            defaultLink: () => new Wire(),
 
-        paper.on('cell:pointerdblclick', function (cellView) {
-            const cell = cellView.model;
+            validateConnection: function (vs, ms, vt, mt, e, vl) {
+                if (e === 'target') {
+                    // target requires an input port to connect
+                    if (
+                        !mt ||
+                        !mt.getAttribute('class') ||
+                        mt.getAttribute('class').indexOf('input') < 0
+                    )
+                        return false;
 
-            // Vérifie si l'élément cliqué est une résistance
-            if (cell.isElement() && cell instanceof Resistance) {
-                // Demande la nouvelle valeur
-                const nouvelleValeur = prompt(
-                    'Entrez la nouvelle valeur de la résistance (Ω) :',
-                    cell.getValeur() // Pré-remplit avec la valeur actuelle
-                );
-
-                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
-                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
-                    cell.setValeur(parseFloat(nouvelleValeur));
-                } else {
-                    alert('Veuillez entrer une valeur numérique valide.');
-                }
-            }
-            /*    
-            // Vérifie si l'élément cliqué est un condensateur
-            if (cell.isElement() && cell instanceof Condensateur) {
-                // Demande la nouvelle valeur
-                const nouvelleValeur = prompt(
-                    'Entrez la nouvelle valeur du condensateur (F) :', 
-                    cell.getValeur() // Pré-remplit avec la valeur actuelle
-                );
-        
-                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
-                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
-                    cell.setValeur(parseFloat(nouvelleValeur));
-                } else {
-                    alert("Veuillez entrer une valeur numérique valide.");
-                }
-            }
-
-            // Vérifie si l'élément cliqué est une Bobine
-            if (cell.isElement() && cell instanceof Bobine) {
-                // Demande la nouvelle valeur
-                const nouvelleValeur = prompt(
-                    'Entrez la nouvelle valeur de la bobine (H) :', 
-                    cell.getValeur() // Pré-remplit avec la valeur actuelle
-                );
-        
-                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
-                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
-                    cell.setValeur(parseFloat(nouvelleValeur));
-                } else {
-                    alert("Veuillez entrer une valeur numérique valide.");
-                }
-            }*/
-        });
-
-        // NOEUDS
-        // Surveiller les liens pour créer des hubs dynamiquement
-        graph.on('change:target', function (link) {
-            const target = link.get('target'); // Récupère la cible actuelle du lien déplacé
-            if (!target || target.id) return; // Assurez-vous que la cible est une position libre (pas un élément)
-
-            const sourcePosition = link.source().id
-                ? graph.getCell(link.source().id).position()
-                : link.source(); // Position de la source du lien déplacé
-            const targetPosition = target; // Position actuelle de l'extrémité déplacée
-
-            // Vérifier les intersections avec d'autres liens
-            graph.getLinks().forEach((otherLink) => {
-                if (otherLink === link) return; // Ignore le lien lui-même
-
-                const otherSourcePosition = otherLink.source().id
-                    ? graph.getCell(otherLink.source().id).position()
-                    : otherLink.source();
-                const otherTargetPosition = otherLink.target().id
-                    ? graph.getCell(otherLink.target().id).position()
-                    : otherLink.target();
-
-                // Vérifie si les deux segments de liens se croisent
-                const intersection = getIntersection(
-                    sourcePosition,
-                    targetPosition,
-                    otherSourcePosition,
-                    otherTargetPosition
-                );
-
-                if (intersection) {
-                    // Vérifie s'il existe déjà un nœud proche de l'intersection
-                    const radius = 70; // Rayon de proximité (en pixels)
-                    const existingNode = graph.getElements().find((element) => {
-                        const position = element.position();
+                    // check whether the port is being already used
+                    var portUsed = this.model.getLinks().some(function (link) {
                         return (
-                            Math.abs(position.x - intersection.x) < radius &&
-                            Math.abs(position.y - intersection.y) < radius
+                            link.id !== vl.model.id &&
+                            link.get('target').id === vt.model.id &&
+                            link.get('target').port === mt.getAttribute('port')
                         );
                     });
 
-                    if (!existingNode) {
-                        // Crée un nœud à la position de l'intersection
-                        const hub = createNode(graph, intersection);
+                    return !portUsed;
+                } else {
+                    // e === 'source'
 
-                        // Connecte immédiatement le lien déplacé au nœud
-                        link.set('target', { id: hub.id, port: 'in' });
-
-                        // Coupe le lien existant en deux et connecte les segments au nœud
-                        const newLink = new joint.dia.Link({
-                            source: { id: hub.id, port: 'out' },
-                            target: otherLink.target(),
-                        }).addTo(graph);
-                        otherLink.set('target', { id: hub.id, port: 'in' });
-
-                        console.log(
-                            'Intersection détectée, nœud créé et lien connecté !'
-                        );
-                    } else {
-                        // Connecte directement le lien au nœud existant
-                        link.set('target', { id: existingNode.id, port: 'in' });
-                        console.log(
-                            'Un nœud existant a été utilisé pour connecter le lien.'
-                        );
-                    }
+                    // source requires an output port to connect
+                    return (
+                        ms &&
+                        ms.getAttribute('class') &&
+                        ms.getAttribute('class').indexOf('output') >= 0
+                    );
                 }
-            });
+            },
         });
 
-        var allEdges = graph.getLinks();
-        console.log('Test');
-        console.log(allEdges);
-
+        // On stocke le paper et le graph dans le contexte
         setCircuitGraph(graph);
+        setPaper(paperInstance);
 
-        // Activer le zoom et le déplacement
-        enableZoom(paper);
-        enablePanning(paper);
-        setPaper(paper);
-
-        // Update zoom level in state on scale change
-        paper.on('scale', setPaper(paper)); // Assuming uniform scaling
+        // Exemple : on peut ajouter du code ici pour intercepter "change:target"
+        // si on veut créer un Noeud automatique à l'intersection d'un link, etc.
     }, []);
 
     return (
@@ -456,6 +376,7 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 ref={graphContainerRef}
+                className="joint-workspace-container"
             />
         </>
     );

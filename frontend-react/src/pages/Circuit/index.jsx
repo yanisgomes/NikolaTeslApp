@@ -4,12 +4,14 @@ import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
 
+import './logic.css';
+
 import * as joint from 'jointjs';
 import 'jointjs/dist/joint.css';
 
 import JointWorkspace from './JointWorkspace';
 
-import { Resistance } from './JointWorkspace';
+import { Resistor } from './JointWorkspace';
 
 import {
     ThemeContext,
@@ -278,6 +280,7 @@ function CircuitInterface() {
             id: 1,
             src: symbol_resistor,
             name: 'Résistance',
+            jointJSComponent: Resistor,
             symbole: 'R',
             tag: 'linear',
         },
@@ -285,6 +288,7 @@ function CircuitInterface() {
             id: 2,
             src: symbol_inductor,
             name: 'Inductance',
+            jointJSComponent: Resistor,
             symbole: 'L',
             tag: 'linear',
         },
@@ -292,14 +296,23 @@ function CircuitInterface() {
             id: 3,
             src: symbol_capacitor,
             name: 'Condensateur',
+            jointJSComponent: Resistor,
             symbole: 'C',
             tag: 'linear',
         },
-        { id: 4, src: symbol_aop, name: 'AOP', symbole: 'AOP', tag: 'linear' },
+        {
+            id: 4,
+            src: symbol_aop,
+            name: 'AOP',
+            jointJSComponent: Resistor,
+            symbole: 'AOP',
+            tag: 'linear',
+        },
         {
             id: 5,
             src: symbol_bip_npn,
             name: 'Transistor NPN',
+            jointJSComponent: Resistor,
             symbole: 'Q',
             tag: 'transistors',
         },
@@ -307,6 +320,7 @@ function CircuitInterface() {
             id: 6,
             src: symbol_bip_pnp,
             name: 'Transistor PNP',
+            jointJSComponent: Resistor,
             symbole: 'Q',
             tag: 'transistors',
         },
@@ -314,6 +328,7 @@ function CircuitInterface() {
             id: 7,
             src: symbol_current_src,
             name: 'Source de courant',
+            jointJSComponent: Resistor,
             symbole: 'I',
             tag: 'sources',
         },
@@ -321,6 +336,7 @@ function CircuitInterface() {
             id: 8,
             src: symbol_voltage_src,
             name: 'Source de tension',
+            jointJSComponent: Resistor,
             symbole: 'V',
             tag: 'sources',
         },
@@ -328,6 +344,7 @@ function CircuitInterface() {
             id: 10,
             src: symbol_ground,
             name: 'Ground',
+            jointJSComponent: Resistor,
             symbole: 'GND',
             tag: 'others',
         },
@@ -335,6 +352,7 @@ function CircuitInterface() {
             id: 11,
             src: symbol_switch,
             name: 'Interrupteur',
+            jointJSComponent: Resistor,
             symbole: 'S',
             tag: 'others',
         },
@@ -342,6 +360,7 @@ function CircuitInterface() {
             id: 13,
             src: symbol_voltmeter,
             name: 'Voltmètre',
+            jointJSComponent: Resistor,
             symbole: 'V',
             tag: 'others',
         },
@@ -349,6 +368,7 @@ function CircuitInterface() {
             id: 14,
             src: symbol_amperometer,
             name: 'Ampèremètre',
+            jointJSComponent: Resistor,
             symbole: 'A',
             tag: 'others',
         },
@@ -396,24 +416,22 @@ function CircuitInterface() {
             // Ajoutez la logique en fonction du type d'élément
             switch (draggedItem.name) {
                 case 'Résistance':
-                    element = new Resistance();
+                    element = new Resistor();
                     element.attr('label/text', `Valeur: 100 Ω`); // Afficher la valeur par défaut de la résistance
                     break;
 
-                case 'Gate11':
-                    element = new joint.shapes.logic.Gate11();
+                case 'Inductance':
+                    element = new Resistor();
+                    element.attr('label/text', `Valeur: 1 H`); // Afficher la valeur par défaut de l'inductance
                     break;
 
-                case 'Gate21':
-                    element = new joint.shapes.logic.Gate21();
+                case 'Condensateur':
+                    element = new Resistor();
+                    element.attr('label/text', `Valeur: 1 F`); // Afficher la valeur par défaut du condensateur
                     break;
 
-                case 'Input':
-                    element = new joint.shapes.logic.Input();
-                    break;
-
-                case 'Output':
-                    element = new joint.shapes.logic.Output();
+                case 'AOP':
+                    element = new Resistor();
                     break;
 
                 default:

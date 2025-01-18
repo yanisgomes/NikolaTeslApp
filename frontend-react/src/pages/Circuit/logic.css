@@ -1,51 +1,3 @@
-.app-container {
-    font-family: 'Montserrat', sans-serif;
-    text-align: center;
-}
-
-.item-list {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-}
-
-.item {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border-radius: 5px;
-    cursor: grab;
-    user-select: none;
-}
-
-.item:active {
-    cursor: grabbing;
-}
-
-.drop-zone {
-    margin-top: 30px;
-    padding: 20px;
-    border: 2px dashed #007bff;
-    border-radius: 10px;
-    min-height: 150px;
-}
-
-.dropped-items {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.dropped-item {
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: white;
-    border-radius: 5px;
-}
-
-
 html,
 body {
     height: 100%;
@@ -78,7 +30,7 @@ body {
     fill: white;
     stroke: #ccc;
     stroke-width: 1px;
-    stroke-opacity: .5;
+    stroke-opacity: 0.5;
 }
 
 .link-tools .tool-remove:hover circle {
@@ -98,14 +50,16 @@ body {
     stroke: none;
 }
 
-.marker-arrowhead, .marker-vertex {
+.marker-arrowhead,
+.marker-vertex {
     fill: #fff;
     stroke: #7f8c8d;
     stroke-opacity: 0.4;
     stroke-width: 2px;
 }
 
-.marker-arrowhead:hover,  .marker-vertex:hover {
+.marker-arrowhead:hover,
+.marker-vertex:hover {
     fill: #ecf0f1;
     stroke: #bdc3c7;
 }
@@ -113,7 +67,7 @@ body {
 .marker-vertex-remove-area {
     fill: white;
     stroke: #ccc;
-    stroke-opacity: .5;
+    stroke-opacity: 0.5;
 }
 
 .marker-vertex-remove-group:hover .marker-vertex-remove-area {
@@ -138,8 +92,8 @@ body {
 }
 
 .joint-element .body {
-    fill: #68DDD5;
-    stroke: #44CCC3;
+    fill: #68ddd5;
+    stroke: #44ccc3;
     stroke-opacity: 0.5;
     transition: all 0.2s;
 }
@@ -161,17 +115,17 @@ body {
 }
 
 .live .connection-wrap {
-    stroke: #7C68FD;
+    stroke: #7c68fd;
 }
 
 .joint-element.live .body {
-    fill: #FEB662;
-    stroke: #CF9452;
+    fill: #feb662;
+    stroke: #cf9452;
 }
 
 .joint-element.live text {
     fill: #ffffff;
 }
 .wire {
-    stroke: #4B4F6A;
+    stroke: #4b4f6a;
 }
