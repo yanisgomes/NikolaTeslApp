@@ -3,7 +3,7 @@ from ..models import Circuit_db
 from .. import db
 from datetime import datetime, timezone
 from solver import Solver
-from parser import Parser
+from parser123 import Parser
 from circuit import Circuit
 from simulator import Simulator
 import json
