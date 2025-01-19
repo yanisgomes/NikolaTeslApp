@@ -437,6 +437,19 @@ def update_circuit_io(circuit_id):
 # ------------------------------------------------------------------------------
 # Case 3: Both numeric and input/output nodes -> return everything: eq, expl, sol, TF, Bode, Step
 # ------------------------------------------------------------------------------
+# Test at http://127.0.0.1:3000/solver/config/io-numeric/1?i=3&o=1 with body
+"""
+{
+  "id": 1,
+  "nom": "circuit",
+  "description": "Circuit test disponible ici https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html",
+  "image": "Capacitor",
+  "auteur": "Basile",
+  "date": "11/01",
+  "netlist": "Vin 3 0 \n R2 3 2 1000 \n R1 1 0 1000 \n C1 1 0 1E-6 \n C2 2 1 10E-6 \n L1 1 0 0.001",
+  "json": "[{\"id\":\"Vin\",\"type\":\"VoltageSource\",\"name\":\"Vin\",\"valeur\":\"Symbolic\"},{\"id\":\"R2\",\"type\":\"Resistance\",\"name\":\"R2\",\"valeur\":1000},{\"id\":\"R1\",\"type\":\"Resistance\",\"name\":\"R1\",\"valeur\":1000},{\"id\":\"C1\",\"type\":\"Condensateur\",\"name\":\"C1\",\"valeur\":1e-6},{\"id\":\"C2\",\"type\":\"Condensateur\",\"name\":\"C2\",\"valeur\":1e-5},{\"id\":\"L1\",\"type\":\"Bobine\",\"name\":\"L1\",\"valeur\":0.001},{\"id\":\"0\",\"type\":\"noeud\",\"name\":\"0\"},{\"id\":\"1\",\"type\":\"noeud\",\"name\":\"1\"},{\"id\":\"link_3\",\"type\":\"link\",\"source\":{\"id\":\"Vin\"},\"target\":{\"id\":\"R2\"}},{\"id\":\"link_2\",\"type\":\"link\",\"source\":{\"id\":\"R2\"},\"target\":{\"id\":\"C2\"}},{\"id\":\"link_Vin_0\",\"type\":\"link\",\"source\":{\"id\":\"Vin\"},\"target\":{\"id\":\"0\"}},{\"id\":\"link_R1_1\",\"type\":\"link\",\"source\":{\"id\":\"R1\"},\"target\":{\"id\":\"1\"}},{\"id\":\"link_R1_0\",\"type\":\"link\",\"source\":{\"id\":\"R1\"},\"target\":{\"id\":\"0\"}},{\"id\":\"link_C1_1\",\"type\":\"link\",\"source\":{\"id\":\"C1\"},\"target\":{\"id\":\"1\"}},{\"id\":\"link_C1_0\",\"type\":\"link\",\"source\":{\"id\":\"C1\"},\"target\":{\"id\":\"0\"}},{\"id\":\"link_L1_1\",\"type\":\"link\",\"source\":{\"id\":\"L1\"},\"target\":{\"id\":\"1\"}},{\"id\":\"link_L1_0\",\"type\":\"link\",\"source\":{\"id\":\"L1\"},\"target\":{\"id\":\"0\"}},{\"id\":\"link_C2_1\",\"type\":\"link\",\"source\":{\"id\":\"C2\"},\"target\":{\"id\":\"1\"}}]"
+}
+"""
 @solver_bp.route('/config/io-numeric/<int:circuit_id>', methods=['PUT'])
 def update_circuit_io_numeric(circuit_id):
     circuit = Circuit_db.query.get_or_404(circuit_id)
