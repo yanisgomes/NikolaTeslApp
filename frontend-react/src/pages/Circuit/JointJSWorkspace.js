@@ -5,6 +5,9 @@ import symbol_resistor from '../../assets/symbol_resistor.png';
 
 import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
+import './logic.css';
+import { symbol } from 'prop-types';
+
 export const Gate = joint.dia.Element.define(
     'logic.Gate',
     {
@@ -145,20 +148,106 @@ export const Gate21 = Gate.define(
 export const Resistor = Gate11.define(
     'Resistance',
     {
+        size: { width: 60, height: 30 },
         attrs: {
-            image: { 'xlink:href': symbol_resistor },
-            label: { text: 'Valeur: 100 Ω', fill: 'black' },
+            image: {
+                'xlink:href':
+                    'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIENyZWF0ZWQgd2l0aCBJbmtzY2FwZSAoaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvKSAtLT4NCg0KPHN2Zw0KICAgd2lkdGg9IjY2LjUiDQogICBoZWlnaHQ9IjE1LjU2NTI0NyINCiAgIHZpZXdCb3g9IjAgMCAxNy41OTQ3ODkgNC4xMTgzMDUxIg0KICAgdmVyc2lvbj0iMS4xIg0KICAgaWQ9InN2ZzEiDQogICBpbmtzY2FwZTpleHBvcnQtZmlsZW5hbWU9InN5bWJvbF9jYXBhY2l0b3Iuc3ZnIg0KICAgaW5rc2NhcGU6ZXhwb3J0LXhkcGk9Ijk2Ig0KICAgaW5rc2NhcGU6ZXhwb3J0LXlkcGk9Ijk2Ig0KICAgeG1sbnM6aW5rc2NhcGU9Imh0dHA6Ly93d3cuaW5rc2NhcGUub3JnL25hbWVzcGFjZXMvaW5rc2NhcGUiDQogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiDQogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCiAgPHNvZGlwb2RpOm5hbWVkdmlldw0KICAgICBpZD0ibmFtZWR2aWV3MSINCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIg0KICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiINCiAgICAgYm9yZGVyb3BhY2l0eT0iMS4wIg0KICAgICBpbmtzY2FwZTpzaG93cGFnZXNoYWRvdz0iMiINCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCINCiAgICAgaW5rc2NhcGU6cGFnZWNoZWNrZXJib2FyZD0iMCINCiAgICAgaW5rc2NhcGU6ZGVza2NvbG9yPSIjZDFkMWQxIg0KICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0ibW0iIC8+DQogIDxkZWZzDQogICAgIGlkPSJkZWZzMSIgLz4NCiAgPGcNCiAgICAgaW5rc2NhcGU6bGFiZWw9IkNhbHF1ZSAxIg0KICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIg0KICAgICBpZD0ibGF5ZXIxIg0KICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC4wOTAxNTAyNSwtMC4wNzA5NjM2OCkiPg0KICAgIDxwYXRoDQogICAgICAgaWQ9InBhdGgzOTcwIg0KICAgICAgIHN0eWxlPSJkaXNwbGF5OmlubGluZTtmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjAuOTI2MDQyO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpiZXZlbDtzdHJva2UtbWl0ZXJsaW1pdDo0O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxIg0KICAgICAgIGQ9Ik0gMTcuMjIxOTIxLDIuMTMwMTE2MyBIIDE0LjQ0Mzc5NiBMIDEzLjUxNzc1NSwwLjI3ODAzMzA0IDExLjY2NTY3MSwzLjk4MjE5OTQgOS44MTM1ODc4LDAuMjc4MDMzMDQgNy45NjE1MDQ1LDMuOTgyMTk5NCA2LjEwOTQyMTIsMC4yNzgwMzMwNCA0LjI1NzMzNzksMy45ODIxOTk0IDMuMzMxMjk2MiwyLjEzMDExNjMgSCAwLjU1MzE3MTI2Ig0KICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiDQogICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjY2NjY2NjY2NjIiAvPg0KICA8L2c+DQo8L3N2Zz4NCg==',
+            },
+            label: { text: '100Ω', fill: 'black' },
         },
-        valeur: 100, // Valeur par défaut
+        value: 100,
+        symbol: 'R',
     },
     {
         // Méthode pour modifier dynamiquement la valeur
-        setValeur: function (nouvelleValeur) {
-            this.valeur = nouvelleValeur; // Met à jour la propriété
-            this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
+        setValue: function (newValue) {
+            this.valeur = newValue; // Met à jour la propriété
+            this.attr('label/text', `${newValue}Ω`); // Met à jour le texte affiché
         },
 
         // Méthode pour récupérer la valeur actuelle
+        getValeur: function () {
+            return this.valeur;
+        },
+    }
+);
+
+export const Inductor = Gate11.define(
+    'Inductor',
+    {
+        size: { width: 100, height: 40 },
+        attrs: {
+            image: {
+                'xlink:href':
+                    'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIENyZWF0ZWQgd2l0aCBJbmtzY2FwZSAoaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvKSAtLT4NCg0KPHN2Zw0KICAgd2lkdGg9IjEwMS41NDM5OSINCiAgIGhlaWdodD0iMTUuODg2OTE0Ig0KICAgdmlld0JveD0iMCAwIDI2Ljg2Njg0NCA0LjIwMzQxMyINCiAgIHZlcnNpb249IjEuMSINCiAgIGlkPSJzdmcxIg0KICAgaW5rc2NhcGU6ZXhwb3J0LWZpbGVuYW1lPSJzeW1ib2xfcmVzaXN0LnN2ZyINCiAgIGlua3NjYXBlOmV4cG9ydC14ZHBpPSI5NiINCiAgIGlua3NjYXBlOmV4cG9ydC15ZHBpPSI5NiINCiAgIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIg0KICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIg0KICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIg0KICAgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+DQogIDxzb2RpcG9kaTpuYW1lZHZpZXcNCiAgICAgaWQ9Im5hbWVkdmlldzEiDQogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiINCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiDQogICAgIGJvcmRlcm9wYWNpdHk9IjEuMCINCiAgICAgaW5rc2NhcGU6c2hvd3BhZ2VzaGFkb3c9IjIiDQogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwLjAiDQogICAgIGlua3NjYXBlOnBhZ2VjaGVja2VyYm9hcmQ9IjAiDQogICAgIGlua3NjYXBlOmRlc2tjb2xvcj0iI2QxZDFkMSINCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9Im1tIiAvPg0KICA8ZGVmcw0KICAgICBpZD0iZGVmczEiIC8+DQogIDxnDQogICAgIGlua3NjYXBlOmxhYmVsPSJDYWxxdWUgMSINCiAgICAgaW5rc2NhcGU6Z3JvdXBtb2RlPSJsYXllciINCiAgICAgaWQ9ImxheWVyMSINCiAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTAuMDA1ODg4ODYsLTAuMDgyNjgyMTEpIj4NCiAgICA8cGF0aA0KICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiDQogICAgICAgaWQ9InBhdGg0MjAzIg0KICAgICAgIHN0eWxlPSJkaXNwbGF5OmlubGluZTtmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjAuOTM3NjgzO3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjpyb3VuZDtzdHJva2UtbWl0ZXJsaW1pdDo0O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxIg0KICAgICAgIGQ9Ik0gMjYuNDAzODk2LDMuNzY3MDg0MiBIIDIyLjY5OTczIGMgLTAuMDExMTQsLTQuMzM4ODk2NjkgLTMuNzA5NzMzLC00LjMzODg5NjY5IC0zLjcwNDE2NywwIC0wLjAwNTYsLTQuMzM4OTAxOTggLTMuNzE1MjMxLC00LjMyMzQ4MjA3IC0zLjcwNDE2NiwwIC02LjllLTUsLTQuMzU0MzA2MDMgLTMuNzE1Mzc1LC00LjM1NDMwNjAzIC0zLjcwNDE2NywwIDcuNGUtNSwtNC4zMjM0NzY3OCAtMy42OTg1OTk1LC00LjMzODg5NjY5IC0zLjcwNDE2NjQsMCAtMC4wMTExMzksLTQuMzM4ODk2NjkgLTMuNjgxMjQ4NCwtNC4zMzg4OTY2OSAtMy42ODEyNDg0LDAgSCAwLjQ3NDczMDM1Ig0KICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2NjY2NjY2MiIC8+DQogIDwvZz4NCjwvc3ZnPg0K',
+            },
+            label: { text: '0.001F', fill: 'black' },
+            '.input': {
+                ref: '.body',
+                'ref-x': -2,
+                'ref-y': 0.6,
+                magnet: true,
+                port: 'in',
+            },
+            '.output': {
+                ref: '.body',
+                'ref-dx': 2,
+                'ref-y': 0.6,
+                magnet: true,
+                port: 'out',
+            },
+        },
+        value: 0.001,
+        symbol: 'L',
+    },
+    {
+        // Méthode pour modifier dynamiquement la valeur
+        setValue: function (newValue) {
+            this.valeur = newValue; // Met à jour la propriété
+            this.attr('label/text', `${newValue}F`); // Met à jour le texte affiché
+        },
+
+        // Méthode pour récupérer la valeur actuelle
+        getValeur: function () {
+            return this.valeur;
+        },
+    }
+);
+
+export const Capacitor = Gate11.define(
+    'Capacitor',
+    {
+        size: { width: 70, height: 50 },
+        attrs: {
+            image: {
+                'xlink:href':
+                    'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIENyZWF0ZWQgd2l0aCBJbmtzY2FwZSAoaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvKSAtLT4NCg0KPHN2Zw0KICAgd2lkdGg9IjMyIg0KICAgaGVpZ2h0PSIzOSINCiAgIHZpZXdCb3g9IjAgMCA4LjQ2NjY2NjcgMTAuMzE4NzUxIg0KICAgdmVyc2lvbj0iMS4xIg0KICAgaWQ9InN2ZzEiDQogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSINCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCINCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyINCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPg0KICA8c29kaXBvZGk6bmFtZWR2aWV3DQogICAgIGlkPSJuYW1lZHZpZXcxIg0KICAgICBwYWdlY29sb3I9IiNmZmZmZmYiDQogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2Ig0KICAgICBib3JkZXJvcGFjaXR5PSIxLjAiDQogICAgIGlua3NjYXBlOnNob3dwYWdlc2hhZG93PSIyIg0KICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIg0KICAgICBpbmtzY2FwZTpwYWdlY2hlY2tlcmJvYXJkPSIwIg0KICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiNkMWQxZDEiDQogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJtbSIgLz4NCiAgPGRlZnMNCiAgICAgaWQ9ImRlZnMxIiAvPg0KICA8Zw0KICAgICBpbmtzY2FwZTpsYWJlbD0iQ2FscXVlIDEiDQogICAgIGlua3NjYXBlOmdyb3VwbW9kZT0ibGF5ZXIiDQogICAgIGlkPSJsYXllcjEiPg0KICAgIDxnDQogICAgICAgaWQ9ImcxNTc5Ig0KICAgICAgIHRyYW5zZm9ybT0ibWF0cml4KDAuMjY0NTgzMzMsMCwwLDAuMjY0NTgzMzMsLTgwLjk1MjU3MiwtMjM3LjQzNTM5KSINCiAgICAgICBzdHlsZT0iZGlzcGxheTppbmxpbmUiPg0KICAgICAgPHBhdGgNCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiDQogICAgICAgICBpZD0icGF0aDI3OTEiDQogICAgICAgICBkPSJtIDMyMiw4OTkuNDE2NjUgdiAxNCINCiAgICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjMuNTtzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW1pdGVybGltaXQ6NDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLW9wYWNpdHk6MSINCiAgICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiIC8+DQogICAgICA8cGF0aA0KICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyINCiAgICAgICAgIGlkPSJwYXRoMjc5MyINCiAgICAgICAgIGQ9Im0gMzIyLDkyMC40MTY2NSB2IDE0Ig0KICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6My41O3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDo0O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxIg0KICAgICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz4NCiAgICAgIDxwYXRoDQogICAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIg0KICAgICAgICAgaWQ9InBhdGgyNzk1Ig0KICAgICAgICAgZD0ibSAzMzUuOTk5OTksOTEzLjQxNjY1IGggLTI4Ig0KICAgICAgICAgc3R5bGU9ImZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6My41O3N0cm9rZS1saW5lY2FwOnNxdWFyZTtzdHJva2UtbGluZWpvaW46bWl0ZXI7c3Ryb2tlLW1pdGVybGltaXQ6NDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLW9wYWNpdHk6MSINCiAgICAgICAgIHNvZGlwb2RpOm5vZGV0eXBlcz0iY2MiIC8+DQogICAgICA8cGF0aA0KICAgICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCINCiAgICAgICAgIGlkPSJwYXRoMjc5NyINCiAgICAgICAgIGQ9Im0gMzM1Ljk5OTk5LDkyMC40MTY2NSBoIC0yOCINCiAgICAgICAgIHN0eWxlPSJmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjMuNTtzdHJva2UtbGluZWNhcDpzcXVhcmU7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1taXRlcmxpbWl0OjQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS1vcGFjaXR5OjEiDQogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPg0KICAgIDwvZz4NCiAgPC9nPg0KPC9zdmc+DQo=',
+            },
+            label: { text: '1µF', fill: 'black' },
+            '.input': {
+                ref: '.body',
+                'ref-x': 0.5,
+                'ref-y': 0,
+                magnet: true,
+                port: 'in',
+            },
+            '.output': {
+                ref: '.body',
+                'ref-x': 0.5,
+                'ref-y': 1,
+                magnet: true,
+                port: 'out',
+            },
+        },
+        value: 1,
+        symbol: 'C',
+    },
+    {
+        setValue: function (newValue) {
+            this.valeur = newValue;
+            this.attr('label/text', `${newValue}µF`);
+        },
         getValeur: function () {
             return this.valeur;
         },
@@ -216,75 +305,6 @@ export const Or = Gate21.define(
     }
 );
 
-export const Inductor = Gate11.define(
-    'Resistance',
-    {
-        attrs: {
-            image: { 'xlink:href': symbol_resistor },
-            label: { text: 'Valeur: 100 Ω', fill: 'black' },
-        },
-        valeur: 100, // Valeur par défaut
-    },
-    {
-        // Méthode pour modifier dynamiquement la valeur
-        setValeur: function (nouvelleValeur) {
-            this.valeur = nouvelleValeur; // Met à jour la propriété
-            this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
-        },
-
-        // Méthode pour récupérer la valeur actuelle
-        getValeur: function () {
-            return this.valeur;
-        },
-    }
-);
-
-export const Capacitor = Gate11.define(
-    'Resistance',
-    {
-        attrs: {
-            image: { 'xlink:href': symbol_resistor },
-            label: { text: 'Valeur: 100 Ω' },
-        },
-        valeur: 100, // Valeur par défaut
-    },
-    {
-        // Méthode pour modifier dynamiquement la valeur
-        setValeur: function (nouvelleValeur) {
-            this.valeur = nouvelleValeur; // Met à jour la propriété
-            this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
-        },
-
-        // Méthode pour récupérer la valeur actuelle
-        getValeur: function () {
-            return this.valeur;
-        },
-    }
-);
-
-export const AOP = Gate11.define(
-    'Resistance',
-    {
-        attrs: {
-            image: { 'xlink:href': symbol_resistor },
-            label: { text: 'Valeur: 100 Ω', fill: 'black' },
-        },
-        valeur: 100, // Valeur par défaut
-    },
-    {
-        // Méthode pour modifier dynamiquement la valeur
-        setValeur: function (nouvelleValeur) {
-            this.valeur = nouvelleValeur; // Met à jour la propriété
-            this.attr('label/text', `Valeur: ${nouvelleValeur} Ω`); // Met à jour le texte affiché
-        },
-
-        // Méthode pour récupérer la valeur actuelle
-        getValeur: function () {
-            return this.valeur;
-        },
-    }
-);
-
 export const Wire = joint.dia.Link.define(
     'logic.Wire',
     {
@@ -327,7 +347,6 @@ export const shapes = {
         Resistor,
         Inductor,
         Capacitor,
-        AOP,
     },
 };
 

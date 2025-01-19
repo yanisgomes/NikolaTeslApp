@@ -9,10 +9,16 @@ import './logic.css';
 import * as joint from 'jointjs';
 import 'jointjs/dist/joint.css';
 
-import JointWorkspace from './JointAlex';
-import JointJSWorkspace from '../../components/JointJSWorkspace';
+import JointJSWorkspace from './JointJSWorkspace';
 
-import { Resistor } from './JointAlex';
+import {
+    Repeater,
+    Or,
+    Not,
+    Resistor,
+    Inductor,
+    Capacitor,
+} from './JointJSWorkspace';
 
 import {
     ThemeContext,
@@ -115,12 +121,11 @@ function CircuitInterface() {
     });
 
     // ITEMS DISPONIBLES (TOOLBOX)
-    const [items] = useState([
+    const [componentToolboxItems] = useState([
         {
             id: 1,
             src: symbol_resistor,
             name: 'Résistance',
-            jointJSComponent: Resistor,
             symbole: 'R',
             tag: 'linear',
         },
@@ -128,7 +133,6 @@ function CircuitInterface() {
             id: 2,
             src: symbol_inductor,
             name: 'Inductance',
-            jointJSComponent: Resistor,
             symbole: 'L',
             tag: 'linear',
         },
@@ -136,7 +140,6 @@ function CircuitInterface() {
             id: 3,
             src: symbol_capacitor,
             name: 'Condensateur',
-            jointJSComponent: Resistor,
             symbole: 'C',
             tag: 'linear',
         },
@@ -144,7 +147,6 @@ function CircuitInterface() {
             id: 4,
             src: symbol_aop,
             name: 'AOP',
-            jointJSComponent: Resistor,
             symbole: 'AOP',
             tag: 'linear',
         },
@@ -152,7 +154,6 @@ function CircuitInterface() {
             id: 5,
             src: symbol_bip_npn,
             name: 'Transistor NPN',
-            jointJSComponent: Resistor,
             symbole: 'Q',
             tag: 'transistors',
         },
@@ -160,7 +161,6 @@ function CircuitInterface() {
             id: 6,
             src: symbol_bip_pnp,
             name: 'Transistor PNP',
-            jointJSComponent: Resistor,
             symbole: 'Q',
             tag: 'transistors',
         },
@@ -168,7 +168,6 @@ function CircuitInterface() {
             id: 7,
             src: symbol_current_src,
             name: 'Source de courant',
-            jointJSComponent: Resistor,
             symbole: 'I',
             tag: 'sources',
         },
@@ -176,7 +175,6 @@ function CircuitInterface() {
             id: 8,
             src: symbol_voltage_src,
             name: 'Source de tension',
-            jointJSComponent: Resistor,
             symbole: 'V',
             tag: 'sources',
         },
@@ -184,7 +182,6 @@ function CircuitInterface() {
             id: 10,
             src: symbol_ground,
             name: 'Ground',
-            jointJSComponent: Resistor,
             symbole: 'GND',
             tag: 'others',
         },
@@ -192,7 +189,6 @@ function CircuitInterface() {
             id: 11,
             src: symbol_switch,
             name: 'Interrupteur',
-            jointJSComponent: Resistor,
             symbole: 'S',
             tag: 'others',
         },
@@ -200,7 +196,6 @@ function CircuitInterface() {
             id: 13,
             src: symbol_voltmeter,
             name: 'Voltmètre',
-            jointJSComponent: Resistor,
             symbole: 'V',
             tag: 'others',
         },
@@ -208,7 +203,6 @@ function CircuitInterface() {
             id: 14,
             src: symbol_amperometer,
             name: 'Ampèremètre',
-            jointJSComponent: Resistor,
             symbole: 'A',
             tag: 'others',
         },
@@ -256,21 +250,21 @@ function CircuitInterface() {
             switch (draggedItem.name) {
                 case 'Résistance':
                     element = new Resistor();
-                    element.attr('label/text', `Valeur: 100 Ω`); // Afficher la valeur par défaut de la résistance
+                    element.attr('label/text', `Valeur: 100 Ω`);
                     break;
 
                 case 'Inductance':
-                    element = new Resistor();
-                    element.attr('label/text', `Valeur: 1 H`); // Afficher la valeur par défaut de l'inductance
+                    element = new Inductor();
+                    element.attr('label/text', `Valeur: 1 H`);
                     break;
 
                 case 'Condensateur':
-                    element = new Resistor();
+                    element = new Capacitor();
                     element.attr('label/text', `Valeur: 1 F`); // Afficher la valeur par défaut du condensateur
                     break;
 
                 case 'AOP':
-                    element = new Resistor();
+                    element = new Not();
                     break;
 
                 default:
@@ -338,6 +332,7 @@ function CircuitInterface() {
     };
 
     // Sélection / survol depuis la netlist
+    // Pour AnalyticResolutionPage
     const handleSelectFromNetlist = (id) => setSelectedItemId(id);
     const handleHoverFromNetlist = (id) => setHoveredItemId(id);
     const handleUnhoverFromNetlist = () => setHoveredItemId(null);
@@ -374,7 +369,7 @@ function CircuitInterface() {
             name: 'Composants',
             content: (
                 <ComponentToolbox
-                    items={items}
+                    items={componentToolboxItems}
                     handleDragStartFromToolbox={handleDragStartFromToolbox}
                 />
             ),
@@ -429,12 +424,11 @@ function CircuitInterface() {
                     <TabbedMenu pages={topMenuPages} theme={theme} />
 
                     <JointWorkspaceContainer>
-                        <JointWorkspace
+                        <JointJSWorkspace
                             onDrop={handleDrop}
                             onDragOver={handleDragOver}
                         />
-
-                        {/*<JointJSWorkspace />*/}
+                        {/*<JointJSWorkspace /> Exemple with Paper Component*/}
                     </JointWorkspaceContainer>
                 </MainVerticalContainer>
             </MainHorizontalContainer>

@@ -1,6 +1,8 @@
 // src/components/AnalyticComponentList/index.jsx
-import React from 'react';
+import React, { useContext } from 'react';
 import AnalyticComponentItem from '../AnalyticComponentItem';
+
+import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
 const AnalyticComponentList = ({
     netlist,
@@ -14,6 +16,8 @@ const AnalyticComponentList = ({
     onHover,
     onUnhover,
 }) => {
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
+    const { paper, setPaper } = useContext(PaperContext);
     return (
         <div
             style={{ maxHeight: '300px', overflowY: 'auto', marginTop: '16px' }}
