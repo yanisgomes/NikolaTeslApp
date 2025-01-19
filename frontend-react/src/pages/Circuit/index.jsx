@@ -4,15 +4,6 @@ import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
 
-import './logic.css';
-
-import * as joint from 'jointjs';
-import 'jointjs/dist/joint.css';
-
-import JointWorkspace from './JointWorkspace';
-
-import { Resistor } from './JointWorkspace';
-
 import {
     ThemeContext,
     CircuitGraphContext,
@@ -39,6 +30,9 @@ import ChatInterface from '../../components/ChatInterface';
 import ComponentToolbox from '../../components/ComponentToolbox';
 import TemporalToolbox from '../../components/TemporalToolbox';
 import FrequentialToolbox from '../../components/FrequentialToolbox';
+import JointJSWorkspace from '../../components/JointJSWorkspace';
+
+import { Resistor } from './JointWorkspace';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
@@ -709,10 +703,7 @@ function CircuitInterface() {
 
                     <JointWorkspaceContainer>
                         {/* Placement du circuit drawer JointJS */}
-                        <JointWorkspace
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver} // Empêche le comportement par défaut pour permettre le drop
-                        />
+                        <JointJSWorkspace />
                     </JointWorkspaceContainer>
                 </MainVerticalContainer>
             </MainHorizontalContainer>

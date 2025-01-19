@@ -1,0 +1,81 @@
+.task {
+    box-sizing: border-box;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    border-radius: 4px;
+    background: white;
+    width: 248px;
+}
+
+.task::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 8px;
+    border-radius: 4px 4px 0 0;
+}
+
+.task[data-status='done']::before {
+    background: #41b883;
+}
+.task[data-status='pending']::before {
+    background: #36485e;
+}
+.task[data-status='at-risk']::before {
+    background: #ff785a;
+}
+
+.task header {
+    display: flex;
+    justify-content: space-between;
+    margin: 32px 24px 24px;
+}
+
+.task h1 {
+    margin: 0;
+    font-weight: bold;
+    font-size: 16px;
+    color: #1c1c1c;
+}
+
+.task i {
+    width: 16px;
+    height: 16px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+}
+
+.task[data-status='done'] i {
+    background-image: url('../../images/icon-done.svg');
+}
+.task[data-status='pending'] i {
+    background-image: url('../../images/icon-pending.svg');
+}
+.task[data-status='at-risk'] i {
+    background-image: url('../../images/icon-warning.svg');
+}
+
+.task input,
+.task select {
+    pointer-events: auto;
+    display: block;
+    margin: 24px;
+    border: solid 1px #dadada;
+    border-radius: 4px;
+    color: #1c1c1c;
+}
+
+.task input {
+    width: 178px;
+    padding: 10px;
+}
+
+.task select {
+    width: 198px;
+    padding: 4px 10px;
+}
