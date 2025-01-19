@@ -242,7 +242,7 @@ class Parser:
 
         # We may need an incremental way to create new node IDs or names
         # For example, start from the current count of noeuds:
-        next_node_index = len(noeud_dict) + 1
+        next_node_index = len(noeud_dict)
 
         # We'll iterate over original links, building new ones in new_links
         for link_key, link_value in link_dict.items():
@@ -258,7 +258,7 @@ class Parser:
 
                 if pair not in link_nodes:
                     # Create a new node
-                    new_node_name = f"n{next_node_index}_auto"
+                    new_node_name = f"{next_node_index}"
                     next_node_index += 1
                     # Store it in noeud_dict (so that build_netlist sees it as a node)
                     noeud_dict[new_node_name] = {
