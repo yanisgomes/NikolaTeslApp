@@ -5,8 +5,6 @@ import symbol_resistor from '../../assets/symbol_resistor.png';
 
 import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
-import './logic.css';
-
 export const Gate = joint.dia.Element.define(
     'logic.Gate',
     {
@@ -414,7 +412,6 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
     const graphContainerRef = useRef(null);
-    
 
     useEffect(() => {
         // Initialisation du graphe et du papier
