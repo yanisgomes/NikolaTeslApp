@@ -9,9 +9,9 @@ import './logic.css';
 import * as joint from 'jointjs';
 import 'jointjs/dist/joint.css';
 
-import JointWorkspace from './JointWorkspace';
+import JointWorkspace from './Joint_alex__deprecated';
 
-import { Resistor } from './JointWorkspace';
+import { Resistor } from './Joint_alex__deprecated';
 
 import {
     ThemeContext,

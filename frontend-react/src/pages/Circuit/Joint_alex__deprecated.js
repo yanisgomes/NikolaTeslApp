@@ -414,11 +414,11 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
     const graphContainerRef = useRef(null);
-    const graph = new joint.dia.Graph();
+    
 
     useEffect(() => {
         // Initialisation du graphe et du papier
-
+        const graph = new joint.dia.Graph();
         const paper = new joint.dia.Paper({
             el: graphContainerRef.current,
             model: graph,
