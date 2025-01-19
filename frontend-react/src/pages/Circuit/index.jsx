@@ -9,7 +9,8 @@ import './logic.css';
 import * as joint from 'jointjs';
 import 'jointjs/dist/joint.css';
 
-import JointWorkspace from './JointJSWorkspace';
+import JointWorkspace from './JointAlex';
+import JointJSWorkspace from '../../components/JointJSWorkspace';
 
 import { Resistor } from './JointJSWorkspace';
 
@@ -428,11 +429,13 @@ function CircuitInterface() {
                     <TabbedMenu pages={topMenuPages} theme={theme} />
 
                     <JointWorkspaceContainer>
-                        {/* Placement du circuit drawer JointJS */}
+                        {/*
                         <JointWorkspace
                             onDrop={handleDrop}
-                            onDragOver={handleDragOver} // Empêche le comportement par défaut pour permettre le drop
+                            onDragOver={handleDragOver}
                         />
+                        */}
+                        <JointJSWorkspace />
                     </JointWorkspaceContainer>
                 </MainVerticalContainer>
             </MainHorizontalContainer>

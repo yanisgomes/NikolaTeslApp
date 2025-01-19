@@ -39,7 +39,7 @@ const INITIAL_ELEMENTS = [
     },
 ];
 
-function App() {
+function JointJSWorkspace() {
     const [elements, setElements] = useState(INITIAL_ELEMENTS);
     const [scale, setScale] = useState(1);
     const graph = useRef(new dia.Graph({}, { cellNamespace: shapes }));
@@ -106,4 +106,4 @@ function App() {
     );
 }
 
-export default App;
+export default JointJSWorkspace;
