@@ -24,7 +24,7 @@ const CardContainer = styled.div`
     min-width: 180px;
     min-height: 140px;
     width: 180px;
-    margin: 0 8px;
+    margin: 0 0px;
     background-color: ${colors.backgroundLight};
     border: 1px solid ${colors.lightGrey2};
     color: ${colors.primary};
@@ -35,7 +35,7 @@ const CardContainer = styled.div`
     justify-content: flex-start;
     overflow: hidden;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 
     &:hover {
         transform: translateY(-3px);
@@ -111,7 +111,7 @@ const TagBadge = styled.span`
  */
 const ActionButtonContainer = styled.div`
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.3s ease;
     pointer-events: none; /* Pour éviter les clics quand invisible */
 
     /* Quand on survole le conteneur global, on rend ce bouton visible. */

@@ -1,14 +1,15 @@
 // src/components/AnalyticComponentList/index.jsx
 import React, { useContext } from 'react';
+import styled from 'styled-components';
+import colors from '../../utils/style/colors';
+
 import AnalyticComponentItem from '../AnalyticComponentItem';
 
 import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
 const AnalyticComponentList = ({
-    netlist,
-    onChangeValue,
-    onRequestAI,
-    onDelete,
+    // exemple:
+    // "netlist", "onChangeValue", "onRequestAI", "onDelete", etc.
     // Sélection / survol
     selectedItemId,
     hoveredItemId,
@@ -17,50 +18,83 @@ const AnalyticComponentList = ({
     onUnhover,
 }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
-    const { paper, setPaper } = useContext(PaperContext);
+    const { paper, setCircuitPaper } = useContext(PaperContext);
 
-    {
-        /* METHODE A UTILISER OU EQUIVALENT : JSON.stringify(circuitGraph.getCells());*/
-    }
+    // On récupère toutes les cellules du graphe
+    const cells = circuitGraph.getCells(); // Array of joint.dia.Cell
 
-    const parseCellData = (cell) => {
-        return {
-            id: cell.id,
-            type: cell.type,
-            position: cell.position,
-            attrs: cell.attrs,
-        };
-    };
+    const Container = styled.div`
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        padding-top: 16px;
+        margin-top: 16px;
+        max-height: 45vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        &::-webkit-scrollbar {
+            width: 4px; /* Adjust the width to make it extra thin */
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: ${colors.lightGrey2}; /* Customize the thumb color */
+            border-radius: 2px; /* Optional: round the corners */
+        }
+    `;
+
+    const List = styled.ul`
+        list-style-type: none;
+        padding: 0;
+
+        &::-webkit-scrollbar {
+            width: 4px; /* Adjust the width to make it extra thin */
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: ${colors.primary}; /* Customize the thumb color */
+            border-radius: 2px; /* Optional: round the corners */
+        }
+    `;
 
     return (
-        <div
-            style={{ maxHeight: '300px', overflowY: 'auto', marginTop: '16px' }}
-        >
-            <ul>
-                {circuitGraph.getCells().map((cell) => {
-                    const parsedData = parseCellData(cell);
+        <Container>
+            <List>
+                {cells.map((cell) => {
                     return (
-                        <li key={parsedData.id}>
-                            <div>
-                                <strong>ID:</strong> {parsedData.id}
-                            </div>
-                            <div>
-                                <strong>Type:</strong> {parsedData.type}
-                            </div>
-                            <div>
-                                <strong>Position:</strong>{' '}
-                                {`x: ${parsedData.position.x}, y: ${parsedData.position.y}`}
-                            </div>
-
-                            <div>
-                                <strong>Attributes:</strong>{' '}
-                                {JSON.stringify(parsedData.attrs)}
-                            </div>
-                        </li>
+                        <AnalyticComponentItem
+                            key={cell.id}
+                            cell={cell}
+                            isSelected={cell.id === selectedItemId}
+                            isHovered={cell.id === hoveredItemId}
+                            onHover={(id) => {
+                                onHover?.(id);
+                                if (paper) {
+                                    const cellView =
+                                        paper.findViewByModel(cell);
+                                    if (cellView) {
+                                        cellView.highlight();
+                                    }
+                                }
+                            }}
+                            onUnhover={(id) => {
+                                onUnhover?.(id);
+                                if (paper) {
+                                    const cellView =
+                                        paper.findViewByModel(cell);
+                                    if (cellView) {
+                                        cellView.unhighlight();
+                                    }
+                                }
+                            }}
+                            onClick={(id) => {
+                                onSelect?.(id);
+                            }}
+                        />
                     );
                 })}
-            </ul>
-        </div>
+            </List>
+        </Container>
     );
 };
 

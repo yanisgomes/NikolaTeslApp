@@ -1,144 +1,109 @@
-// src/components/AnalyticComponentItem/index.jsx
-import React, { useState } from 'react';
-import styled, { css } from 'styled-components';
-import fonts from './../../utils/style/fonts';
+import React from 'react';
+import colors from '../../utils/style/colors';
 
-import ACIButton from './../AnalyticComponentItemButton';
+import styled from 'styled-components';
 
-import {
-    VscSparkle,
-    VscTrash,
-    VscChevronUp,
-    VscChevronDown,
-} from 'react-icons/vsc';
-
-import { getIconAsUrl } from '../../utils/utils';
-
-const VscSparkleUrl = getIconAsUrl(<VscSparkle />);
-const VscTrashUrl = getIconAsUrl(<VscTrash />);
-const VscChevronUpUrl = getIconAsUrl(<VscChevronUp />);
-const VscChevronDownUrl = getIconAsUrl(<VscChevronDown />);
-
-const ACItemContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    margin-bottom: 8px;
+const StyledListItem = styled.li`
+    margin: 8px 0;
     padding: 8px;
-    transition: border 0.3s, transform 0.3s;
+    border-radius: 8px;
+    border: 1px solid ${colors.lightGrey2};
+    transition: border-color 0.3s ease-out, transform 0.3s ease-out;
+    border-color: ${({ isSelected, isHovered }) =>
+        isSelected ? colors.primary : colors.lightGrey2};
 
-    /* Au survol, on change la bordure et on décale légèrement vers la droite */
     ${({ isHovered }) =>
         isHovered &&
-        css`
-            border-color: #ccc;
-        `}
-`;
-
-const HoverButtonContainer = styled.div`
-    display: flex;
-    gap: 8px;
+        `
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        cursor: grab;
+    `}
+    cursor: pointer;
 `;
 
 const AnalyticComponentItem = ({
-    name,
-    value,
-    symbol,
-    onChangeValue,
-    onRequestAI,
-    onDelete,
-    // Ajout pour la sélection / survol
-    isSelected = false,
-    isHovered = false,
-    onSelect,
+    cell,
+    isSelected,
+    isHovered,
     onHover,
     onUnhover,
+    onClick,
 }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const handleToggleExpand = () => setIsExpanded((prev) => !prev);
-    const symbolDictionary = {
-        R: 'Résistance',
-        L: 'Inductance',
-        C: 'Capacité',
-        V: 'Tension',
-        I: 'Courant',
+    // Pour simplifier, on extrait quelques infos du cell.
+    const cellType = cell.get('type'); // e.g. "logic.Resistance"
+    const symbol = cell.get('symbol'); // e.g. "R", "L", "C"
+    const value = cell.get('value'); // e.g. 100, 0.001...
+    const cellId = cell.id; // l'ID unique JointJS
+
+    // Distinction composant vs lien
+    const isLink = cell.isLink();
+
+    // Exemple :
+    // - S'il s'agit d'un lien, on récupère la source et la target
+    // - On peut essayer de remonter au "type" ou "symbol" des extrémités
+    const source = isLink ? cell.source() : null;
+    const target = isLink ? cell.target() : null;
+
+    // On personnalise l'affichage/les styles
+    const itemStyle = {
+        margin: '8px 0',
+        padding: '16px',
+        borderRadius: '4px',
+        border: '1px solid #ddd',
+        backgroundColor: isSelected
+            ? '${colors.primary}'
+            : isHovered
+            ? '#f5f5f5'
+            : 'white',
+        cursor: 'pointer',
     };
 
     return (
-        <ACItemContainer
-            onMouseEnter={() => onHover?.()}
-            onMouseLeave={() => onUnhover?.()}
-            onClick={() => onSelect?.()}
+        <StyledListItem
             isSelected={isSelected}
             isHovered={isHovered}
+            // Survol
+            onMouseEnter={() => onHover(cellId)}
+            onMouseLeave={() => onUnhover(cellId)}
+            // Clic
+            onClick={() => onClick(cellId)}
         >
-            {/* Partie supérieure (nom, valeur, icônes conditionnelles) */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                }}
-            >
-                <span
-                    style={{
-                        marginRight: '14px',
-                        fontFamily: fonts.mainFont,
-                        fontSize: '16px',
-                    }}
-                >
-                    {symbolDictionary[symbol] || symbol} : {name}
-                </span>
-
-                {/* Champ de saisie de la valeur numérique */}
-                <input
-                    type="number"
-                    value={value}
-                    onChange={(e) => onChangeValue(e.target.value)}
-                    style={{ marginRight: '16px', width: '80px' }}
-                />
-
-                {/* Boutons visibles uniquement au survol */}
-                {isHovered && (
-                    <HoverButtonContainer>
-                        <ACIButton
-                            onClick={onRequestAI}
-                            logoUrl={VscSparkleUrl}
-                            size="30px"
-                        />
-                        <ACIButton
-                            onClick={onDelete}
-                            logoUrl={VscTrashUrl}
-                            size="30px"
-                        />
-                        <ACIButton
-                            onClick={handleToggleExpand}
-                            logoUrl={
-                                isExpanded ? VscChevronUpUrl : VscChevronDownUrl
-                            }
-                            size="30px"
-                            variant="variation"
-                        />
-                    </HoverButtonContainer>
-                )}
+            <div>
+                <strong>ID:</strong> {cellId}
+            </div>
+            <div>
+                <strong>Type:</strong> {cellType}
             </div>
 
-            {/* Contenu additionnel, affiché si déplié */}
-            {isExpanded && (
-                <div
-                    style={{
-                        marginTop: '8px',
-                        backgroundColor: '#f9f9f9',
-                        padding: '8px',
-                        borderRadius: '4px',
-                    }}
-                >
-                    <p>Informations supplémentaires sur {name}…</p>
-                    {/* ... */}
-                </div>
+            {/* Si c'est un composant */}
+            {!isLink && (
+                <>
+                    {symbol && (
+                        <div>
+                            <strong>Symbol:</strong> {symbol}
+                        </div>
+                    )}
+                    {typeof value !== 'undefined' && (
+                        <div>
+                            <strong>Valeur:</strong> {value}
+                        </div>
+                    )}
+                </>
             )}
-        </ACItemContainer>
+
+            {/* Si c'est un lien */}
+            {isLink && (
+                <>
+                    <div>
+                        <strong>Source:</strong> {JSON.stringify(source)}
+                    </div>
+                    <div>
+                        <strong>Target:</strong> {JSON.stringify(target)}
+                    </div>
+                </>
+            )}
+        </StyledListItem>
     );
 };
 

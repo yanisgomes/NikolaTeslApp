@@ -1,5 +1,6 @@
 import * as joint from 'jointjs';
 import React, { useEffect, useRef, useContext } from 'react';
+import styled from 'styled-components';
 
 import symbol_resistor from '../../assets/symbol_resistor.png';
 
@@ -7,6 +8,9 @@ import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
 import { symbol } from 'prop-types';
 
+// =====================================
+// 1) CLASSE DE BASE Composant
+// =====================================
 export const Composant = joint.dia.Element.define(
     'logic.Composant',
     {
@@ -31,6 +35,9 @@ export const Composant = joint.dia.Element.define(
     }
 );
 
+// =====================================
+// 2) Définition de Dipole, Tripole
+// =====================================
 export const Dipole = Composant.define(
     'logic.Dipole',
     {
@@ -73,6 +80,9 @@ export const Tripole = Composant.define(
     }
 );
 
+// =====================================
+// 3) DIPÔLES SPÉCIFIQUES (R, C, L)
+// =====================================
 export const Resistor = Dipole.define(
     'logic.Resistance',
     {
@@ -87,7 +97,7 @@ export const Resistor = Dipole.define(
                 ref: '.body',
                 'ref-x': -2,
                 'ref-y': 0.5,
-                magnet: true, //mettre true pour pouvoir connecter les fils sur les deux ports, 'passive' sinon
+                magnet: true,
                 port: 'in',
             },
             '.output': {
@@ -102,13 +112,10 @@ export const Resistor = Dipole.define(
         symbol: 'R',
     },
     {
-        // Méthode pour modifier dynamiquement la valeur
         setValue: function (newValue) {
             this.value = newValue;
             this.attr('label/text', `${newValue}Ω`);
         },
-
-        // Méthode pour récupérer la valeur actuelle
         getValue: function () {
             return this.value;
         },
@@ -144,13 +151,10 @@ export const Inductor = Dipole.define(
         symbol: 'L',
     },
     {
-        // Méthode pour modifier dynamiquement la valeur
         setValue: function (newValue) {
             this.value = newValue;
             this.attr('label/text', `${newValue}µH`);
         },
-
-        // Méthode pour récupérer la valeur actuelle
         getValue: function () {
             return this.value;
         },
@@ -171,7 +175,7 @@ export const Capacitor = Dipole.define(
                 ref: '.body',
                 'ref-x': -2,
                 'ref-y': 0.5,
-                magnet: true, //mettre true pour pouvoir connecter les fils sur les deux ports, 'passive' sinon
+                magnet: true,
                 port: 'in',
             },
             '.output': {
@@ -186,19 +190,19 @@ export const Capacitor = Dipole.define(
         symbol: 'C',
     },
     {
-        // Méthode pour modifier dynamiquement la valeur
         setValue: function (newValue) {
             this.value = newValue;
             this.attr('label/text', `${newValue}µF`);
         },
-
-        // Méthode pour récupérer la valeur actuelle
         getValue: function () {
             return this.value;
         },
     }
 );
 
+// =====================================
+// 4) AUTRE EXEMPLE: AOP
+// =====================================
 export const AOP = Tripole.define(
     'logic.AOP',
     {
@@ -233,12 +237,15 @@ export const AOP = Tripole.define(
     },
     {
         operation: function (in1, in2) {
-            // Your op-amp logic here
+            // Ex. : OpAmp : out = in1 - in2
             return in1 - in2;
         },
     }
 );
 
+// =====================================
+// 5) LE WIRE (lien)
+// =====================================
 export const Wire = joint.dia.Link.define(
     'logic.Wire',
     {
@@ -247,6 +254,7 @@ export const Wire = joint.dia.Link.define(
             '.marker-vertex': { r: 7 },
         },
 
+        // Ici on force un router manhattan par exemple
         router: { name: 'manhattan' },
         connector: { name: 'normal', args: { radius: 10 } },
     },
@@ -272,48 +280,136 @@ export const Wire = joint.dia.Link.define(
     }
 );
 
-export const shapes = {
-    ...joint.shapes,
-    logic: {
-        Resistor,
-        Inductor,
-        Capacitor,
-        AOP,
+// =====================================
+// 6) Définir un nouveau shape "CircuitNode"
+// =====================================
+// Variante 1: hériter de Composant
+/*
+export const CircuitNode = Composant.define(
+    'logic.CircuitNode',
+    {
+        name: '', // attribut name
+        attrs: {
+            body: {
+                // Visuel minimaliste : un petit cercle
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: 'black',
+                fill: 'blue',
+            },
+            label: {
+                text: '', // on peut y mettre this.get('name') si besoin
+                fill: 'white',
+                fontSize: 12,
+                textAnchor: 'middle',
+                textVerticalAnchor: 'middle',
+            },
+        },
+        // Si on veut un seul "port" sur la totalité du cercle :
+        ports: {
+            items: [
+                {
+                    group: 'any',
+                    id: 'mainPort', // un seul port
+                },
+            ],
+            groups: {
+                any: {
+                    position: 'ellipse', // ou "circle"
+                    attrs: {
+                        circle: {
+                            magnet: true, // rend connectable
+                            stroke: 'none',
+                            fill: 'transparent',
+                            r: 10,
+                        },
+                    },
+                    // Permettre un nombre illimité de connexions 
+                    // (par défaut, JointJS autorise déjà plusieurs liens sur le même aimant).
+                },
+            },
+        },
+        size: { width: 20, height: 20 },
     },
-};
+    {
+        markup: `
+          <g class="rotatable">
+            <g class="scalable">
+              <circle class="body"/>
+            </g>
+            <text class="label"/>
+          </g>
+        `,
+    }
+);
+*/
 
-// Fonction pour créer un noeud
-function createNode(graph, position) {
-    const hub = new joint.shapes.standard.Circle();
-    hub.position(position.x, position.y);
-    hub.resize(20, 20); // Taille du nœud
-    hub.attr({
-        body: { fill: 'blue' },
-        label: { text: '', fill: 'white' },
-    });
-    hub.addTo(graph);
-    return hub;
-}
+// Variante 2: hériter des shapes standard (souvent plus léger, plus récent)
+export const CircuitNode = joint.shapes.standard.Circle.define(
+    'logic.CircuitNode',
+    {
+        // L'attribut "name" au sens du circuit
+        name: '',
+        // Dimensions du node
+        size: { width: 20, height: 20 },
+        // on paramètre l'apparence
+        attrs: {
+            body: {
+                fill: 'blue',
+                stroke: 'black',
+                strokeWidth: 1,
+            },
+            label: {
+                text: '', // on pourrait mettre 'Noeud'
+                fill: 'green',
+                fontSize: 12,
+            },
+        },
+    },
+    {
+        // Ici on peut ajouter des méthodes custom si besoin
+        setName: function (newName) {
+            this.set('name', newName);
+            // Mettre à jour l'affichage dans le label si besoin
+            this.attr('label/text', newName);
+        },
+        getName: function () {
+            return this.get('name');
+        },
+    },
+    {
+        markup: `
+          <g class="rotatable">
+            <g class="scalable">
+              <circle class="body"/>
+            </g>
+            <text class="label"/>
+          </g>
+        `,
+    }
+);
 
+// =====================================
+// 7) FONCTIONS UTILES (intersection, panning, zoom, etc.)
+// =====================================
 function getIntersection(p1, p2, p3, p4) {
     const det = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
 
-    if (det === 0) return null; // Les segments sont parallèles ou colinéaires
+    if (det === 0) return null; // segments parallèles ou colinéaires
 
     const lambda =
         ((p4.y - p3.y) * (p4.x - p1.x) - (p4.x - p3.x) * (p4.y - p1.y)) / det;
     const gamma =
         ((p1.y - p2.y) * (p4.x - p1.x) - (p1.x - p2.x) * (p4.y - p1.y)) / det;
 
-    // Vérifie si l'intersection est dans les limites des deux segments
+    // On vérifie que l'intersection se fait entre 0 et 1 sur les deux segments
     if (lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1) {
         return {
             x: p1.x + lambda * (p2.x - p1.x),
             y: p1.y + lambda * (p2.y - p1.y),
         };
     }
-
-    return null; // Pas d'intersection
+    return null;
 }
 
 const enablePanning = (paper) => {
@@ -344,9 +440,9 @@ const enablePanning = (paper) => {
 };
 
 const enableZoom = (paper) => {
-    const zoomStep = 0.1; // Incrément du zoom
-    const minZoom = 0.5; // Zoom minimal
-    const maxZoom = 2; // Zoom maximal
+    const zoomStep = 0.1;
+    const minZoom = 0.5;
+    const maxZoom = 2;
 
     paper.on('blank:mousewheel', (evt, x, y, delta) => {
         const currentScale = paper.scale();
@@ -354,18 +450,57 @@ const enableZoom = (paper) => {
             Math.max(currentScale.sx + delta * zoomStep, minZoom),
             maxZoom
         );
-
-        paper.scale(newScale, newScale, x, y); // Zoom au niveau du pointeur
+        // Zoom autour du pointeur
+        paper.scale(newScale, newScale, x, y);
     });
 };
 
-const JointWorkspace = ({ onDrop, onDragOver }) => {
+// =====================================
+// 8) CRÉATION DU NŒUD (via CircuitNode)
+// =====================================
+function createNode(graph, position) {
+    // Au lieu d’utiliser standard.Circle(), on utilise CircuitNode
+    const node = new CircuitNode();
+    node.position(position.x, position.y);
+    node.resize(20, 20);
+
+    // Optionnel: donner un nom (ex. un identifiant unique ou "N1", "N2", etc.)
+    // node.setName('Nœud');
+
+    // On peut afficher ce name sur le label si on veut
+    // node.attr('label/text', node.getName());
+
+    // On ajoute l’élément au graph
+    node.addTo(graph);
+
+    return node;
+}
+
+const WorkspaceContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    max-height: auto;
+    overflow-y: auto;
+`;
+
+// =====================================
+// 9) COMPOSANT REACT
+// =====================================
+const JointWorkspace = ({
+    onDrop,
+    onDragOver,
+    onSelect,
+    onUnselect,
+    onHover,
+    onUnhover,
+}) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
     const graphContainerRef = useRef(null);
 
     useEffect(() => {
-        // Initialisation du graphe et du papier
+        // Initialisation du graphe et du paper
         const graph = new joint.dia.Graph();
         const paper = new joint.dia.Paper({
             el: graphContainerRef.current,
@@ -378,72 +513,58 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
             defaultLink: () => new Wire(),
         });
 
+        // Exemple : double-clic sur une résistance pour changer la valeur
         paper.on('cell:pointerdblclick', function (cellView) {
             const cell = cellView.model;
 
-            // Vérifie si l'élément cliqué est une résistance
+            // Vérifier si c'est bien une Resistance
             if (cell.isElement() && cell instanceof Resistor) {
-                // Demande la nouvelle valeur
                 const nouvelleValeur = prompt(
                     'Entrez la nouvelle valeur de la résistance (Ω) :',
-                    cell.getValeur() // Pré-remplit avec la valeur actuelle
+                    cell.getValue() // la valeur courante
                 );
 
-                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
                 if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
-                    cell.setValeur(parseFloat(nouvelleValeur));
+                    cell.setValue(parseFloat(nouvelleValeur));
                 } else {
                     alert('Veuillez entrer une valeur numérique valide.');
                 }
             }
-            /*    
-            // Vérifie si l'élément cliqué est un condensateur
-            if (cell.isElement() && cell instanceof Condensateur) {
-                // Demande la nouvelle valeur
-                const nouvelleValeur = prompt(
-                    'Entrez la nouvelle valeur du condensateur (F) :', 
-                    cell.getValeur() // Pré-remplit avec la valeur actuelle
-                );
-        
-                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
-                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
-                    cell.setValeur(parseFloat(nouvelleValeur));
-                } else {
-                    alert("Veuillez entrer une valeur numérique valide.");
-                }
-            }
-
-            // Vérifie si l'élément cliqué est une Bobine
-            if (cell.isElement() && cell instanceof Bobine) {
-                // Demande la nouvelle valeur
-                const nouvelleValeur = prompt(
-                    'Entrez la nouvelle valeur de la bobine (H) :', 
-                    cell.getValeur() // Pré-remplit avec la valeur actuelle
-                );
-        
-                // Si une nouvelle valeur est saisie et qu'elle est valide, on la met à jour
-                if (nouvelleValeur !== null && !isNaN(nouvelleValeur)) {
-                    cell.setValeur(parseFloat(nouvelleValeur));
-                } else {
-                    alert("Veuillez entrer une valeur numérique valide.");
-                }
-            }*/
         });
 
-        // NOEUDS
-        // Surveiller les liens pour créer des hubs dynamiquement
+        paper.on('cell:mouseover', (cellView) => {
+            const hoveredId = cellView.model.id;
+            onHover(hoveredId);
+        });
+        paper.on('cell:mouseout', (cellView) => {
+            const unhoveredId = cellView.model.id;
+            onUnhover(unhoveredId);
+        });
+        paper.on('cell:pointerclick', (cellView) => {
+            const selectedId = cellView.model.id;
+            onSelect(selectedId);
+        });
+        paper.on('blank:pointerclick', () => {
+            onUnselect();
+        });
+
+        // =====================================
+        // LOGIQUE DE CRÉATION AUTOMATIQUE DES NŒUDS
+        // =====================================
+        // Quand la cible d'un lien change, on vérifie les intersections
         graph.on('change:target', function (link) {
-            const target = link.get('target'); // Récupère la cible actuelle du lien déplacé
-            if (!target || target.id) return; // Assurez-vous que la cible est une position libre (pas un élément)
+            const target = link.get('target');
+            // On ne fait quelque chose que si la cible est un "point libre" (pas un id déjà existant)
+            if (!target || target.id) return;
 
             const sourcePosition = link.source().id
                 ? graph.getCell(link.source().id).position()
-                : link.source(); // Position de la source du lien déplacé
-            const targetPosition = target; // Position actuelle de l'extrémité déplacée
+                : link.source();
+            const targetPosition = target; // position x,y
 
-            // Vérifier les intersections avec d'autres liens
+            // On compare avec tous les autres fils pour voir s'il y a intersection
             graph.getLinks().forEach((otherLink) => {
-                if (otherLink === link) return; // Ignore le lien lui-même
+                if (otherLink === link) return; // pas avec soi-même
 
                 const otherSourcePosition = otherLink.source().id
                     ? graph.getCell(otherLink.source().id).position()
@@ -452,7 +573,6 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                     ? graph.getCell(otherLink.target().id).position()
                     : otherLink.target();
 
-                // Vérifie si les deux segments de liens se croisent
                 const intersection = getIntersection(
                     sourcePosition,
                     targetPosition,
@@ -461,8 +581,8 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                 );
 
                 if (intersection) {
-                    // Vérifie s'il existe déjà un nœud proche de l'intersection
-                    const radius = 70; // Rayon de proximité (en pixels)
+                    // On regarde si un nœud existe déjà près de l'intersection
+                    const radius = 30; // tolérance en pixels
                     const existingNode = graph.getElements().find((element) => {
                         const position = element.position();
                         return (
@@ -472,56 +592,52 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
                     });
 
                     if (!existingNode) {
-                        // Crée un nœud à la position de l'intersection
-                        const hub = createNode(graph, intersection);
+                        // On crée un nouveau CircuitNode à l'intersection
+                        const newNode = createNode(graph, intersection);
 
-                        // Connecte immédiatement le lien déplacé au nœud
-                        link.set('target', { id: hub.id, port: 'in' });
+                        // Rebranche le lien en cours vers ce nouveau noeud
+                        link.set('target', { id: newNode.id });
 
-                        // Coupe le lien existant en deux et connecte les segments au nœud
-                        const newLink = new joint.dia.Link({
-                            source: { id: hub.id, port: 'out' },
+                        // Couper "otherLink" pour y insérer le nœud
+                        // => on crée un nouveau lien depuis ce nœud vers la "vraie" target de otherLink
+                        const newLink = new Wire({
+                            source: { id: newNode.id },
                             target: otherLink.target(),
-                        }).addTo(graph);
-                        otherLink.set('target', { id: hub.id, port: 'in' });
+                        });
+                        newLink.addTo(graph);
 
-                        console.log(
-                            'Intersection détectée, nœud créé et lien connecté !'
-                        );
+                        // On recâble le "otherLink" original jusqu'au nouveau nœud
+                        otherLink.set('target', { id: newNode.id });
+
+                        console.log('Intersection détectée, nœud créé !');
                     } else {
-                        // Connecte directement le lien au nœud existant
-                        link.set('target', { id: existingNode.id, port: 'in' });
+                        // Sinon on réutilise ce nœud existant
+                        link.set('target', { id: existingNode.id });
                         console.log(
-                            'Un nœud existant a été utilisé pour connecter le lien.'
+                            'Intersection détectée sur un nœud existant !'
                         );
                     }
                 }
             });
         });
 
-        var allEdges = graph.getLinks();
-        console.log('Test');
-        console.log(allEdges);
-
         setCircuitGraph(graph);
 
-        // Activer le zoom et le déplacement
+        // Active le zoom et le panning
         enableZoom(paper);
         enablePanning(paper);
-        setPaper(paper);
 
-        // Update zoom level in state on scale change
-        paper.on('scale', setPaper(paper)); // Assuming uniform scaling
+        setPaper(paper);
+        // Sur tout changement d'échelle, on pourrait mettre à jour un état React:
+        // paper.on('scale', () => { ... });
     }, []);
 
     return (
-        <>
-            <div
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                ref={graphContainerRef}
-            />
-        </>
+        <WorkspaceContainer
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            ref={graphContainerRef}
+        />
     );
 };
 

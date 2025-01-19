@@ -334,9 +334,10 @@ function CircuitInterface() {
 
     // Sélection / survol depuis la netlist
     // Pour AnalyticResolutionPage
-    const handleSelectFromNetlist = (id) => setSelectedItemId(id);
-    const handleHoverFromNetlist = (id) => setHoveredItemId(id);
-    const handleUnhoverFromNetlist = () => setHoveredItemId(null);
+    const handleSelectFromJointJS = (id) => setSelectedItemId(id);
+    const handleUnselectFromJointJS = () => setSelectedItemId(null);
+    const handleHoverFromJointJS = (id) => setHoveredItemId(id);
+    const handleUnhoverFromJointJS = () => setHoveredItemId(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
@@ -399,9 +400,10 @@ function CircuitInterface() {
                     // Sélection / Survol
                     selectedItemId={selectedItemId}
                     hoveredItemId={hoveredItemId}
-                    onSelect={handleSelectFromNetlist}
-                    onHover={handleHoverFromNetlist}
-                    onUnhover={handleUnhoverFromNetlist}
+                    onSelect={handleSelectFromJointJS}
+                    onUnselect={handleUnselectFromJointJS}
+                    onHover={handleHoverFromJointJS}
+                    onUnhover={handleUnhoverFromJointJS}
                 />
             ),
         },
@@ -428,6 +430,10 @@ function CircuitInterface() {
                         <JointJSWorkspace
                             onDrop={handleDrop}
                             onDragOver={handleDragOver}
+                            onSelect={handleSelectFromJointJS}
+                            onUnselect={handleUnselectFromJointJS}
+                            onHover={handleHoverFromJointJS}
+                            onUnhover={handleUnhoverFromJointJS}
                         />
                         {/*<JointJSWorkspace /> Exemple with Paper Component*/}
                     </JointWorkspaceContainer>

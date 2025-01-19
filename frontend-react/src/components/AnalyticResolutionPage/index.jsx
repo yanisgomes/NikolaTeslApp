@@ -17,6 +17,10 @@ const TitleContainer = styled.div`
     justify-content: space-between;
 `;
 
+const AnalyticResolutionContainer = styled.div`
+    padding: 0px;
+`;
+
 const AnalyticResolutionPage = ({
     netlist,
     onChangeValue,
@@ -33,7 +37,7 @@ const AnalyticResolutionPage = ({
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
     return (
-        <div style={{ padding: '16px' }}>
+        <AnalyticResolutionContainer>
             <TitleContainer>
                 <h2>Résolution détaillée</h2>
                 <ACIButton
@@ -45,9 +49,10 @@ const AnalyticResolutionPage = ({
             <div
                 style={{
                     border: '1px solid #ddd',
-                    borderRadius: '4px',
+                    borderRadius: '8px',
                     padding: '16px',
-                    marginBottom: '16px',
+                    marginTop: '8px',
+                    height: '25vh',
                 }}
             >
                 <p>
@@ -67,7 +72,7 @@ const AnalyticResolutionPage = ({
                 onHover={onHover}
                 onUnhover={onUnhover}
             />
-        </div>
+        </AnalyticResolutionContainer>
     );
 };
 
