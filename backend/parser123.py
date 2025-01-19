@@ -9,17 +9,52 @@ Output :
 - node_list
 
 Used in the solver.py module to parse the netlist string and get the components of the circuit.
+It is called parser123 to avoid conflicts with the existing parser.py module in python
 """
 
 import numpy as np
 import logging
 from component import VoltageSource, Resistor, Inductor, Capacitor, Opamp, CurrentSource
 import re
+import json
 
 class Parser:
     """
     The parse_netlist static method parses a netlist string and returns a Circuit object with the components.
     """
+    @staticmethod
+    def json_to_netlist(json_data):
+        """
+        Converts the JSON data to a netlist string.
+
+        Args:
+            json_data (dict): The JSON data to be converted.
+
+        Returns:
+            str: The netlist string.
+        """
+        try:
+            logging.info("Starting to convert JSON to netlist.")
+
+            # If json_data is a string, parse it to a Python list/dict
+            if isinstance(json_data, str):
+                json_data = json.loads(json_data)
+
+            link_dict, noeud_dict, components_dict = Parser.extract_dictionaries(json_data)
+            # Preprocess link_dict to split component-to-component links
+            new_links, noeud_dict = Parser.preprocess_links(link_dict, noeud_dict, components_dict)
+            # Now build netlist with no direct component-to-component links:
+            try:
+                netlist = Parser.build_netlist(new_links, noeud_dict, components_dict)
+                print("Netlist:\n", netlist)
+            except ValueError as e:
+                print("Error building netlist:", e)
+            logging.info("Finished converting JSON to netlist.")
+            return netlist
+        except Exception as e:
+            logging.error(f"Error converting JSON to netlist: {e}")
+            raise
+
     @staticmethod
     def parse_netlist(netlist, compute_numeric=True):
         """
@@ -172,3 +207,123 @@ class Parser:
             return tokens[1:4]
         else :
             return tokens[1:3]
+
+    @staticmethod 
+    def extract_dictionaries(data):
+        """
+        Extracts the link, noeud, and components dictionaries from the JSON data.
+        Used in the json_to_netlist method.
+        """
+        link_dict = {}
+        noeud_dict = {}
+        components_dict = {}
+
+        for element in data:
+            elem_type = element.get("type")
+            if elem_type == "link":
+                link_dict[element["id"]] = element
+            elif elem_type == "noeud":
+                noeud_dict[element["id"]] = element
+            else:
+                components_dict[element["id"]] = element
+
+        return link_dict, noeud_dict, components_dict
+
+    @staticmethod
+    def preprocess_links(link_dict, noeud_dict, components_dict):
+        """
+        Preprocess link_dict so that there are no direct component-to-component links.
+        If a direct link is found, create or reuse an intermediate node.
+        Used in the json_to_netlist method.
+        """
+
+        link_nodes = {}  # Will map a pair of component IDs to a node ID
+        new_links = {}
+
+        # We may need an incremental way to create new node IDs or names
+        # For example, start from the current count of noeuds:
+        next_node_index = len(noeud_dict) + 1
+
+        # We'll iterate over original links, building new ones in new_links
+        for link_key, link_value in link_dict.items():
+            source_id = link_value["source"]["id"]
+            target_id = link_value["target"]["id"]
+
+            source_is_comp = source_id in components_dict
+            target_is_comp = target_id in components_dict
+
+            if source_is_comp and target_is_comp:
+                # We have a direct component-to-component link
+                pair = tuple(sorted([source_id, target_id]))  # Use sorted so (A,B) == (B,A)
+
+                if pair not in link_nodes:
+                    # Create a new node
+                    new_node_name = f"n{next_node_index}_auto"
+                    next_node_index += 1
+                    # Store it in noeud_dict (so that build_netlist sees it as a node)
+                    noeud_dict[new_node_name] = {
+                        "id": new_node_name,
+                        "name": new_node_name
+                    }
+                    link_nodes[pair] = new_node_name
+
+                # Retrieve or newly created node name
+                node_id = link_nodes[pair]
+
+                # Create two new links in new_links
+                #  e.g. linkA: source=component, target=node
+                #  e.g. linkB: source=node,      target=component
+                linkA_key = f"{link_key}_A"
+                linkB_key = f"{link_key}_B"
+                
+                new_links[linkA_key] = {
+                    "source": {"id": source_id},
+                    "target": {"id": node_id}
+                }
+                new_links[linkB_key] = {
+                    "source": {"id": node_id},
+                    "target": {"id": target_id}
+                }
+
+            else:
+                # No change needed: either source or target is already a node
+                new_links[link_key] = link_value
+
+        return new_links, noeud_dict
+
+    @staticmethod
+    def build_netlist(link_dict, noeud_dict, components_dict):
+        """
+        Build a netlist string from the dictionaries.
+        Used in the json_to_netlist method.
+        """
+        netlist = ""
+        compute_numeric = True
+        for comp_id, component in components_dict.items():
+            name = component["name"]
+            if "valeur" in component:
+                value = component["valeur"]
+            else:
+                compute_numeric = False
+                logging.warning(f"Component '{name}' has no value specified.")
+            nodes = []
+
+            for lk_key, lk_value in link_dict.items():
+                source_id = lk_value["source"]["id"]
+                target_id = lk_value["target"]["id"]
+
+                # If the link belongs to this component
+                if source_id == comp_id and target_id in noeud_dict:
+                    nodes.append(noeud_dict[target_id]["name"])
+                elif target_id == comp_id and source_id in noeud_dict:
+                    nodes.append(noeud_dict[source_id]["name"])
+
+            # If a component doesn't have 2 or more nodes, log or raise error
+            if len(nodes) < 2:
+                raise ValueError(f"Component '{name}' not connected to 2 or more elements.")
+            if compute_numeric:
+                netlist += f"{name} {nodes[0]} {nodes[1]} {value}\n"
+            else:
+                netlist += f"{name} {nodes[0]} {nodes[1]}\n"
+
+        return netlist

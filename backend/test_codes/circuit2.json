@@ -1,0 +1,9 @@
+[ { "id": "Vin", "type": "VoltageSource", "name": "Vin", "valeur": "Symbolic" }, { "id": "R2", "type": "Resistance", "name": "R2", "valeur": 1000 }, { "id": "R1", "type": "Resistance", "name": "R1", "valeur": 1000 }, { "id": "C1", "type": "Condensateur", "name": "C1", "valeur": 1e-6 }, { "id": "C2", "type": "Condensateur", "name": "C2", "valeur": 1e-5 }, { "id": "L1", "type": "Bobine", "name": "L1", "valeur": 0.001 },
+
+{ "id": "node0", "type": "noeud", "name": "node0" }, { "id": "node1", "type": "noeud", "name": "node1" },
+
+{ "id": "link_node3", "type": "link", "source": { "id": "Vin" }, "target": { "id": "R2" } }, { "id": "link_node2", "type": "link", "source": { "id": "R2" }, "target": { "id": "C2" } },
+
+{ "id": "link_Vin_node0", "type": "link", "source": { "id": "Vin" }, "target": { "id": "node0" } }, { "id": "link_R1_node1", "type": "link", "source": { "id": "R1" }, "target": { "id": "node1" } }, { "id": "link_R1_node0", "type": "link", "source": { "id": "R1" }, "target": { "id": "node0" } }, { "id": "link_C1_node1", "type": "link", "source": { "id": "C1" }, "target": { "id": "node1" } }, { "id": "link_C1_node0", "type": "link", "source": { "id": "C1" }, "target": { "id": "node0" } }, { "id": "link_L1_node1", "type": "link", "source": { "id": "L1" }, "target": { "id": "node1" } }, { "id": "link_L1_node0", "type": "link", "source": { "id": "L1" }, "target": { "id": "node0" } }, { "id": "link_C2_node1", "type": "link", "source": { "id": "C2" }, "target": { "id": "node1" } }
+
+]

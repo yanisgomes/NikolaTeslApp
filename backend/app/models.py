@@ -8,6 +8,7 @@ class Circuit_db(db.Model):
     image = db.Column(db.String(255))
     auteur = db.Column(db.String(255), nullable=False)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    json = db.Column(db.Text, nullable=False)
     netlist = db.Column(db.Text, nullable=False)
     equations = db.Column(db.String(2048), nullable=True) # Store equations as JSON string
     explanations = db.Column(db.String(2048), nullable=True) # Explanations for each equation
