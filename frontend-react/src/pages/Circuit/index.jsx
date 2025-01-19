@@ -9,9 +9,9 @@ import './logic.css';
 import * as joint from 'jointjs';
 import 'jointjs/dist/joint.css';
 
-import JointWorkspace from './Joint_alex__deprecated';
+import JointWorkspace from './JointJSWorkspace';
 
-import { Resistor } from './Joint_alex__deprecated';
+import { Resistor } from './JointJSWorkspace';
 
 import {
     ThemeContext,
@@ -69,146 +69,6 @@ const MainVerticalContainer = styled.div`
     flex-direction: column;
     gap: 24px;
 `;
-
-const Workspace = styled.div`
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 60%;
-    background: ${(props) =>
-        props.theme === 'dark'
-            ? colors.backgroundLight
-            : colors.backgroundLight};
-    border: 1px solid
-        ${(props) =>
-            props.theme === 'dark' ? colors.darkGrey : colors.lightGrey2};
-    border-radius: 16px;
-    padding: 8px;
-`;
-
-const CircuitContainer = styled.div`
-    position: relative;
-    overflow: auto;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: ${colors.backgroundLight};
-`;
-
-const CircuitContent = styled.div`
-    border: 2px dashed ${colors.darkGrey};
-    transform: ${(props) =>
-        `translate(${props.offsetX}px, ${props.offsetY}px) scale(${props.zoom})`};
-    transform-origin: ${(props) => `${props.originX}% ${props.originY}%`};
-    transition: transform 0.1s ease-out;
-    width: 100%;
-    height: 100%;
-    background-color: ${colors.backgroundLight};
-`;
-
-const CircuitToolbarButtonContainer = styled.div`
-    display: flex;
-    gap: 10px;
-`;
-
-const PlacedItemContainer = styled.div`
-    position: absolute;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-
-    /* Exemple de surlignage dynamique */
-    ${({ isSelected, isHovered }) => {
-        if (isSelected) {
-            return `
-                border: 2px solid #ff5555; /* Rouge, par exemple */
-                border-radius: 10px;
-            `;
-        } else if (isHovered) {
-            return `
-                border: 2px dashed #ffaa00; /* Orange en pointillés */
-                border-radius: 10px;
-            `;
-        }
-        return '';
-    }}
-`;
-
-const PoleButton = styled.button`
-    background-color: ${colors.primary};
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: ${colors.primary};
-
-    &:hover {
-        background-color: ${colors.secondary};
-        color: white;
-    }
-`;
-
-const Toolbox = styled.div`
-    display: flex;
-    justify-content: center;
-    border: 2px solid ${colors.primary};
-    border-radius: 10px;
-    padding: 15px;
-    gap: 5px;
-
-    &:hover {
-        border-color: ${colors.secondary};
-    }
-`;
-
-const ImageItem = styled.img`
-    width: 100px;
-    height: 50px;
-    cursor: grab;
-    user-select: none;
-    background-color: ${colors.backgroundLight};
-    border-radius: 10px;
-    padding 20px;
-
-    &:hover {
-        border-radius: 20px;
-    }
-`;
-
-const PlacedImage = styled.img`
-    width: 100px;
-    height: 80px;
-    cursor: grab;
-`;
-
-const Line = ({ x1, y1, x2, y2, color = 'black', strokeWidth = 2 }) => {
-    return (
-        <svg
-            style={{
-                position: 'absolute',
-                pointerEvents: 'none',
-                overflow: 'visible',
-            }}
-        >
-            <line
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
-                stroke={color}
-                strokeWidth={strokeWidth}
-            />
-        </svg>
-    );
-};
-
 const JointWorkspaceContainer = styled.div`
     display: flex;
     flex: 1;
@@ -242,13 +102,6 @@ function CircuitInterface() {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
 
-    // ÉTATS ZOOM + PAN ...
-    const [zoom, setZoom] = useState(1);
-    const [offsetX, setOffsetX] = useState(0);
-    const [offsetY, setOffsetY] = useState(0);
-    const [isPanning, setIsPanning] = useState(false);
-    const [lastMousePosition, setLastMousePosition] = useState({ x: 0, y: 0 });
-
     // GESTION NETLIST
     const { netlist, addComponent, removeComponentById, setNetlist } =
         useNetlist();
@@ -259,20 +112,6 @@ function CircuitInterface() {
         bobine: 0,
         condensateur: 0,
     });
-
-    // NEW / UPDATED - Map type -> symbole (pour le "nom" lisible)
-    const typeToShortSymbol = {
-        resistance: 'R',
-        bobine: 'L',
-        condensateur: 'C',
-    };
-
-    // Valeurs par défaut
-    const defaultValues = {
-        resistance: 1000, // 1kΩ
-        bobine: 0.001, // 1mH
-        condensateur: 1e-6, // 1µF
-    };
 
     // ITEMS DISPONIBLES (TOOLBOX)
     const [items] = useState([
@@ -378,7 +217,6 @@ function CircuitInterface() {
     const [placedItems, setPlacedItems] = useState([]);
     const [draggingItem, setDraggingItem] = useState(null);
     const [history, setHistory] = useState([]);
-    const [lastPole, setLastPole] = useState(null);
     const [connections, setConnections] = useState([]);
 
     // Sélection / Survol
@@ -466,11 +304,6 @@ function CircuitInterface() {
         e.dataTransfer.setData('text/plain', JSON.stringify(item));
     };
 
-    // Workspace => dragStart
-    const handleDragStartPlacedItem = (item) => {
-        setDraggingItem(item);
-    };
-
     // Historique
     const saveHistory = () => {
         setHistory((prev) => [
@@ -481,56 +314,6 @@ function CircuitInterface() {
                 netlist: [...netlist],
             },
         ]);
-    };
-
-    // Pôles
-    const handlePoleClick = (pole, item) => {
-        if (lastPole) {
-            const newConnection = {
-                from: { id: lastPole.item.id, pole: lastPole.pole },
-                to: { id: item.id, pole },
-            };
-
-            // Vérifiez si la connexion existe déjà
-            const connectionIndex = connections.findIndex(
-                (conn) =>
-                    (conn.from.id === newConnection.from.id &&
-                        conn.from.pole === newConnection.from.pole &&
-                        conn.to.id === newConnection.to.id &&
-                        conn.to.pole === newConnection.to.pole) ||
-                    (conn.from.id === newConnection.to.id &&
-                        conn.from.pole === newConnection.to.pole &&
-                        conn.to.id === newConnection.from.id &&
-                        conn.to.pole === newConnection.from.pole)
-            );
-
-            saveHistory(); // Sauvegarde avant de modifier
-
-            if (connectionIndex !== -1) {
-                // Supprimez la connexion existante
-                setConnections((prev) =>
-                    prev.filter((_, index) => index !== connectionIndex)
-                );
-            } else {
-                // Ajoutez une nouvelle connexion
-                setConnections((prev) => [...prev, newConnection]);
-            }
-            setLastPole(null); // Réinitialisez après le lien
-        } else {
-            // Enregistrez ce pôle pour le prochain clic
-            setLastPole({ pole, item });
-        }
-    };
-
-    // Sélection / Survol
-    const handleSelectItem = (id) => {
-        setSelectedItemId(id);
-    };
-    const handleHoverItem = (id) => {
-        setHoveredItemId(id);
-    };
-    const handleUnhoverItem = () => {
-        setHoveredItemId(null);
     };
 
     // CALLBACKS ANALYTIQUE
@@ -557,69 +340,6 @@ function CircuitInterface() {
     const handleSelectFromNetlist = (id) => setSelectedItemId(id);
     const handleHoverFromNetlist = (id) => setHoveredItemId(id);
     const handleUnhoverFromNetlist = () => setHoveredItemId(null);
-
-    const handleUndo = () => {
-        if (history.length > 0) {
-            const lastState = history[history.length - 1];
-            setPlacedItems(lastState.placedItems); // Restaure l'état des éléments placés
-            setConnections(lastState.connections); // Restaure l'état des connexions
-            setNetlist(lastState.netlist); // Restaure l'état de la netlist
-            setHistory((prev) => prev.slice(0, -1)); // Supprime le dernier élément de l'historique
-        }
-    };
-
-    // ZOOM + PAN logic …
-    const handleMouseDown = (e) => {
-        // 1) Si l'utilisateur a cliqué sur le Workspace lui-même, on désélectionne
-        if (e.target === e.currentTarget) {
-            setSelectedItemId(null);
-        }
-        // 2) Ensuite, on enclenche la logique de pan
-        setIsPanning(true);
-        setLastMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleMouseDownWorkspace = (e) => {
-        if (e.target === e.currentTarget) {
-            setSelectedItemId(null);
-        }
-        // 2) Ensuite, on enclenche la logique de pan
-        setIsPanning(true);
-        setLastMousePosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleMouseDownCircuitContent = (e) => {
-        if (e.target === e.currentTarget) {
-            setSelectedItemId(null);
-        }
-    };
-
-    const handleMouseMove = (e) => {
-        if (isPanning) {
-            const dx = e.clientX - lastMousePosition.x;
-            const dy = e.clientY - lastMousePosition.y;
-            setOffsetX((prevOffsetX) => prevOffsetX + dx);
-            setOffsetY((prevOffsetY) => prevOffsetY + dy);
-            setLastMousePosition({ x: e.clientX, y: e.clientY });
-        }
-    };
-    const handleMouseUp = () => {
-        setIsPanning(false);
-    };
-    const handleWheel = (e) => {
-        e.preventDefault();
-        const zoomFactor = 0.1;
-        if (e.deltaY < 0) {
-            setZoom((prevZoom) => Math.min(prevZoom + zoomFactor, 3));
-        } else {
-            setZoom((prevZoom) => Math.max(prevZoom - zoomFactor, 0.5));
-        }
-    };
-    const resetZoomAndPan = () => {
-        setZoom(1);
-        setOffsetX(0);
-        setOffsetY(0);
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
