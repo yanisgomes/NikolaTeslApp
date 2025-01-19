@@ -12,7 +12,7 @@ import 'jointjs/dist/joint.css';
 import JointWorkspace from './JointAlex';
 import JointJSWorkspace from '../../components/JointJSWorkspace';
 
-import { Resistor } from './JointJSWorkspace';
+import { Resistor } from './JointAlex';
 
 import {
     ThemeContext,
@@ -429,13 +429,12 @@ function CircuitInterface() {
                     <TabbedMenu pages={topMenuPages} theme={theme} />
 
                     <JointWorkspaceContainer>
-                        {/*
                         <JointWorkspace
                             onDrop={handleDrop}
                             onDragOver={handleDragOver}
                         />
-                        */}
-                        <JointJSWorkspace />
+
+                        {/*<JointJSWorkspace />*/}
                     </JointWorkspaceContainer>
                 </MainVerticalContainer>
             </MainHorizontalContainer>
