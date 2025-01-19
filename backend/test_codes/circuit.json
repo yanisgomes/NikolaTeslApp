@@ -1,0 +1,207 @@
+[
+    {
+      "angle": 0,
+      "attrs": {
+        "label": {
+          "text": "Valeur: 40 H"
+        }
+      },
+      "id": "392b25af-e699-411b-8c1d-9e0beae8c29b",
+      "position": {
+        "x": 120,
+        "y": 180
+      },
+      "props": {
+        "valeur": 100
+      },
+      "size": {
+        "height": 40,
+        "width": 80
+      },
+      "type": "Bobine",
+      "valeur": 40,
+      "name": "L1",
+      "z": 1
+    },
+    {
+      "angle": 0,
+      "attrs": {
+        "label": {
+          "text": "Valeur: 50 Ω"
+        }
+      },
+      "id": "9655422b-d09f-4c35-9a6c-1da1a14a5115",
+      "position": {
+        "x": 380,
+        "y": 100
+      },
+      "props": {
+        "valeur": 100
+      },
+      "size": {
+        "height": 40,
+        "width": 80
+      },
+      "type": "Resistance",
+      "valeur": 50,
+      "name": "R",
+      "z": 2
+    },
+    {
+      "angle": 0,
+      "attrs": {
+        "label": {
+          "text": "Valeur: 50 Ω"
+        }
+      },
+      "id": "9655422b-d09f-4c35-9a6c-1da1a14a5115",
+      "position": {
+        "x": 380,
+        "y": 100
+      },
+      "props": {
+        "valeur": 100
+      },
+      "size": {
+        "height": 40,
+        "width": 80
+      },
+      "type": "Resistance",
+      "valeur": 50,
+      "name": "R",
+      "z": 2
+    },
+    {
+      "angle": 0,
+      "attrs": {
+        "label": {
+          "text": "Valeur: 40 F"
+        }
+      },
+      "id": "effcb3ad-5403-463c-83b5-fe1c3af32e77",
+      "position": {
+        "x": 640,
+        "y": 220
+      },
+      "props": {
+        "valeur": 100
+      },
+      "size": {
+        "height": 40,
+        "width": 80
+      },
+      "type": "Condensateur",
+      "valeur": 40,
+      "name": "C1",
+      "z": 3
+    },
+    {
+      "id": "noeud1",
+      "type": "noeud",
+      "name": "noeud1",
+      "position": {
+        "x": 250,
+        "y": 140
+      },
+      "z": 4
+    },
+    {
+      "id": "noeud2",
+      "type": "noeud",
+      "name": "noeud2",
+      "position": {
+        "x": 500,
+        "y": 200
+      },
+      "z": 5
+    },
+    {
+      "attrs": {},
+      "id": "link1",
+      "source": {
+        "id": "392b25af-e699-411b-8c1d-9e0beae8c29b",
+        "port": "out"
+      },
+      "target": {
+        "id": "noeud1"
+      },
+      "type": "link",
+      "z": 6
+    },
+    {
+      "attrs": {},
+      "id": "link2",
+      "source": {
+        "id": "9655422b-d09f-4c35-9a6c-1da1a14a5115",
+        "port": "out"
+      },
+      "target": {
+        "id": "noeud1"
+      },
+      "type": "link",
+      "z": 7
+    },
+    {
+      "attrs": {},
+      "id": "link3",
+      "source": {
+        "id": "noeud1"
+      },
+      "target": {
+        "id": "noeud2"
+      },
+      "type": "link",
+      "z": 8
+    },
+    {
+      "attrs": {},
+      "id": "link4",
+      "source": {
+        "id": "noeud2"
+      },
+      "target": {
+        "id": "effcb3ad-5403-463c-83b5-fe1c3af32e77"
+      },
+      "type": "link",
+      "z": 9
+    },
+    {
+      "attrs": {},
+      "id": "link5",
+      "source": {
+        "id": "effcb3ad-5403-463c-83b5-fe1c3af32e77",
+        "port": "out"
+      },
+      "target": {
+        "id": "noeud2"
+      },
+      "type": "link",
+      "z": 10
+    },
+    {
+      "attrs": {},
+      "id": "link6",
+      "source": {
+        "id": "noeud2"
+      },
+      "target": {
+        "id": "9655422b-d09f-4c35-9a6c-1da1a14a5115",
+        "port": "in"
+      },
+      "type": "link",
+      "z": 11
+    },
+    {
+      "attrs": {},
+      "id": "link7",
+      "source": {
+        "id": "392b25af-e699-411b-8c1d-9e0beae8c29b",
+        "port": "in"
+      },
+      "target": {
+        "id": "noeud2"
+      },
+      "type": "link",
+      "z": 12
+    }
+  ]

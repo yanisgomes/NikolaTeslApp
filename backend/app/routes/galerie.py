@@ -7,7 +7,11 @@ galerie_bp = Blueprint('galerie', __name__, url_prefix='/galerie')
 
 @galerie_bp.route('/', methods=['GET'])
 def get_galerie():
-    circuits = Circuit_db.query.all()
+    try:
+        circuits = Circuit_db.query.all()
+    except Exception as e:
+        return jsonify({"error": "Failed to retrieve circuits", "details": str(e)}), 500
+
     return jsonify([
         {
             "id": circuit.id,
@@ -21,7 +25,17 @@ def get_galerie():
         for circuit in circuits
     ])
 
-
+# Test at http://127.0.0.1:3000/galerie/
+""" with body : {
+    "id": 1,
+    "nom": "circuit",
+    "description": "Circuit test disponible ici https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html",
+    "image": "Capacitor",
+    "auteur": "Basile",
+    "date": "11/01",
+    "netlist": "Vin 3 0 R2 3 2 1000 R1 1 0 1000 C1 1 0 1E-6 C2 2 1 10E-6 L1 1 0 0.001",
+    "json": " "
+    }"""
 @galerie_bp.route('/', methods=['POST'])
 def add_circuit():
     data = request.json
@@ -32,16 +46,20 @@ def add_circuit():
     if 'nom' not in data or 'description' not in data or 'auteur' not in data or 'netlist' not in data:
         return jsonify({"message": "Données manquantes."}), 400
 
-    new_circuit = Circuit_db(
-        nom=data['nom'],
-        description=data['description'],
-        image=f"{data['nom']}.png",
-        auteur=data['auteur'],
-        date=datetime.now(timezone.utc),
-        netlist=data['netlist']
-    )
-    db.session.add(new_circuit)
-    db.session.commit()
+    try:
+        new_circuit = Circuit_db(
+            nom=data['nom'],
+            description=data['description'],
+            image=f"{data['nom']}.png",
+            auteur=data['auteur'],
+            date=datetime.now(timezone.utc),
+            netlist=data['netlist'],
+            json=data['json']
+        )
+        db.session.add(new_circuit)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"error": "Failed to add circuit", "details": str(e)}), 500
     
     return jsonify({
         "message": "Circuit ajouté avec succès.",
@@ -76,11 +94,13 @@ def delete_circuit(circuit_id):
     if circuit is None:
         return jsonify({"message": "Circuit introuvable."}), 404
     
-    db.session.delete(circuit)
-    db.session.commit()
+    try:
+        db.session.delete(circuit)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"error": "Failed to delete circuit", "details": str(e)}), 500
 
     return jsonify({"message": "Circuit supprimé avec succès."}), 200
-
 
 @galerie_bp.route('/<int:circuit_id>', methods=['PUT'])
 def update_circuit(circuit_id):
@@ -92,18 +112,19 @@ def update_circuit(circuit_id):
     if not data:
         return jsonify({"message": "Les données doivent être au format JSON."}), 400
 
-    if 'nom' in data:
-        circuit.nom = data.get('nom', circuit.nom)
-    if 'description' in data:
-        circuit.description = data.get('description', circuit.description)
-    if 'auteur' in data:
-        circuit.auteur = data.get('auteur', circuit.auteur)
-    if 'netlist' in data:
-        circuit.netlist = data.get('netlist', circuit.netlist)
-    circuit.date = datetime.now(timezone.utc)
-
-    
-    db.session.commit()
+    try:
+        if 'nom' in data:
+            circuit.nom = data.get('nom', circuit.nom)
+        if 'description' in data:
+            circuit.description = data.get('description', circuit.description)
+        if 'auteur' in data:
+            circuit.auteur = data.get('auteur', circuit.auteur)
+        if 'netlist' in data:
+            circuit.netlist = data.get('netlist', circuit.netlist)
+        circuit.date = datetime.now(timezone.utc)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"error": "Failed to update circuit", "details": str(e)}), 500
 
     return jsonify({
         "message": "Circuit modifié avec succès.",

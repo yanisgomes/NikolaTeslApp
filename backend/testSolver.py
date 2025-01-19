@@ -1,6 +1,6 @@
 from solver import *
 from LLMcall import *
-from parser import *
+from backend.parser123 import *
 from simulator import *
 from circuit import *
 from collections import defaultdict
@@ -15,8 +15,8 @@ import sys
 netlist = '''
 * https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
 Vin 3 0 Symbolic      
-R2 3 2 1000
-R1 1 0 1000
+R 3 2 1000
+R 1 0 1000
 C1 1 0 1u
 C2 2 1 10u
 L1 1 0 0.001
