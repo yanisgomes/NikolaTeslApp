@@ -311,7 +311,7 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
             //        '.connection': { 'stroke-width': 2, stroke: '#000' },
             //    },
             //}),
-            defaultLink: () => new joint.shapes.logic.Wire(),
+            defaultLink: () => new Wire(),
 
             validateConnection: function (vs, ms, vt, mt, e, vl) {
                 if (e === 'target') {
@@ -352,7 +352,7 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
 
         // Exemple : on peut ajouter du code ici pour intercepter "change:target"
         // si on veut créer un Noeud automatique à l'intersection d'un link, etc.
-    }, [setPaper]);
+    }, []);
 
     return (
         <>
