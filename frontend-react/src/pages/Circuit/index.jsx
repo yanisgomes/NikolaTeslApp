@@ -18,6 +18,7 @@ import {
     Resistor,
     Inductor,
     Capacitor,
+    AOP,
 } from './JointJSWorkspace';
 
 import {
@@ -264,7 +265,7 @@ function CircuitInterface() {
                     break;
 
                 case 'AOP':
-                    element = new Not();
+                    element = new AOP();
                     break;
 
                 default:
