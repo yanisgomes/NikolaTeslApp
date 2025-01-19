@@ -425,7 +425,7 @@ const JointWorkspace = ({ onDrop, onDragOver }) => {
             width: '100vh',
             height: '45vh',
             gridSize: 20,
-            drawGrid: true,
+            drawGrid: true, 
         });
 
         paper.on('cell:pointerdblclick', function (cellView) {

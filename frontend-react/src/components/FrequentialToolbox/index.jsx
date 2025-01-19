@@ -60,8 +60,8 @@ const FrequentialToolbox = ({ timeData, onPlay, onSpark }) => {
     // Prépare les “traces” Plotly.
     const plotData = [
         {
-            x: timeData?.x || [],
-            y: timeData?.y || [],
+            x: timeData?.frequency_list || [],
+            y: timeData?.magnitude_list || [],
             type: 'scatter',
             mode: 'lines',
             line: { color: colors.primary },

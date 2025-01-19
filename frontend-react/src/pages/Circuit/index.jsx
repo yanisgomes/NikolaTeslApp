@@ -621,18 +621,32 @@ function CircuitInterface() {
         setOffsetY(0);
     };
 
+    const [bodeResponse, setBodeResponse] = useState(null);
+    const [temporalResponse, setTemporalResponse] = useState(null);
+
+
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
 
         try {
-            const response = await fetch('http://localhost:5000/api/circuits', {
+            //const response = await fetch(`http://127.0.0.1:5000/solver/equation/1?data=${encodeURIComponent(JSON.stringify(circuitGraph.getCells()))}`, {
+            const response = await fetch(`http://127.0.0.1:5000/solver/bode/1?i=3&o=1&data=${encodeURIComponent(JSON.stringify(circuitGraph.getCells()))}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json', // Utile si le serveur attend du JSON
+                }
+            });
+            
+            /*
+            const response = await fetch('http://127.0.0.1:5000/solver/equation/1', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
 
                 body: JSON.stringify(circuitGraph.getCells()), // Conversion des données en JSON
-            });
+            });*/
+            
 
             if (!response.ok) {
                 throw new Error('Erreur lors de l’envoi des données');
@@ -641,6 +655,9 @@ function CircuitInterface() {
             const result = await response.json();
             console.log(result); // Réponse du backend
             alert('Données envoyées avec succès');
+
+            setBodeResponse(result["bode response"]);
+
         } catch (error) {
             console.error(error);
             alert('Erreur lors de l’envoi des données');
@@ -664,7 +681,7 @@ function CircuitInterface() {
         },
         {
             name: 'Réponse fréquentielle',
-            content: <FrequentialToolbox />,
+            content: <FrequentialToolbox timeData={bodeResponse}/>,
         },
     ];
 
