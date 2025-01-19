@@ -439,10 +439,10 @@ def update_circuit_io(circuit_id):
 # ------------------------------------------------------------------------------
 @solver_bp.route('/config/io-numeric/<int:circuit_id>', methods=['PUT'])
 def update_circuit_io_numeric(circuit_id):
-    circuit_db = Circuit_db.query.get_or_404(circuit_id)
+    circuit = Circuit_db.query.get_or_404(circuit_id)
     data = request.json or {}
-    inputNode = data.get("i", None)
-    outputNode = data.get("o", None)
+    inputNode = request.args.get('i')
+    outputNode = request.args.get('o')
 
     if circuit is None:
         return jsonify({"message": "Circuit introuvable."}), 404
@@ -471,7 +471,8 @@ def update_circuit_io_numeric(circuit_id):
         db.session.commit()
     except Exception as e:
         return jsonify({"error": "Failed to update circuit", "details": str(e)}), 500
-
+    
+    circuit_db = Circuit_db.query.get_or_404(circuit_id)
 
     # Parse netlist, build circuit
     component_list, node_list = Parser.parse_netlist(circuit_db.netlist)
@@ -491,7 +492,7 @@ def update_circuit_io_numeric(circuit_id):
         simulator = Simulator(circuit, num, denom)
         
         # Save Bode data
-        freq, mag, phase = simulator.getBode()
+        freq, mag, phase = simulator.getFrequencyResponse()
         bode_data = {
             "freq": freq.tolist(),
             "mag": mag.tolist(),
