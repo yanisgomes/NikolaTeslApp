@@ -1,6 +1,8 @@
 // src/components/AnalyticComponentList/index.jsx
-import React from 'react';
+import React, { useContext } from 'react';
 import AnalyticComponentItem from '../AnalyticComponentItem';
+
+import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
 const AnalyticComponentList = ({
     netlist,
@@ -14,28 +16,50 @@ const AnalyticComponentList = ({
     onHover,
     onUnhover,
 }) => {
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
+    const { paper, setPaper } = useContext(PaperContext);
+
+    {
+        /* METHODE A UTILISER OU EQUIVALENT : JSON.stringify(circuitGraph.getCells());*/
+    }
+
+    const parseCellData = (cell) => {
+        return {
+            id: cell.id,
+            type: cell.type,
+            position: cell.position,
+            attrs: cell.attrs,
+        };
+    };
+
     return (
         <div
             style={{ maxHeight: '300px', overflowY: 'auto', marginTop: '16px' }}
         >
-            {netlist.map((comp) => (
-                <AnalyticComponentItem
-                    key={comp.id}
-                    name={comp.name}
-                    value={comp.value}
-                    symbol={comp.symbole}
-                    onChangeValue={(newVal) => onChangeValue(comp.id, newVal)}
-                    onRequestAI={() => onRequestAI(comp.id)}
-                    onDelete={() => onDelete(comp.id)}
-                    // Indication si sélectionné / survolé
-                    isSelected={selectedItemId === comp.id}
-                    isHovered={hoveredItemId === comp.id}
-                    // Callbacks
-                    onSelect={() => onSelect(comp.id)}
-                    onHover={() => onHover(comp.id)}
-                    onUnhover={() => onUnhover(comp.id)}
-                />
-            ))}
+            <ul>
+                {circuitGraph.getCells().map((cell) => {
+                    const parsedData = parseCellData(cell);
+                    return (
+                        <li key={parsedData.id}>
+                            <div>
+                                <strong>ID:</strong> {parsedData.id}
+                            </div>
+                            <div>
+                                <strong>Type:</strong> {parsedData.type}
+                            </div>
+                            <div>
+                                <strong>Position:</strong>{' '}
+                                {`x: ${parsedData.position.x}, y: ${parsedData.position.y}`}
+                            </div>
+
+                            <div>
+                                <strong>Attributes:</strong>{' '}
+                                {JSON.stringify(parsedData.attrs)}
+                            </div>
+                        </li>
+                    );
+                })}
+            </ul>
         </div>
     );
 };

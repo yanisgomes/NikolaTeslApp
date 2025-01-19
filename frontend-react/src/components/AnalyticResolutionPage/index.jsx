@@ -1,11 +1,13 @@
 // src/components/AnalyticResolutionPage/index.jsx
-import React from 'react';
+import React, { useContext } from 'react';
 import AnalyticComponentList from '../AnalyticComponentList';
 import styled from 'styled-components';
 
 import ACIButton from './../AnalyticComponentItemButton';
 import { getIconAsUrl } from '../../utils/utils';
 import { VscSymbolOperator } from 'react-icons/vsc';
+
+import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
 const VscSymbolOperatorUrl = getIconAsUrl(<VscSymbolOperator />);
 
@@ -28,6 +30,8 @@ const AnalyticResolutionPage = ({
     onHover,
     onUnhover,
 }) => {
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
+    const { paper, setPaper } = useContext(PaperContext);
     return (
         <div style={{ padding: '16px' }}>
             <TitleContainer>

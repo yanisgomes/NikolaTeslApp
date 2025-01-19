@@ -1,18 +1,6 @@
-html,
-body {
-    height: 100%;
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-    overflow-y: hidden;
-}
-
 .connection {
-    stroke: #999;
+    stroke: #000;
+    stroke-width: 3px;
 }
 
 .connection-wrap {
@@ -34,8 +22,8 @@ body {
 }
 
 .link-tools .tool-remove:hover circle {
-    fill: #e74c3c;
-    stroke: #c0392b;
+    fill: var(--primary);
+    stroke: var(--primary);
 }
 
 .link-tools .tool-remove path {
@@ -53,7 +41,7 @@ body {
 .marker-arrowhead,
 .marker-vertex {
     fill: #fff;
-    stroke: #7f8c8d;
+    stroke: #000;
     stroke-opacity: 0.4;
     stroke-width: 2px;
 }
@@ -61,7 +49,7 @@ body {
 .marker-arrowhead:hover,
 .marker-vertex:hover {
     fill: #ecf0f1;
-    stroke: #bdc3c7;
+    stroke: var(--primary);
 }
 
 .marker-vertex-remove-area {
@@ -92,8 +80,8 @@ body {
 }
 
 .joint-element .body {
-    fill: #68ddd5;
-    stroke: #44ccc3;
+    fill: var(--secondary);
+    stroke: var(--secondary);
     stroke-opacity: 0.5;
     transition: all 0.2s;
 }
@@ -110,17 +98,17 @@ body {
 }
 
 .joint-link.live > .connection {
-    stroke: #7c68fc;
+    stroke: var(--tertiary);
     stroke-width: 3px;
 }
 
 .live .connection-wrap {
-    stroke: #7c68fd;
+    stroke: var(--tertiary);
 }
 
 .joint-element.live .body {
-    fill: #feb662;
-    stroke: #cf9452;
+    fill: var(--primary);
+    stroke: var(--primary);
 }
 
 .joint-element.live text {

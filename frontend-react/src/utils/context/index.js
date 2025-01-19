@@ -39,3 +39,9 @@ export const PaperProvider = ({ children }) => {
         </PaperContext.Provider>
     );
 };
+
+export const GraphContext = createContext();
+
+export const GraphProvider = GraphContext.Provider;
+
+export default GraphContext;
