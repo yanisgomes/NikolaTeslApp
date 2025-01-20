@@ -9,7 +9,7 @@ import './logic.css';
 import * as joint from 'jointjs';
 import 'jointjs/dist/joint.css';
 
-import JointJSWorkspace from './JointJSWorkspace';
+import JointJSWorkspace from '../../components/JointJSWorkspace';
 
 import {
     Repeater,
@@ -445,6 +445,7 @@ function CircuitInterface() {
                     <TabbedMenu pages={topMenuPages} theme={theme} />
 
                     <JointWorkspaceContainer>
+                        {/*
                         <JointJSWorkspace
                             onDrop={handleDrop}
                             onDragOver={handleDragOver}
@@ -453,7 +454,8 @@ function CircuitInterface() {
                             onHover={handleHoverFromJointJS}
                             onUnhover={handleUnhoverFromJointJS}
                         />
-                        {/*<JointJSWorkspace /> Exemple with Paper Component*/}
+                        */}
+                        <JointJSWorkspace />
                     </JointWorkspaceContainer>
                 </MainVerticalContainer>
             </MainHorizontalContainer>

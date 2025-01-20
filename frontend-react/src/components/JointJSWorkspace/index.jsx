@@ -57,7 +57,7 @@ function JointJSWorkspace() {
             {
                 id: '1',
                 title: 'Create Story',
-                assignment: 'Bob',
+                assignment: 'Basile',
                 elementType: 'task',
                 status: 'done',
                 targets: ['2'],
@@ -67,7 +67,7 @@ function JointJSWorkspace() {
             {
                 id: '2',
                 title: 'Promote',
-                assignment: 'Mary',
+                assignment: 'Alex',
                 elementType: 'task',
                 status: 'pending',
                 targets: ['3'],
@@ -77,7 +77,7 @@ function JointJSWorkspace() {
             {
                 id: '3',
                 title: 'Measure',
-                assignment: 'John',
+                assignment: 'Gui',
                 elementType: 'task',
                 status: 'at-risk',
                 x: 576,
