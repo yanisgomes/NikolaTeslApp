@@ -54,7 +54,7 @@ const ChartContainer = styled.div`
  * @param {Function} props.onPlay - Callback au clic sur Play
  * @param {Function} props.onSpark - Callback au clic sur Spark (requête IA)
  */
-const FrequentialToolbox = ({ timeData, onPlay, onSpark }) => {
+const PhaseToolbox = ({ timeData, onPlay, onSpark }) => {
     // Ex: timeData = { x: [0, 0.1, 0.2, ...], y: [0, 1, 0.7, ...], ... }
 
     // Prépare les “traces” Plotly.
@@ -123,4 +123,4 @@ const FrequentialToolbox = ({ timeData, onPlay, onSpark }) => {
     );
 };
 
-export default FrequentialToolbox;
+export default PhaseToolbox;
