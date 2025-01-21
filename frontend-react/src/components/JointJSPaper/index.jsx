@@ -2,12 +2,12 @@ import './index.css';
 import { dia, shapes, V, elementTools } from 'jointjs';
 import { useContext, useEffect, useRef, useState } from 'react';
 import JointElement from '../JointJSElement';
-import { GraphContext } from '../../utils/context/';
+import GraphContext from '../../utils/context';
 
-function JointPaper(props) {
+function JointJSPaper(props) {
     const {
-        width = 1000,
-        height = 1000,
+        width = 900,
+        height = 450,
         theme = 'default',
         scale,
         updateElements,
@@ -281,4 +281,4 @@ function JointPaper(props) {
     );
 }
 
-export default JointPaper;
+export default JointJSPaper;

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import './index.css';
 import JointPaper from '../JointJSPaper';
 import Toolbar from '../JointJSToolbar';
-import { GraphProvider } from '../../utils/context/';
+import { GraphProvider } from '../../utils/context';
 import { dia, shapes } from 'jointjs';
 
 const HEIGHT = 600;
@@ -57,7 +57,7 @@ function JointJSWorkspace() {
             {
                 id: '1',
                 title: 'Create Story',
-                assignment: 'Basile',
+                assignment: 'Bob',
                 elementType: 'task',
                 status: 'done',
                 targets: ['2'],
@@ -67,7 +67,7 @@ function JointJSWorkspace() {
             {
                 id: '2',
                 title: 'Promote',
-                assignment: 'Alex',
+                assignment: 'Mary',
                 elementType: 'task',
                 status: 'pending',
                 targets: ['3'],
@@ -77,7 +77,7 @@ function JointJSWorkspace() {
             {
                 id: '3',
                 title: 'Measure',
-                assignment: 'Gui',
+                assignment: 'John',
                 elementType: 'task',
                 status: 'at-risk',
                 x: 576,
