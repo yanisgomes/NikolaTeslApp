@@ -76,7 +76,7 @@ export const Tripole = Composant.define(
 // 3) DIPÔLES SPÉCIFIQUES (R, C, L)
 // =====================================
 export const Resistor = Dipole.define(
-    'logic.Resistance',
+    'logic.Resistor',
     {
         size: { width: 60, height: 35 },
         attrs: {
