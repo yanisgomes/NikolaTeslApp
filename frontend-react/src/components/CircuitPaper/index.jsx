@@ -1,18 +1,8 @@
 import * as joint from 'jointjs';
+import { dia, shapes, V, elementTools } from 'jointjs';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import styled from 'styled-components';
-
-import symbol_resistor from '../../assets/symbol_resistor.png';
-
-import {
-    CircuitGraphContext,
-    PaperContext,
-    CircuitInteractionContext,
-} from '../../utils/context';
-
-import { symbol } from 'prop-types';
-
-import { CircuitNode, Resistor, Wire } from './JointJSElements';
+import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
 // =====================================
 // 7) FONCTIONS UTILES (intersection, panning, zoom, etc.)
@@ -64,66 +54,26 @@ const enablePanning = (paper) => {
     });
 };
 
-const enableZoom = (paper) => {
-    const zoomStep = 0.1;
-    const minZoom = 0.5;
-    const maxZoom = 2;
-
-    paper.on('blank:mousewheel', (evt, x, y, delta) => {
-        const currentScale = paper.scale();
-        const newScale = Math.min(
-            Math.max(currentScale.sx + delta * zoomStep, minZoom),
-            maxZoom
-        );
-        // Zoom autour du pointeur
-        paper.scale(newScale, newScale, x, y);
-    });
-};
-
-// =====================================
-// 8) CRÉATION DU NŒUD (via CircuitNode)
-// =====================================
-function createNode(graph, position) {
-    // Au lieu d’utiliser standard.Circle(), on utilise CircuitNode
-    const node = new CircuitNode();
-    node.position(position.x, position.y);
-    node.resize(20, 20);
-
-    // Optionnel: donner un nom (ex. un identifiant unique ou "N1", "N2", etc.)
-    // node.setName('Nœud');
-
-    // On peut afficher ce name sur le label si on veut
-    // node.attr('label/text', node.getName());
-
-    // On ajoute l’élément au graph
-    node.addTo(graph);
-
-    return node;
-}
-
-const WorkspaceContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    max-height: auto;
-    overflow-y: auto;
-`;
-
 // =====================================
 // 9) COMPOSANT REACT
 // =====================================
-function JointJSWorkspace(props) {
-    const { onDrop, onDragOver } = props;
+function CircuitPaper(props) {
+    const {
+        width = 900,
+        height = 450,
+        onDrop,
+        onDragOver,
+        onSelect,
+        onUnselect,
+        onHover,
+        onUnhover,
+    } = props;
+
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
+    const [scale, setScale] = useState(1);
+    const [matrix, setMatrix] = useState(V.createSVGMatrix());
     const graphContainerRef = useRef(null);
-
-    const {
-        hoveredElementId,
-        setHoveredElementId,
-        selectedElementId,
-        setSelectedElementId,
-    } = useContext(CircuitInteractionContext);
 
     useEffect(() => {
         // Initialisation du graphe et du paper
@@ -160,17 +110,18 @@ function JointJSWorkspace(props) {
 
         paper.on('cell:mouseover', (cellView) => {
             const hoveredId = cellView.model.id;
-            setHoveredElementId(hoveredId);
+            onHover(hoveredId);
         });
         paper.on('cell:mouseout', (cellView) => {
-            setHoveredElementId(null);
+            const unhoveredId = cellView.model.id;
+            onUnhover(unhoveredId);
         });
         paper.on('cell:pointerclick', (cellView) => {
             const selectedId = cellView.model.id;
-            setSelectedElementId(selectedId);
+            onSelect(selectedId);
         });
         paper.on('blank:pointerclick', () => {
-            setSelectedElementId(null);
+            onUnselect();
         });
 
         // =====================================
@@ -248,8 +199,6 @@ function JointJSWorkspace(props) {
 
         setCircuitGraph(graph);
 
-        // Active le zoom et le panning
-        enableZoom(paper);
         enablePanning(paper);
 
         setPaper(paper);
@@ -258,40 +207,58 @@ function JointJSWorkspace(props) {
     }, []);
 
     useEffect(() => {
-        if (!paper) return;
+        const size = paper.current.getComputedSize();
+        paper.current.translate(0, 0);
+        paper.current.scale(scale, scale, size.width / 2, size.height / 2);
+        setMatrix(paper.current.matrix());
+    }, [scale]);
 
-        // Unhighlight all cells
-        paper.model.getCells().forEach((cell) => {
-            const view = paper.findViewByModel(cell);
-            if (view) view.unhighlight();
+    const renderElements = () => {
+        return elements.map((cellData) => {
+            const { elementType, x = 0, y = 0, ...element } = cellData;
+
+            switch (elementType) {
+                case 'task':
+                    return (
+                        <JointElement
+                            key={element.id}
+                            ref={(el) => (nodeRefs.current[element.id] = el)}
+                            x={x}
+                            y={y}
+                            updateElements={updateElements}
+                            {...element}
+                        />
+                    );
+                default:
+                    // TODO Implement new element types here
+                    throw new Error(`Unknown element type: ${elementType}`);
+            }
         });
-
-        // Highlight hovered
-        if (hoveredElementId) {
-            const hoveredCell = paper.model.getCell(hoveredElementId);
-            if (hoveredCell) {
-                const view = paper.findViewByModel(hoveredCell);
-                if (view) view.highlight();
-            }
-        }
-
-        // Highlight selected
-        if (selectedElementId) {
-            const selectedCell = paper.model.getCell(selectedElementId);
-            if (selectedCell) {
-                const view = paper.findViewByModel(selectedCell);
-                if (view) view.highlight();
-            }
-        }
-    }, [paper, hoveredElementId, selectedElementId]);
+    };
 
     return (
-        <WorkspaceContainer
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            ref={graphContainerRef}
-        />
+        <div
+            className="paper"
+            style={{ width: `${width}px`, height: `${height}px` }}
+        >
+            <div
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                ref={graphContainerRef}
+                style={{
+                    display: 'inline-block',
+                }}
+            />
+            <div
+                style={{
+                    transformOrigin: '0 0',
+                    transform: V.matrixToTransformString(matrix),
+                }}
+            >
+                {renderElements()}
+            </div>
+        </div>
     );
 }
 
-export default JointJSWorkspace;
+export default CircuitPaper;

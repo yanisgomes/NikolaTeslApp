@@ -8,7 +8,8 @@ const StyledListItem = styled.li`
     padding: 8px;
     border-radius: 8px;
     border: 1px solid ${colors.lightGrey2};
-    transition: border-color 0.3s ease-out, transform 0.3s ease-out;
+    transition: border-color 0.3s ease, transform 0.3s ease,
+        box-shadow 0.3s ease;
     border-color: ${({ isSelected, isHovered }) =>
         isSelected ? colors.primary : colors.lightGrey2};
 
@@ -16,20 +17,12 @@ const StyledListItem = styled.li`
         isHovered &&
         `
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        cursor: grab;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
     `}
-    cursor: pointer;
 `;
 
-const AnalyticComponentItem = ({
-    cell,
-    isSelected,
-    isHovered,
-    onHover,
-    onUnhover,
-    onClick,
-}) => {
+function AnalyticComponentItem(props) {
+    const { cell, isSelected, isHovered, onHover, onUnhover, onClick } = props;
     // Pour simplifier, on extrait quelques infos du cell.
     const cellType = cell.get('type'); // e.g. "logic.Resistance"
     const symbol = cell.get('symbol'); // e.g. "R", "L", "C"
@@ -63,10 +56,8 @@ const AnalyticComponentItem = ({
         <StyledListItem
             isSelected={isSelected}
             isHovered={isHovered}
-            // Survol
             onMouseEnter={() => onHover(cellId)}
             onMouseLeave={() => onUnhover(cellId)}
-            // Clic
             onClick={() => onClick(cellId)}
         >
             <div>
@@ -105,6 +96,6 @@ const AnalyticComponentItem = ({
             )}
         </StyledListItem>
     );
-};
+}
 
 export default AnalyticComponentItem;

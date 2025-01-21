@@ -21,19 +21,7 @@ const AnalyticResolutionContainer = styled.div`
     padding: 0px;
 `;
 
-const AnalyticResolutionPage = ({
-    netlist,
-    onChangeValue,
-    onRequestAI,
-    onResolutionSubmit,
-    onRemoveComponent,
-    // Sélection / survol
-    selectedItemId,
-    hoveredItemId,
-    onSelect,
-    onHover,
-    onUnhover,
-}) => {
+const AnalyticResolutionPage = ({ onResolutionSubmit }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
     return (
@@ -60,18 +48,7 @@ const AnalyticResolutionPage = ({
                 </p>
             </div>
 
-            <AnalyticComponentList
-                netlist={netlist}
-                onChangeValue={onChangeValue}
-                onRequestAI={onRequestAI}
-                onDelete={onRemoveComponent}
-                // Sélection / Survol
-                selectedItemId={selectedItemId}
-                hoveredItemId={hoveredItemId}
-                onSelect={onSelect}
-                onHover={onHover}
-                onUnhover={onUnhover}
-            />
+            <AnalyticComponentList />
         </AnalyticResolutionContainer>
     );
 };

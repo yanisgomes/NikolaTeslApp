@@ -28,6 +28,8 @@ function JointJSPaper(props) {
             width,
             height,
             clickThreshold: 10,
+            gridSize: 20,
+            drawGrid: true,
             highlighting: {
                 connecting: {
                     name: 'stroke',
@@ -268,7 +270,7 @@ function JointJSPaper(props) {
                 style={{
                     display: 'inline-block',
                 }}
-            ></div>
+            />
             <div
                 style={{
                     transformOrigin: '0 0',
