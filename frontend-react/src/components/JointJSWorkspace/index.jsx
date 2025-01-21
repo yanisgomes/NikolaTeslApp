@@ -2,11 +2,11 @@ import { useState, useRef } from 'react';
 import './index.css';
 import JointPaper from '../JointJSPaper';
 import Toolbar from '../JointJSToolbar';
-import { GraphProvider } from '../../utils/context/';
+import { GraphProvider } from '../../utils/context';
 import { dia, shapes } from 'jointjs';
 
-const HEIGHT = 600;
-const WIDTH = 850;
+const HEIGHT = 440;
+const WIDTH = 900;
 const INITIAL_ELEMENTS = [
     {
         id: '1',

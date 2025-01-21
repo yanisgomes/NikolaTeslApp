@@ -40,6 +40,26 @@ export const PaperProvider = ({ children }) => {
     );
 };
 
+export const CircuitInteractionContext = createContext();
+
+export const CircuitInteractionProvider = ({ children }) => {
+    const [hoveredElementId, setHoveredElementId] = useState(null);
+    const [selectedElementId, setSelectedElementId] = useState(null);
+
+    return (
+        <CircuitInteractionContext.Provider
+            value={{
+                hoveredElementId,
+                setHoveredElementId,
+                selectedElementId,
+                setSelectedElementId,
+            }}
+        >
+            {children}
+        </CircuitInteractionContext.Provider>
+    );
+};
+
 export const GraphContext = createContext();
 
 export const GraphProvider = GraphContext.Provider;

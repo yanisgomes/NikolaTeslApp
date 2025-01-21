@@ -1,110 +1,126 @@
-import React from 'react';
+import React, { useState } from 'react';
+import styled from 'styled-components';
 import colors from '../../utils/style/colors';
 
-import styled from 'styled-components';
+import {
+    VscSymbolInterface,
+    VscTypeHierarchy,
+    VscCircuitBoard,
+} from 'react-icons/vsc';
+import ValueEditor from '../ComponentValueEditor';
+import { getUnitFromCellType } from '../../utils/utils';
+
+// Notre fonction de mapping
+function getFrenchNameForCellType(cellType) {
+    if (!cellType) return 'Composant inconnu';
+    const lowerType = cellType.toLowerCase();
+
+    if (lowerType.includes('resistor')) {
+        return 'Résistance';
+    }
+    if (lowerType.includes('aop')) {
+        return 'Amplificateur Opérationnel';
+    }
+    if (lowerType.includes('inductor')) {
+        return 'Inductance';
+    }
+    if (lowerType.includes('capacitor')) {
+        return 'Capacité';
+    }
+
+    return 'Composant générique';
+}
 
 const StyledListItem = styled.li`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
     margin: 8px 0;
     padding: 8px;
     border-radius: 8px;
     border: 1px solid ${colors.lightGrey2};
-    transition: border-color 0.3s ease-out, transform 0.3s ease-out;
-    border-color: ${({ isSelected, isHovered }) =>
+
+    border-color: ${({ isSelected }) =>
         isSelected ? colors.primary : colors.lightGrey2};
+    transition: border-color 0.3s ease, transform 0.3s ease,
+        box-shadow 0.3s ease;
 
     ${({ isHovered }) =>
         isHovered &&
         `
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-        cursor: grab;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
     `}
-    cursor: pointer;
 `;
 
-const AnalyticComponentItem = ({
-    cell,
-    isSelected,
-    isHovered,
-    onHover,
-    onUnhover,
-    onClick,
-}) => {
-    // Pour simplifier, on extrait quelques infos du cell.
-    const cellType = cell.get('type'); // e.g. "logic.Resistance"
-    const symbol = cell.get('symbol'); // e.g. "R", "L", "C"
-    const value = cell.get('value'); // e.g. 100, 0.001...
-    const cellId = cell.id; // l'ID unique JointJS
+function AnalyticComponentItem(props) {
+    const { cell, isSelected, isHovered, onHover, onUnhover, onClick } = props;
 
-    // Distinction composant vs lien
+    // Infos basiques
+    const cellType = cell.get('type'); // ex: "logic.Resistor"
+    const cellId = cell.id;
     const isLink = cell.isLink();
 
-    // Exemple :
-    // - S'il s'agit d'un lien, on récupère la source et la target
-    // - On peut essayer de remonter au "type" ou "symbol" des extrémités
-    const source = isLink ? cell.source() : null;
-    const target = isLink ? cell.target() : null;
+    // Récupération de la valeur si elle existe (ex: un condo ou une résistance).
+    // Certains composants, comme un AOP, n’en ont pas.
+    const initialValueSi = cell.has('value') ? cell.get('value') : null;
 
-    // On personnalise l'affichage/les styles
-    const itemStyle = {
-        margin: '8px 0',
-        padding: '16px',
-        borderRadius: '4px',
-        border: '1px solid #ddd',
-        backgroundColor: isSelected
-            ? '${colors.primary}'
-            : isHovered
-            ? '#f5f5f5'
-            : 'white',
-        cursor: 'pointer',
+    // État local pour la valeur (en unité SI)
+    const [currentValueSi, setCurrentValueSi] = useState(initialValueSi);
+
+    // Déduction de l’unité en se basant sur le cellType ("Ω", "F", "H", etc.)
+    const unit = getUnitFromCellType(cellType);
+
+    // Gestion de l'icône
+    const iconToDisplay = isLink ? (
+        <VscSymbolInterface />
+    ) : cellType?.includes('CircuitNode') ? (
+        <VscTypeHierarchy />
+    ) : (
+        <VscCircuitBoard />
+    );
+
+    // Nom français du composant
+    const frenchName = getFrenchNameForCellType(cellType);
+
+    // Callback de mise à jour
+    const handleValueChange = (newValueSi) => {
+        setCurrentValueSi(newValueSi);
+        // Pour persister dans votre modèle JointJS, vous pouvez faire :
+        // cell.set('value', newValueSi)
     };
 
     return (
         <StyledListItem
             isSelected={isSelected}
             isHovered={isHovered}
-            // Survol
             onMouseEnter={() => onHover(cellId)}
             onMouseLeave={() => onUnhover(cellId)}
-            // Clic
             onClick={() => onClick(cellId)}
         >
-            <div>
-                <strong>ID:</strong> {cellId}
-            </div>
-            <div>
-                <strong>Type:</strong> {cellType}
+            {/* Icône */}
+            <div style={{ marginRight: '8px' }}>{iconToDisplay}</div>
+
+            {/* Nom français du composant */}
+            <div style={{ marginRight: '16px', fontWeight: 'bold' }}>
+                {frenchName}
             </div>
 
-            {/* Si c'est un composant */}
-            {!isLink && (
-                <>
-                    {symbol && (
-                        <div>
-                            <strong>Symbol:</strong> {symbol}
-                        </div>
-                    )}
-                    {typeof value !== 'undefined' && (
-                        <div>
-                            <strong>Valeur:</strong> {value}
-                        </div>
-                    )}
-                </>
-            )}
-
-            {/* Si c'est un lien */}
-            {isLink && (
-                <>
-                    <div>
-                        <strong>Source:</strong> {JSON.stringify(source)}
-                    </div>
-                    <div>
-                        <strong>Target:</strong> {JSON.stringify(target)}
-                    </div>
-                </>
+            {/*
+                Condition pour afficher le ValueEditor :
+                1) Ce n'est pas un lien
+                2) Le composant dispose d'une valeur (ex: Résistance, Condensateur, etc.)
+            */}
+            {!isLink && initialValueSi !== null && (
+                <ValueEditor
+                    valueSi={currentValueSi}
+                    unit={unit}
+                    onValueChange={handleValueChange}
+                />
             )}
         </StyledListItem>
     );
-};
+}
 
 export default AnalyticComponentItem;

@@ -5,20 +5,22 @@ import colors from '../../utils/style/colors';
 
 import AnalyticComponentItem from '../AnalyticComponentItem';
 
-import { CircuitGraphContext, PaperContext } from '../../utils/context';
+import {
+    CircuitGraphContext,
+    PaperContext,
+    CircuitInteractionContext,
+} from '../../utils/context';
 
-const AnalyticComponentList = ({
-    // exemple:
-    // "netlist", "onChangeValue", "onRequestAI", "onDelete", etc.
-    // Sélection / survol
-    selectedItemId,
-    hoveredItemId,
-    onSelect,
-    onHover,
-    onUnhover,
-}) => {
+function AnalyticComponentList() {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setCircuitPaper } = useContext(PaperContext);
+
+    const {
+        hoveredElementId,
+        setHoveredElementId,
+        selectedElementId,
+        setSelectedElementId,
+    } = useContext(CircuitInteractionContext);
 
     // On récupère toutes les cellules du graphe
     const cells = circuitGraph.getCells(); // Array of joint.dia.Cell
@@ -60,42 +62,20 @@ const AnalyticComponentList = ({
     return (
         <Container>
             <List>
-                {cells.map((cell) => {
-                    return (
-                        <AnalyticComponentItem
-                            key={cell.id}
-                            cell={cell}
-                            isSelected={cell.id === selectedItemId}
-                            isHovered={cell.id === hoveredItemId}
-                            onHover={(id) => {
-                                onHover?.(id);
-                                if (paper) {
-                                    const cellView =
-                                        paper.findViewByModel(cell);
-                                    if (cellView) {
-                                        cellView.highlight();
-                                    }
-                                }
-                            }}
-                            onUnhover={(id) => {
-                                onUnhover?.(id);
-                                if (paper) {
-                                    const cellView =
-                                        paper.findViewByModel(cell);
-                                    if (cellView) {
-                                        cellView.unhighlight();
-                                    }
-                                }
-                            }}
-                            onClick={(id) => {
-                                onSelect?.(id);
-                            }}
-                        />
-                    );
-                })}
+                {cells.map((cell) => (
+                    <AnalyticComponentItem
+                        key={cell.id}
+                        cell={cell}
+                        isSelected={cell.id === selectedElementId}
+                        isHovered={cell.id === hoveredElementId}
+                        onHover={() => setHoveredElementId(cell.id)}
+                        onUnhover={() => setHoveredElementId(null)}
+                        onClick={() => setSelectedElementId(cell.id)}
+                    />
+                ))}
             </List>
         </Container>
     );
-};
+}
 
 export default AnalyticComponentList;

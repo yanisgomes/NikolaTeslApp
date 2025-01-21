@@ -19,12 +19,15 @@ import {
     Inductor,
     Capacitor,
     AOP,
-} from './JointJSWorkspace';
+} from './JointJSElements';
+
+import { CircuitInteractionProvider } from '../../utils/context';
 
 import {
     ThemeContext,
     CircuitGraphContext,
     PaperContext,
+    CircuitInteractionContext,
 } from '../../utils/context';
 
 import symbol_resistor from '../../assets/symbol_resistor.png';
@@ -332,12 +335,6 @@ function CircuitInterface() {
         if (hoveredItemId === id) setHoveredItemId(null);
     };
 
-    // Sélection / survol depuis la netlist
-    // Pour AnalyticResolutionPage
-    const handleSelectFromJointJS = (id) => setSelectedItemId(id);
-    const handleUnselectFromJointJS = () => setSelectedItemId(null);
-    const handleHoverFromJointJS = (id) => setHoveredItemId(id);
-    const handleUnhoverFromJointJS = () => setHoveredItemId(null);
     const [bodeResponse, setBodeResponse] = useState(null);
     const [temporalResponse, setTemporalResponse] = useState(null);
 
@@ -418,10 +415,6 @@ function CircuitInterface() {
                     // Sélection / Survol
                     selectedItemId={selectedItemId}
                     hoveredItemId={hoveredItemId}
-                    onSelect={handleSelectFromJointJS}
-                    onUnselect={handleUnselectFromJointJS}
-                    onHover={handleHoverFromJointJS}
-                    onUnhover={handleUnhoverFromJointJS}
                 />
             ),
         },
@@ -433,30 +426,28 @@ function CircuitInterface() {
 
     return (
         <>
-            <Header />
-            <MainHorizontalContainer>
-                {/* Menu de gauche */}
-                <LeftMenu>
-                    <TabbedMenu pages={leftMenuPages} theme={theme} />
-                </LeftMenu>
+            <CircuitInteractionProvider>
+                <Header />
+                <MainHorizontalContainer>
+                    {/* Menu de gauche */}
+                    <LeftMenu>
+                        <TabbedMenu pages={leftMenuPages} theme={theme} />
+                    </LeftMenu>
 
-                {/* Contenu principal (top tab + workspace) */}
-                <MainVerticalContainer>
-                    <TabbedMenu pages={topMenuPages} theme={theme} />
+                    {/* Contenu principal (top tab + workspace) */}
+                    <MainVerticalContainer>
+                        <TabbedMenu pages={topMenuPages} theme={theme} />
 
-                    <JointWorkspaceContainer>
-                        <JointJSWorkspace
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                            onSelect={handleSelectFromJointJS}
-                            onUnselect={handleUnselectFromJointJS}
-                            onHover={handleHoverFromJointJS}
-                            onUnhover={handleUnhoverFromJointJS}
-                        />
-                        {/*<JointJSWorkspace /> Exemple with Paper Component*/}
-                    </JointWorkspaceContainer>
-                </MainVerticalContainer>
-            </MainHorizontalContainer>
+                        <JointWorkspaceContainer>
+                            <JointJSWorkspace
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
+                            />
+                            {/*<JointJSWorkspace />*/}
+                        </JointWorkspaceContainer>
+                    </MainVerticalContainer>
+                </MainHorizontalContainer>
+            </CircuitInteractionProvider>
         </>
     );
 }
