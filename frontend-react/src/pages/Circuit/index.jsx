@@ -46,6 +46,9 @@ import PhaseToolbox from '../../components/PhaseToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
+let transfer_function_str =
+    '\\frac{C_{2} L_{1} R_{1} p^{2}}{C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + L_{1} p + R_{1}}';
+
 /********************************************
  *           STYLED COMPONENTS
  ********************************************/
