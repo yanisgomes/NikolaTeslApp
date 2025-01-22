@@ -1,9 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import styled from 'styled-components';
 
-import Alert from '@mui/material/Alert';
-import { AlertTitle } from '@mui/material';
-
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
 
