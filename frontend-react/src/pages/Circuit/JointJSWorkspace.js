@@ -144,12 +144,12 @@ function JointJSWorkspace(props) {
 
         // Create initial AnalyticalInput
         const input = new AnalyticalInput();
-        input.position(100, 200);
+        input.position(350, 100);
         input.addTo(graph);
 
         // Create initial AnalyticalOutput
         const output = new AnalyticalOutput();
-        output.position(500, 200);
+        output.position(550, 100);
         output.addTo(graph);
 
         // ========== Définition du rotateTool ==========

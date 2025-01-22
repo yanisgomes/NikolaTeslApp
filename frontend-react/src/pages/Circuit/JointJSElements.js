@@ -3,6 +3,11 @@ import { name } from 'plotly.js/lib/scatter';
 
 import { VscDebugStepInto, VscDebugStepOut } from 'react-icons/vsc';
 
+import { getIconAsUrl } from '../../utils/utils';
+
+const VscDebugStepIntoUrl = getIconAsUrl(<VscDebugStepInto />);
+const VscDebugStepOutUrl = getIconAsUrl(<VscDebugStepOut />);
+
 // =====================================
 // 1) CLASSE DE BASE Composant
 // =====================================
@@ -58,22 +63,25 @@ export const AnalyticalInput = Composant.define(
         attrs: {
             '.body': { fill: 'lightblue' },
             '.icon': {
-                'xlink:href': VscDebugStepInto,
+                'xlink:href': VscDebugStepIntoUrl,
                 width: 16,
                 height: 16,
                 refX: '50%',
                 refY: '50%',
                 x: -8,
-                y: -8,
+                y: -5,
             },
         },
         ports: {
             items: [{ group: 'singlePort', id: 'port' }],
             groups: {
                 singlePort: {
-                    position: 'left',
+                    position: {
+                        name: 'bottom',
+                        args: { x: '50%' },
+                    },
                     attrs: {
-                        circle: { magnet: true, fill: 'transparent', r: 5 },
+                        circle: { magnet: true, fill: 'transparent', r: 4 },
                     },
                 },
             },
@@ -83,7 +91,6 @@ export const AnalyticalInput = Composant.define(
         markup: `
             <g class="rotatable">
                 <g class="scalable">
-                    <rect class="body"/>
                     <image class="icon"/>
                 </g>
                 <text class="label"/>
@@ -98,14 +105,26 @@ export const AnalyticalOutput = Composant.define(
         size: { width: 40, height: 40 },
         attrs: {
             '.body': { fill: 'lightgreen' },
+            '.icon': {
+                'xlink:href': VscDebugStepOutUrl,
+                width: 16,
+                height: 16,
+                refX: '50%',
+                refY: '50%',
+                x: -8,
+                y: -5,
+            },
         },
         ports: {
             items: [{ group: 'singlePort', id: 'port' }],
             groups: {
                 singlePort: {
-                    position: 'right',
+                    position: {
+                        name: 'bottom',
+                        args: { x: '50%' },
+                    },
                     attrs: {
-                        circle: { magnet: true, fill: 'transparent', r: 5 },
+                        circle: { magnet: true, fill: 'transparent', r: 4 },
                     },
                 },
             },
@@ -115,7 +134,7 @@ export const AnalyticalOutput = Composant.define(
         markup: `
             <g class="rotatable">
                 <g class="scalable">
-                    <rect class="body"/>
+                    <image class="icon"/>
                 </g>
                 <text class="label"/>
             </g>
