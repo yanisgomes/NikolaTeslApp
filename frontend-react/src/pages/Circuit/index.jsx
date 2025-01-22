@@ -50,6 +50,7 @@ import ChatInterface from '../../components/ChatInterface';
 import ComponentToolbox from '../../components/ComponentToolbox';
 import TemporalToolbox from '../../components/TemporalToolbox';
 import FrequentialToolbox from '../../components/FrequentialToolbox';
+import PhaseToolbox from '../../components/PhaseToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
@@ -344,7 +345,7 @@ function CircuitInterface() {
         try {
             //const response = await fetch(`http://127.0.0.1:5000/solver/equation/1?data=${encodeURIComponent(JSON.stringify(circuitGraph.getCells()))}`, {
             const response = await fetch(
-                `http://127.0.0.1:5000/solver/bode/1?i=3&o=1&data=${encodeURIComponent(
+                `http://127.0.0.1:5000/solver/bode/1?i=2&o=1&data=${encodeURIComponent(
                     JSON.stringify(circuitGraph.getCells())
                 )}`,
                 {
@@ -398,6 +399,10 @@ function CircuitInterface() {
         {
             name: 'Réponse fréquentielle',
             content: <FrequentialToolbox timeData={bodeResponse} />,
+        },
+        {
+            name: 'Réponse en phase',
+            content: <PhaseToolbox timeData={bodeResponse} />,
         },
     ];
 
