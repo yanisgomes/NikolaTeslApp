@@ -1,35 +1,41 @@
-from solver import Solver, Simulator, Circuit
-from solver import query_LLM, build_prompt
+from solver import *
+from LLMcall import *
+from backend.parser123 import *
+from simulator import *
+from circuit import *
 from collections import defaultdict
 import sympy as sp
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Pour gérer les requêtes CORS
 import json
-from solver import Parser
 import matplotlib.pyplot as plt
 import sys
 
 
 netlist = '''
 * https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
-Vg 1 0 4
-Vx 3 2 6
-R1 1 2 1
-R2 2 0 4
-R3 3 0 2
-It 1 2 1
+Vin 3 0 Symbolic      
+R 3 2 1000
+R 1 0 1000
+C1 1 0 1u
+C2 2 1 10u
+L1 1 0 0.001
 .end
 '''
+# Parse the netlist
+component_list, node_list = Parser.parse_netlist(netlist)
 
 # Get the Circuit object
-circuit = Circuit(netlist)
+circuit = Circuit(component_list, node_list)
 
 # Initialize the solver with the circuit
 solver = Solver(circuit)
 
 print("--- System of Equations ---")
-for equ,expl in solver.equations:
-    print(f"{expl} : {sp.latex(equ)}")
+for i in range(len(solver.equations)):
+    print(f"{solver.explanations[i]} : {sp.latex(solver.equations[i])}")
+
+print(len(str(solver.equations)))
 
 print("--- Solutions ---")
 for sol in solver.solutions:
@@ -40,10 +46,10 @@ transferFunction = solver.getTransferFunction('3', '2')
 print(f"Transfer Function: {transferFunction}")
 
 # Call the API
-prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations)
+prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations, solver.explanations)
 response = query_LLM(prompt)
 print(response)
-sys.exit("Stopping the code execution here. No simulation will be done as numerical values are not specified in netlist.")
+#sys.exit("Stopping the code execution here. No simulation will be done as numerical values are not specified in netlist.")
 
 # Simulation
 num, denom = solver.getNumericalTransferFunction('3', '2')

@@ -10,6 +10,14 @@ const StyledGlobalStyle = createGlobalStyle`
     * {
         font-family: ${fonts.mainFont};
     }
+    html {
+        --primary: ${colors.primary};
+        --secondary: ${colors.secondary};
+        --tertiary: ${colors.tertiary};
+        --text: ${colors.text};
+        --lightGrey: ${colors.lightGrey};
+        --lightGrey2: ${colors.lightGrey2};
+    }
  
     body {
         margin: 0;  

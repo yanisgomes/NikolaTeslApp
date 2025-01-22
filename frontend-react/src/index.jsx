@@ -10,11 +10,20 @@ import Gallery from './pages/Gallery';
 import GlobalStyle from './utils/style/GlobalStyle';
 import ProfileContainer from './components/ProfileContainer/';
 
-import { ThemeProvider, CircuitProvider } from './utils/context/';
+import setCSSVariables from './utils/style/setColors';
+
+import {
+    ThemeProvider,
+    CircuitGraphProvider,
+    PaperProvider,
+} from './utils/context/';
 
 import styled from 'styled-components';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Set CSS variables
+setCSSVariables();
 
 const MainContainer = styled.div`
     display: flex;
@@ -30,25 +39,27 @@ root.render(
     <React.StrictMode>
         <Router>
             <ThemeProvider>
-                <CircuitProvider>
-                    <MainContainer>
-                        <GlobalStyle />
+                <CircuitGraphProvider>
+                    <PaperProvider>
+                        <MainContainer>
+                            <GlobalStyle />
 
-                        <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="*" element={<Error />} />
-                            <Route path="/galerie/" element={<Gallery />} />
-                            <Route
-                                path="/circuit/" //path="/circuit/"
-                                element={<Circuit />}
-                            />
-                            <Route
-                                path="/profile/:id"
-                                element={<ProfileContainer />}
-                            />
-                        </Routes>
-                    </MainContainer>
-                </CircuitProvider>
+                            <Routes>
+                                <Route path="/" element={<Home />} />
+                                <Route path="*" element={<Error />} />
+                                <Route path="/galerie/" element={<Gallery />} />
+                                <Route
+                                    path="/circuit/" //path="/circuit/"
+                                    element={<Circuit />}
+                                />
+                                <Route
+                                    path="/profile/:id"
+                                    element={<ProfileContainer />}
+                                />
+                            </Routes>
+                        </MainContainer>
+                    </PaperProvider>
+                </CircuitGraphProvider>
             </ThemeProvider>
         </Router>
     </React.StrictMode>

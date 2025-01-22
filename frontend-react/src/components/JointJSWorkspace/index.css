@@ -1,0 +1,6 @@
+@import '~jointjs/dist/joint.css';
+
+.App {
+    text-align: center;
+    position: relative;
+}

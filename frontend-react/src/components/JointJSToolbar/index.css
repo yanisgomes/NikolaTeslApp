@@ -1,0 +1,6 @@
+.toolbar {
+    z-index: 2;
+    position: relative;
+    top: 16px;
+    align-items: right;
+}
