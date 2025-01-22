@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
-
+import { CircuitGraphContext } from '../../utils/context';
 import {
     VscSymbolInterface,
     VscTypeHierarchy,
@@ -9,6 +9,7 @@ import {
 } from 'react-icons/vsc';
 import ValueEditor from '../ComponentValueEditor';
 import { getUnitFromCellType } from '../../utils/utils';
+import { use } from 'react';
 
 // Notre fonction de mapping
 function getFrenchNameForCellType(cellType) {
@@ -56,7 +57,7 @@ const StyledListItem = styled.li`
 
 function AnalyticComponentItem(props) {
     const { cell, isselected, ishovered, onHover, onUnhover, onClick } = props;
-
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     // Infos basiques
     const cellType = cell.get('type'); // ex: "logic.Resistor"
     const cellId = cell.id;
@@ -82,8 +83,13 @@ function AnalyticComponentItem(props) {
     );
 
     // Nom français du composant
-    const frenchName = getFrenchNameForCellType(cellType);
+    //const frenchName = getFrenchNameForCellType(cellType);
 
+    //nom complet du composant
+    let cellName = cell.getName(); // Use `let` instead of `const`
+    if (cell.get('type') === 'logic.Wire') {
+        cellName = 'Fil'; // Reassign the value
+    }
     // Callback de mise à jour
     const handleValueChange = (newValueSi) => {
         setCurrentValueSi(newValueSi);
@@ -104,7 +110,7 @@ function AnalyticComponentItem(props) {
 
             {/* Nom français du composant */}
             <div style={{ marginRight: '16px', fontWeight: 'bold' }}>
-                {frenchName}
+                {cellName}
             </div>
 
             {/*
