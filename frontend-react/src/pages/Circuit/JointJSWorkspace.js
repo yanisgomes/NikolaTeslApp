@@ -274,7 +274,7 @@ function JointJSWorkspace(props) {
                             );
                         },
                     });
-                    toolsView.addTool(valueLabelTool);
+                    //toolsView.addTool(valueLabelTool);
                 }
 
                 cellView.addTools(toolsView);
@@ -344,7 +344,7 @@ function JointJSWorkspace(props) {
         // LOGIQUE DE CRÉATION AUTOMATIQUE DES NŒUDS
         // =====================================
         // Quand la cible d'un lien change, on vérifie les intersections
-        paper.on('change:target', function (link) {
+        graph.on('change:target', function (link) {
             const target = link.get('target');
             // On ne fait quelque chose que si la cible est un "point libre" (pas un id déjà existant)
             if (!target || target.id) return;
