@@ -1,4 +1,5 @@
 import * as joint from 'jointjs';
+import { name } from 'plotly.js/lib/scatter';
 
 import { VscDebugStepInto, VscDebugStepOut } from 'react-icons/vsc';
 
@@ -20,11 +21,32 @@ export const Composant = joint.dia.Element.define(
                 magnet: true,
             },
         },
+        name: 'Composant', // Default name
+        symbol: '*', // Default symbol
+        number: 0,
     },
     {
         useCSSSelectors: true,
         operation: function () {
             return true;
+        },
+        setName: function (newName) {
+            this.name = newName;
+        },
+        getName: function () {
+            return this.name;
+        },
+        setSymbol: function (newSymbol) {
+            this.symbol = newSymbol;
+        },
+        getSymbol: function () {
+            return this.symbol;
+        },
+        getNumber: function () {
+            return this.number;
+        },
+        setNumber: function (newNumber) {
+            this.number = newNumber;
         },
     }
 );
@@ -319,6 +341,7 @@ export const Wire = joint.dia.Link.define(
             '.connection': { 'stroke-width': 2 },
             '.marker-vertex': { r: 4 },
         },
+        name: 'fil',
 
         // Ici on force un router manhattan par exemple
         router: { name: 'manhattan' },
@@ -343,6 +366,9 @@ export const Wire = joint.dia.Link.define(
             '</g>',
             '</g>',
         ].join(''),
+        getName: function () {
+            return this.name;
+        },
     }
 );
 

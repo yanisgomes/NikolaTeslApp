@@ -108,6 +108,33 @@ function useNetlist() {
     return { netlist, addComponent, removeComponentById, setNetlist };
 }
 
+function getSmallestUnusedNameIndex(graph, symbol) {
+    // Retrieve all elements in the graph
+    const elements = graph.getElements();
+
+    // Extract the indices from names of elements with the same symbol
+    const usedIndices = elements
+        .filter((element) => element.getSymbol() === symbol) // Match symbol
+        .map((element) => {
+            const number = element.getNumber();
+            return number;
+        })
+        .filter((index) => index !== null) // Remove null values
+        .sort((a, b) => a - b); // Sort in ascending order
+
+    // Find the smallest missing integer
+    let smallestUnused = 0; // Start from 0
+    for (const index of usedIndices) {
+        if (index === smallestUnused) {
+            smallestUnused++;
+        } else {
+            break; // Exit early when the gap is found
+        }
+    }
+
+    return smallestUnused;
+}
+
 function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
@@ -248,42 +275,55 @@ function CircuitInterface() {
             saveHistory();
 
             // Déclarez une variable pour l'élément à ajouter au graphique
-            let element;
+            let newElement;
 
+            // Assuming `graph` is your JointJS graph instance
+
+            // Replace 'my-type' with the type of element you're looking for
+            const typeToCount = draggedItem.symbole;
+            const number = getSmallestUnusedNameIndex(
+                circuitGraph,
+                typeToCount
+            );
+            const newElementname = draggedItem.symbole + number;
             // Ajoutez la logique en fonction du type d'élément
             switch (draggedItem.name) {
                 case 'Résistance':
-                    element = new Resistor();
-                    element.attr('label/text', `Valeur: 100 Ω`);
+                    newElement = new Resistor();
+                    newElement.attr('label/text', `Valeur: 100 Ω`);
                     break;
 
                 case 'Inductance':
-                    element = new Inductor();
-                    element.attr('label/text', `Valeur: 1 H`);
+                    newElement = new Inductor();
+                    newElement.attr('label/text', `Valeur: 1 H`);
                     break;
 
                 case 'Condensateur':
-                    element = new Capacitor();
-                    element.attr('label/text', `Valeur: 1 F`); // Afficher la valeur par défaut du condensateur
+                    newElement = new Capacitor();
+                    newElement.attr('label/text', `Valeur: 1 F`); // Afficher la valeur par défaut du condensateur
                     break;
 
                 case 'AOP':
-                    element = new AOP();
+                    newElement = new AOP();
                     break;
 
                 default:
                     console.log(
                         "Type d'élément non reconnu:",
-                        draggedItem.type
+                        draggedItem.name
                     );
                     return; // Si le type n'est pas reconnu, on arrête la fonction
             }
+            //ajout du nom du composant
+            newElement.setName(newElementname);
+            newElement.setSymbol(draggedItem.symbole);
+            newElement.setNumber(number);
 
             // Positionner l'élément au bon endroit
-            element.position(x, y);
+            newElement.position(x, y);
 
             // Ajouter l'élément au graphique
-            element.addTo(circuitGraph);
+            newElement.addTo(circuitGraph);
 
             // Mettre à jour le comptage des composants
             setComponentCount((prev) => {
