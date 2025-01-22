@@ -11,15 +11,7 @@ import 'jointjs/dist/joint.css';
 
 import JointJSWorkspace from './JointJSWorkspace';
 
-import {
-    Repeater,
-    Or,
-    Not,
-    Resistor,
-    Inductor,
-    Capacitor,
-    AOP,
-} from './JointJSElements';
+import { Resistor, Inductor, Capacitor, AOP, Ground } from './JointJSElements';
 
 import { CircuitInteractionProvider } from '../../utils/context';
 
@@ -306,6 +298,10 @@ function CircuitInterface() {
 
                 case 'AOP':
                     newElement = new AOP();
+                    break;
+
+                case 'Ground':
+                    newElement = new Ground();
                     break;
 
                 default:
