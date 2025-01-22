@@ -1,6 +1,9 @@
 {
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
     "@joint/plus": "file:joint-plus.tgz",
+    "@mui/material": "^6.4.1",
     "lucide-react": "^0.469.0",
     "plotly.js": "^2.35.3",
     "react-plotly.js": "^2.6.0"
