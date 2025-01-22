@@ -139,6 +139,71 @@ function JointJSWorkspace(props) {
             defaultLink: () => new Wire(),
         });
 
+        // ========== Définition du rotateTool ==========
+        const rotateTool = new joint.elementTools.Button({
+            markup: [
+                {
+                    tagName: 'circle',
+                    selector: 'button',
+                    attributes: {
+                        r: 10,
+                        fill: '#FFFFFF',
+                        stroke: '#000000',
+                        'stroke-width': 2,
+                        cursor: 'pointer',
+                    },
+                },
+                {
+                    tagName: 'text',
+                    textContent: '↻',
+                    selector: 'icon',
+                    attributes: {
+                        fill: '#000000',
+                        'font-size': 14,
+                        'text-anchor': 'middle',
+                        'pointer-events': 'none',
+                        y: '0.3em',
+                    },
+                },
+            ],
+            x: '100%',
+            y: 0,
+            offset: { x: 20, y: -20 },
+            action: function (evt, elementView, toolView) {
+                elementView.model.rotate(90, false);
+            },
+        });
+
+        paper.on('cell:mouseover', (cellView) => {
+            const hoveredId = cellView.model.id;
+            setHoveredElementId(hoveredId);
+        });
+        paper.on('cell:mouseout', (cellView) => {
+            setHoveredElementId(null);
+        });
+        paper.on('cell:pointerclick', (cellView) => {
+            const selectedId = cellView.model.id;
+            setSelectedElementId(selectedId);
+
+            // Ajout du ToolsView si c'est un élément
+            if (cellView.model.isElement()) {
+                // On retire d’abord tous les tools sur tous les éléments
+                paper.hideTools();
+
+                // On créé un ToolsView
+                const toolsView = new joint.dia.ToolsView({
+                    tools: [
+                        // Optionnel: un cadre sur les bords
+                        new joint.elementTools.Boundary({ padding: 5 }),
+                        // Notre bouton
+                        rotateTool,
+                    ],
+                });
+                // On ajoute
+                cellView.addTools(toolsView);
+            }
+        });
+
         // Exemple : double-clic sur une résistance pour changer la valeur
         paper.on('cell:pointerdblclick', function (cellView) {
             const cell = cellView.model;
@@ -158,19 +223,10 @@ function JointJSWorkspace(props) {
             }
         });
 
-        paper.on('cell:mouseover', (cellView) => {
-            const hoveredId = cellView.model.id;
-            setHoveredElementId(hoveredId);
-        });
-        paper.on('cell:mouseout', (cellView) => {
-            setHoveredElementId(null);
-        });
-        paper.on('cell:pointerclick', (cellView) => {
-            const selectedId = cellView.model.id;
-            setSelectedElementId(selectedId);
-        });
         paper.on('blank:pointerclick', () => {
             setSelectedElementId(null);
+
+            paper.hideTools();
         });
 
         // =====================================
