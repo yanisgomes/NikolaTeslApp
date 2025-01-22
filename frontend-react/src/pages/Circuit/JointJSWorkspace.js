@@ -14,8 +14,14 @@ import {
 
 import { symbol } from 'prop-types';
 
-import { CircuitNode, Resistor, Wire } from './JointJSElements';
-import { AnalyticalInput, AnalyticalOutput } from './JointJSElements';
+import {
+    CircuitNode,
+    Resistor,
+    Wire,
+    AnalyticalInput,
+    AnalyticalOutput,
+    Ground,
+} from './JointJSElements';
 
 // =====================================
 // 7) FONCTIONS UTILES (intersection, panning, zoom, etc.)
@@ -144,13 +150,18 @@ function JointJSWorkspace(props) {
 
         // Create initial AnalyticalInput
         const input = new AnalyticalInput();
-        input.position(350, 100);
+        input.position(150, 30);
         input.addTo(graph);
 
         // Create initial AnalyticalOutput
         const output = new AnalyticalOutput();
-        output.position(550, 100);
+        output.position(750, 30);
         output.addTo(graph);
+
+        // Create initial Ground
+        const ground = new Ground();
+        ground.position(450, 350);
+        ground.addTo(graph);
 
         // ========== Définition du rotateTool ==========
         const rotateTool = new joint.elementTools.Button({

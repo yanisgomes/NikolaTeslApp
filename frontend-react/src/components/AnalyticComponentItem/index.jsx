@@ -6,6 +6,8 @@ import {
     VscSymbolInterface,
     VscTypeHierarchy,
     VscCircuitBoard,
+    VscDebugStepInto,
+    VscDebugStepOut,
 } from 'react-icons/vsc';
 import ValueEditor from '../ComponentValueEditor';
 import { getUnitFromCellType } from '../../utils/utils';
@@ -78,6 +80,10 @@ function AnalyticComponentItem(props) {
         <VscSymbolInterface size={iconSize} />
     ) : cellType?.includes('CircuitNode') ? (
         <VscTypeHierarchy size={iconSize} />
+    ) : cellType?.includes('Input') ? (
+        <VscDebugStepInto size={iconSize} />
+    ) : cellType?.includes('Output') ? (
+        <VscDebugStepOut size={iconSize} />
     ) : (
         <VscCircuitBoard size={iconSize} />
     );
@@ -88,7 +94,13 @@ function AnalyticComponentItem(props) {
     //nom complet du composant
     let cellName = cell.getName(); // Use `let` instead of `const`
     if (cell.get('type') === 'logic.Wire') {
-        cellName = 'Fil'; // Reassign the value
+        cellName = 'Branche circuit';
+    } else if (cell.get('type') === 'logic.Ground') {
+        cellName = 'Potentiel nul';
+    } else if (cell.get('type') === 'logic.AnalyticalInput') {
+        cellName = 'Entrée analytique';
+    } else if (cell.get('type') === 'logic.AnalyticalOutput') {
+        cellName = 'Sortie analytique';
     }
     // Callback de mise à jour
     const handleValueChange = (newValueSi) => {
