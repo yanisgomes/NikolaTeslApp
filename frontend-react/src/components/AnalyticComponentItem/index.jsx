@@ -55,7 +55,7 @@ const StyledListItem = styled.li`
 `;
 
 function AnalyticComponentItem(props) {
-    const { cell, isSelected, isHovered, onHover, onUnhover, onClick } = props;
+    const { cell, isselected, ishovered, onHover, onUnhover, onClick } = props;
 
     // Infos basiques
     const cellType = cell.get('type'); // ex: "logic.Resistor"
@@ -93,8 +93,8 @@ function AnalyticComponentItem(props) {
 
     return (
         <StyledListItem
-            isSelected={isSelected}
-            isHovered={isHovered}
+            isSelected={isselected}
+            isHovered={ishovered}
             onMouseEnter={() => onHover(cellId)}
             onMouseLeave={() => onUnhover(cellId)}
             onClick={() => onClick(cellId)}
