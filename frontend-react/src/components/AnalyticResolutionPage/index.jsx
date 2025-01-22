@@ -9,6 +9,8 @@ import { VscSymbolOperator } from 'react-icons/vsc';
 
 import { CircuitGraphContext, PaperContext } from '../../utils/context';
 
+import LatexComponent from '../LatexComponentCard';
+
 const VscSymbolOperatorUrl = getIconAsUrl(<VscSymbolOperator />);
 
 const TitleContainer = styled.div`
@@ -21,7 +23,7 @@ const AnalyticResolutionContainer = styled.div`
     padding: 0px;
 `;
 
-const AnalyticResolutionPage = ({ onResolutionSubmit }) => {
+const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
     return (
@@ -46,6 +48,7 @@ const AnalyticResolutionPage = ({ onResolutionSubmit }) => {
                 <p>
                     Voici l’expression de la fonction de transfert du circuit :
                 </p>
+                <LatexComponent latex={ResolutionResponse.transfer_function} />
             </div>
 
             <AnalyticComponentList />
