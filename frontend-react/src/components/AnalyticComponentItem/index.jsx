@@ -72,13 +72,13 @@ function AnalyticComponentItem(props) {
     // Déduction de l’unité en se basant sur le cellType ("Ω", "F", "H", etc.)
     const unit = getUnitFromCellType(cellType);
 
-    // Gestion de l'icône
+    const iconSize = 24;
     const iconToDisplay = isLink ? (
-        <VscSymbolInterface />
+        <VscSymbolInterface size={iconSize} />
     ) : cellType?.includes('CircuitNode') ? (
-        <VscTypeHierarchy />
+        <VscTypeHierarchy size={iconSize} />
     ) : (
-        <VscCircuitBoard />
+        <VscCircuitBoard size={iconSize} />
     );
 
     // Nom français du composant

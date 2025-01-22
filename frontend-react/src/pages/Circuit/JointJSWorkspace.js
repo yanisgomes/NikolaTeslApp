@@ -15,6 +15,7 @@ import {
 import { symbol } from 'prop-types';
 
 import { CircuitNode, Resistor, Wire } from './JointJSElements';
+import { AnalyticalInput, AnalyticalOutput } from './JointJSElements';
 
 // =====================================
 // 7) FONCTIONS UTILES (intersection, panning, zoom, etc.)
@@ -141,6 +142,16 @@ function JointJSWorkspace(props) {
             defaultLink: () => new Wire(),
         });
 
+        // Create initial AnalyticalInput
+        const input = new AnalyticalInput();
+        input.position(100, 200);
+        input.addTo(graph);
+
+        // Create initial AnalyticalOutput
+        const output = new AnalyticalOutput();
+        output.position(500, 200);
+        output.addTo(graph);
+
         // ========== Définition du rotateTool ==========
         const rotateTool = new joint.elementTools.Button({
             markup: [
@@ -231,60 +242,34 @@ function JointJSWorkspace(props) {
                 // ===============================
                 // Cas : c'est un élément
                 // ===============================
-                const toolsView = new joint.dia.ToolsView({
-                    tools: [
-                        // Optionnel: un cadre sur les bords
-                        new joint.elementTools.Boundary({ padding: 4 }),
-
-                        // Exemple : tool de rotation (déjà présent dans votre code)
-                        rotateTool,
-                        // Exemple : tool de suppression (bouton X, déjà présent dans votre code)
-                        removeTool,
-                    ],
-                });
-
-                const value = cellView.model.get('value');
-                if (value !== undefined) {
-                    const valueLabelTool = new joint.elementTools.Button({
-                        markup: [
-                            {
-                                tagName: 'text',
-                                selector: 'valueLabel',
-                                attributes: {
-                                    fill: 'black',
-                                    'font-size': 14,
-                                    'text-anchor': 'middle',
-                                    'pointer-events': 'none',
-                                },
-                            },
+                const element = cellView.model;
+                if (
+                    element instanceof AnalyticalInput ||
+                    element instanceof AnalyticalOutput
+                ) {
+                    const toolsView = new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Boundary({ padding: 4 }),
+                            rotateTool,
                         ],
-                        useModelGeometry: true,
-                        action: () => {},
-                        update() {
-                            const val = this.model.get('value') || '';
-                            const bbox = this.model.getBBox();
-                            this.childNodes.valueLabel.textContent = val;
-                            this.childNodes.valueLabel.setAttribute(
-                                'x',
-                                bbox.x + bbox.width / 2
-                            );
-                            this.childNodes.valueLabel.setAttribute(
-                                'y',
-                                bbox.y - 10
-                            );
-                        },
                     });
-                    //toolsView.addTool(valueLabelTool);
+                    cellView.addTools(toolsView);
+                } else {
+                    const toolsView = new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Boundary({ padding: 4 }),
+                            rotateTool,
+                            removeTool,
+                        ],
+                    });
+                    cellView.addTools(toolsView);
                 }
-
-                cellView.addTools(toolsView);
             } else if (cellView.model.isLink()) {
                 // ===============================
                 // Cas : c'est un lien
                 // ===============================
 
                 // On définit les différents tools pour le lien :
-                const verticesTool = new joint.linkTools.Vertices();
                 const segmentsTool = new joint.linkTools.Segments();
                 const sourceArrowheadTool =
                     new joint.linkTools.SourceArrowhead();
@@ -299,7 +284,6 @@ function JointJSWorkspace(props) {
 
                 const linkToolsView = new joint.dia.ToolsView({
                     tools: [
-                        verticesTool,
                         segmentsTool,
                         sourceArrowheadTool,
                         targetArrowheadTool,

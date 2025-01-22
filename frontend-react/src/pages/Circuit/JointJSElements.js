@@ -1,5 +1,7 @@
 import * as joint from 'jointjs';
 
+import { VscDebugStepInto, VscDebugStepOut } from 'react-icons/vsc';
+
 // =====================================
 // 1) CLASSE DE BASE Composant
 // =====================================
@@ -24,6 +26,78 @@ export const Composant = joint.dia.Element.define(
         operation: function () {
             return true;
         },
+    }
+);
+
+export const AnalyticalInput = Composant.define(
+    'logic.AnalyticalInput',
+    {
+        size: { width: 40, height: 40 },
+        attrs: {
+            '.body': { fill: 'lightblue' },
+            '.icon': {
+                'xlink:href': VscDebugStepInto,
+                width: 16,
+                height: 16,
+                refX: '50%',
+                refY: '50%',
+                x: -8,
+                y: -8,
+            },
+        },
+        ports: {
+            items: [{ group: 'singlePort', id: 'port' }],
+            groups: {
+                singlePort: {
+                    position: 'left',
+                    attrs: {
+                        circle: { magnet: true, fill: 'transparent', r: 5 },
+                    },
+                },
+            },
+        },
+    },
+    {
+        markup: `
+            <g class="rotatable">
+                <g class="scalable">
+                    <rect class="body"/>
+                    <image class="icon"/>
+                </g>
+                <text class="label"/>
+            </g>
+        `,
+    }
+);
+
+export const AnalyticalOutput = Composant.define(
+    'logic.AnalyticalOutput',
+    {
+        size: { width: 40, height: 40 },
+        attrs: {
+            '.body': { fill: 'lightgreen' },
+        },
+        ports: {
+            items: [{ group: 'singlePort', id: 'port' }],
+            groups: {
+                singlePort: {
+                    position: 'right',
+                    attrs: {
+                        circle: { magnet: true, fill: 'transparent', r: 5 },
+                    },
+                },
+            },
+        },
+    },
+    {
+        markup: `
+            <g class="rotatable">
+                <g class="scalable">
+                    <rect class="body"/>
+                </g>
+                <text class="label"/>
+            </g>
+        `,
     }
 );
 
