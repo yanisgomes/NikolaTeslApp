@@ -37,7 +37,7 @@ const ButtonGroup = styled.div`
  * que le graphique ne déborde pas si le parent n’a pas de scroll vertical.
  */
 const ChartContainer = styled.div`
-    max-height: 300px;
+    max-height: 320px;
     width: 100%;
     display: flex;
     justify-content: center;

@@ -107,7 +107,7 @@ const StyledTitle = styled.h5`
 const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
-    
+
     const {
         hoveredElementId,
         setHoveredElementId,
@@ -133,31 +133,29 @@ const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
             </TitleContainer>
 
             <TransferFunctionContainer>
-                <LatexComponent
-                    latex={`\\Large{H(s) = ${transferFunction}}`}
-                />
+                <LatexComponent latex={`\\Large{H(s) = ${transferFunction}}`} />
             </TransferFunctionContainer>
 
             <StyledContainer>
                 <StyledTitle>Équations</StyledTitle>
-                {explanations.length > 0 ? (<ScrollContainer>
-                    {/* Liste des explications et des équations */}
+                {explanations.length > 0 ? (
+                    <ScrollContainer>
+                        {/* Liste des explications et des équations */}
 
-                    <ul>
-                        {explanations.map(
-                            (explanation, index) => (
+                        <ul>
+                            {explanations.map((explanation, index) => (
                                 <li key={index}>
                                     <p>{explanation}</p>
                                     <LatexComponent
-                                        latex={
-                                            equations[index]  || ''
-                                        }
+                                        latex={equations[index] || ''}
                                     />
                                 </li>
-                            )
-                        )}
-                    </ul>
-                </ScrollContainer>) : (<p>Circuit non résolu</p>)}
+                            ))}
+                        </ul>
+                    </ScrollContainer>
+                ) : (
+                    <p>Circuit non résolu</p>
+                )}
             </StyledContainer>
 
             <StyledContainer>
@@ -177,9 +175,7 @@ const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
                         ))}
                     </List>
                 </ScrollContainer>
-                
             </StyledContainer>
-            
         </PageContainer>
     );
 };

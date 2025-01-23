@@ -74,23 +74,6 @@ const enablePanning = (paper) => {
         isPanning = false;
     });
 };
-
-const enableZoom = (paper) => {
-    const zoomStep = 0.01;
-    const minZoom = 0.5;
-    const maxZoom = 2;
-
-    paper.on('blank:mousewheel', (evt, x, y, delta) => {
-        const currentScale = paper.scale();
-        const newScale = Math.min(
-            Math.max(currentScale.sx + delta * zoomStep, minZoom),
-            maxZoom
-        );
-        // Zoom autour du pointeur
-        paper.scale(newScale, newScale, x, y);
-    });
-};
-
 // Convertir un lien (de type manhatan) en segments
 /*
 const getSegments = (wire) => {
@@ -142,20 +125,26 @@ function getSegments(link, paper) {
     // Obtenir le chemin SVG du lien
     const linkElement = link.findView(paper).el;
     const pathData = linkElement.querySelector('path').getAttribute('d');
-    
+
     // Analyser le chemin (parsing des commandes SVG)
     const coordinates = [];
     const pathCommands = pathData.split(/(?=[A-Za-z])/); // Divise la chaîne en commandes SVG (M, L, etc.)
 
     let currentPosition = { x: 0, y: 0 };
 
-    pathCommands.forEach(command => {
+    pathCommands.forEach((command) => {
         const type = command[0];
-        const args = command.slice(1).trim().split(/[\s,]+/).map(Number);
+        const args = command
+            .slice(1)
+            .trim()
+            .split(/[\s,]+/)
+            .map(Number);
 
-        if (type === 'M') { // Move to
+        if (type === 'M') {
+            // Move to
             currentPosition = { x: args[0], y: args[1] };
-        } else if (type === 'L') { // Line to
+        } else if (type === 'L') {
+            // Line to
             const newPoint = { x: args[0], y: args[1] };
             coordinates.push({ start: currentPosition, end: newPoint });
             currentPosition = newPoint;
@@ -168,17 +157,29 @@ function getSegments(link, paper) {
 function wiresIntersect(wire1, wire2, paper) {
     const segments1 = getSegments(wire1, paper);
     const segments2 = getSegments(wire2, paper);
-    console.log("segment1", segments1, "segment2",segments2);
+    console.log('segment1', segments1, 'segment2', segments2);
     // Tester chaque paire de segments
     if (segments1 !== undefined && segments2 !== undefined) {
         for (const segment1 of segments1) {
             for (const segment2 of segments2) {
-                if (getIntersection(segment1.start, segment1.end, segment2.start, segment2.end)) {
-                    return getIntersection(segment1.start, segment1.end, segment2.start, segment2.end); // Intersection trouvée
+                if (
+                    getIntersection(
+                        segment1.start,
+                        segment1.end,
+                        segment2.start,
+                        segment2.end
+                    )
+                ) {
+                    return getIntersection(
+                        segment1.start,
+                        segment1.end,
+                        segment2.start,
+                        segment2.end
+                    ); // Intersection trouvée
                 }
             }
         }
-    };
+    }
     return false; // Aucune intersection
 }
 
@@ -464,10 +465,8 @@ function JointJSWorkspace(props) {
                     otherTargetPosition
                 );*/
 
-                
                 const intersection = wiresIntersect(link, otherLink, paper);
                 console.log(intersection);
-                
 
                 if (intersection) {
                     // On regarde si un nœud existe déjà près de l'intersection
@@ -517,7 +516,6 @@ function JointJSWorkspace(props) {
         setCircuitGraph(graph);
 
         // Active le zoom et le panning
-        enableZoom(paper);
         enablePanning(paper);
 
         setPaper(paper);
