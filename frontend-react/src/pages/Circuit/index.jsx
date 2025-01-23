@@ -46,8 +46,51 @@ import PhaseToolbox from '../../components/PhaseToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
-let transfer_function_str =
-    '\\frac{C_{2} L_{1} R_{1} p^{2}}{C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + L_{1} p + R_{1}}';
+let ResolutionResponse = {
+    auteur: 'Basile',
+    bode_data: {
+        freq: [0.0, 0.0, 0.0],
+        mag: [0.0, 0.0, 0.0],
+        phase: [0.0, 0.0, 0.0],
+    },
+    date: '2025-01-22',
+    description:
+        'Circuit test disponible ici https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html',
+    equations: [
+        'i_{VIN} + \\frac{v_{2} - v_{3}}{R_{2}} = 0',
+        'C_{2} p \\left(- v_{1} + v_{3}\\right) + \\frac{- v_{2} + v_{3}}{R_{2}} = 0',
+        'C_{1} p v_{1} + C_{2} p \\left(v_{1} - v_{3}\\right) + \\frac{v_{1}}{R_{1}} + \\frac{v_{1}}{L_{1} p} = 0',
+        'v_{2} = VIN',
+    ],
+    explanations: [
+        'Loi des noeuds pour le noeud 2',
+        'Loi des noeuds pour le noeud 3',
+        'Loi des noeuds pour le noeud 1',
+        'valeur de la source de tension VIN',
+    ],
+    id: 1,
+    image: 'Capacitor',
+    message: 'Circuit updated (basic).',
+    netlist:
+        'Vin 2 0 Symbolic\nR2 2 3 1000\nR1 1 0 1000\nC1 1 0 1e-06\nC2 3 1 1e-05\nL1 1 0 0.001\n',
+    nom: 'circuit',
+    solutions: {
+        'i_{VIN}':
+            '\\frac{- C_{1} C_{2} L_{1} R_{1} VIN p^{3} - C_{2} L_{1} VIN p^{2} - C_{2} R_{1} VIN p}{C_{1} C_{2} L_{1} R_{1} R_{2} p^{3} + C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{2} p^{2} + C_{2} R_{1} R_{2} p + L_{1} p + R_{1}}',
+        'v_{1}':
+            '\\frac{C_{2} L_{1} R_{1} VIN p^{2}}{C_{1} C_{2} L_{1} R_{1} R_{2} p^{3} + C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{2} p^{2} + C_{2} R_{1} R_{2} p + L_{1} p + R_{1}}',
+        'v_{2}': 'VIN',
+        'v_{3}':
+            '\\frac{C_{1} L_{1} R_{1} VIN p^{2} + C_{2} L_{1} R_{1} VIN p^{2} + L_{1} VIN p + R_{1} VIN}{C_{1} C_{2} L_{1} R_{1} R_{2} p^{3} + C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{2} p^{2} + C_{2} R_{1} R_{2} p + L_{1} p + R_{1}}',
+    },
+    step_data: {
+        input: [0.0, 0.0, 0.0],
+        output: [0.0, 0.0, 0.0],
+        time: [0.0, 0.0, 0.0],
+    },
+    transfer_function:
+        '\\frac{C_{2} L_{1} R_{1} p^{2}}{C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + L_{1} p + R_{1}}',
+};
 
 /********************************************
  *           STYLED COMPONENTS
@@ -459,6 +502,7 @@ function CircuitInterface() {
                     // Sélection / Survol
                     selectedItemId={selectedItemId}
                     hoveredItemId={hoveredItemId}
+                    ResolutionResponse={ResolutionResponse}
                 />
             ),
         },

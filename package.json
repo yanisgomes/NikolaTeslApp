@@ -3,6 +3,7 @@
     "@joint/plus": "file:joint-plus.tgz",
     "lucide-react": "^0.469.0",
     "plotly.js": "^2.35.3",
+    "react-hook-mathjax": "^2.0.5",
     "react-plotly.js": "^2.6.0"
   }
 }
