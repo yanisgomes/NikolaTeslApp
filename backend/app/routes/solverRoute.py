@@ -477,7 +477,10 @@ def update_circuit_io_numeric(circuit_id):
         if 'image' in data:
             circuit.image = data.get('image', circuit.image)
         if 'json' in data:
-            netlist = Parser.json_to_netlist(data.get('json'))
+            netlist, extractedInputNode, extractedOutputNode = Parser.json_to_netlist(data.get('json'))
+            if extractedInputNode and extractedOutputNode:
+                inputNode = extractedInputNode
+                outputNode = extractedOutputNode
             circuit.netlist = netlist
         circuit.date = datetime.now(timezone.utc)
         db.session.commit()

@@ -244,11 +244,32 @@ class Parser:
         # For example, start from the current count of noeuds:
         next_node_index = len(noeud_dict)+1
 
+        # create the node 0 for the ground
+        noeud_dict["0"] = {"id": "0", "name": "0"}
+
         # We'll iterate over original wires, building new ones in new_wires
         for wire_key, wire_value in wire_dict.items():
             source_id = wire_value["source"]["id"]
             target_id = wire_value["target"]["id"]
-
+            if source_id in components_dict :
+                if components_dict[source_id]["type"] == "logic.Ground":
+                    source_id = "0"
+                    new_wires[wire_key] = { # add a wire from the ground to the other component
+                        "source": {"id": source_id},
+                        "target": {"id": target_id}
+                    }
+                    continue
+            if target_id in components_dict :
+                if components_dict[target_id]["type"] == "logic.Ground":
+                    target_id = "0"
+                    new_wires[wire_key] = { # add a wire from the ground to the other component
+                        "source": {"id": source_id},
+                        "target": {"id": target_id}
+                    }
+                    continue
+                
+            # Check if source and target are components
+            # NB : if the component is a ground, we replaced its id by 0 so it will not be in components_dict
             source_is_comp = source_id in components_dict
             target_is_comp = target_id in components_dict
 
@@ -292,40 +313,62 @@ class Parser:
         return new_wires, noeud_dict
 
     @staticmethod
+    # TODO do a function getInputOutputNodes : les noeuds entree/sortie ne devraient pas etre obtenus ici
+    # TODO la gestion avec les neoud_dict, wire_dict etc est très inefficace
     def build_netlist(wire_dict, noeud_dict, components_dict):
         """
         Build a netlist string from the dictionaries.
         Used in the json_to_netlist method.
         """
         netlist = ""
+        inputNode, outputNode = None, None
         compute_numeric = True
         for comp_id, component in components_dict.items():
-            if component["type"] not in ["logic.Capacitor", "logic.Inductor", "logic.Resistor"] :
+            if component["type"] == "logic.AnalyticalInput":
+                for lk_key, lk_value in wire_dict.items():
+                    source_id = lk_value["source"]["id"]
+                    target_id = lk_value["target"]["id"]
+                    # If the wire is linked to input node
+                    if source_id == comp_id and target_id in noeud_dict:
+                        inputNode = noeud_dict[target_id]["name"]
+                    elif target_id == comp_id and source_id in noeud_dict:
+                        inputNode = noeud_dict[source_id]["name"]
+                netlist += f"Vin {inputNode} 0 SYMBOLIC\n"
+            elif component["type"] == "logic.AnalyticalOutput":
+                for lk_key, lk_value in wire_dict.items():
+                    source_id = lk_value["source"]["id"]
+                    target_id = lk_value["target"]["id"]
+                    # If the wire is linked to output node
+                    if source_id == comp_id and target_id in noeud_dict:
+                        outputNode = noeud_dict[target_id]["name"]
+                    elif target_id == comp_id and source_id in noeud_dict:
+                        outputNode = noeud_dict[source_id]["name"]
+            elif component["type"] in ["logic.Capacitor", "logic.Inductor", "logic.Resistor"] :
+                name = component["symbol"] + str(component["number"])
+                if "value" in component:
+                    value = component["value"]
+                else:
+                    compute_numeric = False
+                    logging.warning(f"Component '{name}' has no value specified.")
+                nodes = []
+                
+                for lk_key, lk_value in wire_dict.items():
+                    source_id = lk_value["source"]["id"]
+                    target_id = lk_value["target"]["id"]
+
+                    # If the wire belongs to this component
+                    if source_id == comp_id and target_id in noeud_dict:
+                        nodes.append(noeud_dict[target_id]["name"])
+                    elif target_id == comp_id and source_id in noeud_dict:
+                        nodes.append(noeud_dict[source_id]["name"])
+
+                # If a component doesn't have 2 or more nodes, log or raise error
+                if len(nodes) < 2:
+                    raise ValueError(f"Component '{name}' not connected to 2 or more elements.")
+                if compute_numeric:
+                    netlist += f"{name} {nodes[0]} {nodes[1]} {value}\n"
+                else:
+                    netlist += f"{name} {nodes[0]} {nodes[1]}\n"
+            else :
                 continue
-            name = component["symbol"] + str(component["number"])
-            if "value" in component:
-                value = component["value"]
-            else:
-                compute_numeric = False
-                logging.warning(f"Component '{name}' has no value specified.")
-            nodes = []
-            
-            for lk_key, lk_value in wire_dict.items():
-                source_id = lk_value["source"]["id"]
-                target_id = lk_value["target"]["id"]
-
-                # If the wire belongs to this component
-                if source_id == comp_id and target_id in noeud_dict:
-                    nodes.append(noeud_dict[target_id]["name"])
-                elif target_id == comp_id and source_id in noeud_dict:
-                    nodes.append(noeud_dict[source_id]["name"])
-
-            # If a component doesn't have 2 or more nodes, log or raise error
-            if len(nodes) < 2:
-                raise ValueError(f"Component '{name}' not connected to 2 or more elements.")
-            if compute_numeric:
-                netlist += f"{name} {nodes[0]} {nodes[1]} {value}\n"
-            else:
-                netlist += f"{name} {nodes[0]} {nodes[1]}\n"
-
-        return netlist
+        return netlist, inputNode, outputNode
