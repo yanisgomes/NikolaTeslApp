@@ -60,8 +60,8 @@ const PhaseToolbox = ({ timeData, onPlay, onSpark }) => {
     // Prépare les “traces” Plotly.
     const plotData = [
         {
-            x: timeData?.frequency_list || [],
-            y: timeData?.phase_list || [],
+            x: timeData?.freq || [],
+            y: timeData?.phase || [],
             type: 'scatter',
             mode: 'lines',
             line: { color: colors.primary },

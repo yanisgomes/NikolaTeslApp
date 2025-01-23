@@ -54,6 +54,10 @@ const AnalyticContainer = styled.div`
 const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
+    const transferFunction = ResolutionResponse?.transfer_function || '';
+    const explanations = ResolutionResponse?.explanations || '';
+    const equations = ResolutionResponse?.equations || '';
+
     return (
         <AnalyticResolutionContainer>
             <TitleContainer>
@@ -70,24 +74,27 @@ const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
                 <h5>Fonction de Transfert</h5>
                 <div className="transfer-function">
                     <LatexComponent
-                        latex={`\\text{H(s)} = ${ResolutionResponse.transfer_function}`}
+                        latex={`\\text{H(s)} = ${transferFunction}`}
                     />
                 </div>
 
                 {/* Liste des explications et des équations */}
                 <h5>Explications et Équations</h5>
-                <ul className="explanations-list">
-                    {ResolutionResponse.explanations.map(
-                        (explanation, index) => (
+
+                {explanations.length > 0 ? (
+                    <ul className="explanations-list">
+                        {explanations.map((explanation, index) => (
                             <li key={index} className="explanation-item">
                                 <p>{explanation}</p>
                                 <LatexComponent
-                                    latex={ResolutionResponse.equations[index]}
+                                    latex={equations[index] || ''}
                                 />
                             </li>
-                        )
-                    )}
-                </ul>
+                        ))}
+                    </ul>
+                ) : (
+                    <p>Circuit pas encore résolu</p>
+                )}
             </AnalyticContainer>
             <hr
                 style={{
