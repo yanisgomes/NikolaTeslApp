@@ -2,12 +2,12 @@ import './index.css';
 import { dia, shapes, V, elementTools } from 'jointjs';
 import { useContext, useEffect, useRef, useState } from 'react';
 import JointElement from '../JointJSElement';
-import { GraphContext } from '../../utils/context/';
+import GraphContext from '../../utils/context';
 
-function JointPaper(props) {
+function JointJSPaper(props) {
     const {
-        width = 1000,
-        height = 1000,
+        width = 900,
+        height = 450,
         theme = 'default',
         scale,
         updateElements,
@@ -28,6 +28,8 @@ function JointPaper(props) {
             width,
             height,
             clickThreshold: 10,
+            gridSize: 20,
+            drawGrid: true,
             highlighting: {
                 connecting: {
                     name: 'stroke',
@@ -268,7 +270,7 @@ function JointPaper(props) {
                 style={{
                     display: 'inline-block',
                 }}
-            ></div>
+            />
             <div
                 style={{
                     transformOrigin: '0 0',
@@ -281,4 +283,4 @@ function JointPaper(props) {
     );
 }
 
-export default JointPaper;
+export default JointJSPaper;

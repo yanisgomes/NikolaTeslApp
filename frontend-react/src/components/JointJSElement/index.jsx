@@ -1,7 +1,7 @@
 import { useEffect, useState, forwardRef } from 'react';
 import './index.css';
 
-const JointElement = forwardRef((props, ref) => {
+const JointJSElement = forwardRef((props, ref) => {
     const {
         id,
         x = 0,
@@ -72,4 +72,4 @@ const JointElement = forwardRef((props, ref) => {
     );
 });
 
-export default JointElement;
+export default JointJSElement;

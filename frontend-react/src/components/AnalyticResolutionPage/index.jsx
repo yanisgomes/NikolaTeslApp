@@ -17,23 +17,15 @@ const TitleContainer = styled.div`
     justify-content: space-between;
 `;
 
-const AnalyticResolutionPage = ({
-    netlist,
-    onChangeValue,
-    onRequestAI,
-    onResolutionSubmit,
-    onRemoveComponent,
-    // Sélection / survol
-    selectedItemId,
-    hoveredItemId,
-    onSelect,
-    onHover,
-    onUnhover,
-}) => {
+const AnalyticResolutionContainer = styled.div`
+    padding: 0px;
+`;
+
+const AnalyticResolutionPage = ({ onResolutionSubmit }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
     return (
-        <div style={{ padding: '16px' }}>
+        <AnalyticResolutionContainer>
             <TitleContainer>
                 <h2>Résolution détaillée</h2>
                 <ACIButton
@@ -45,9 +37,10 @@ const AnalyticResolutionPage = ({
             <div
                 style={{
                     border: '1px solid #ddd',
-                    borderRadius: '4px',
+                    borderRadius: '8px',
                     padding: '16px',
-                    marginBottom: '16px',
+                    marginTop: '8px',
+                    height: '25vh',
                 }}
             >
                 <p>
@@ -55,19 +48,8 @@ const AnalyticResolutionPage = ({
                 </p>
             </div>
 
-            <AnalyticComponentList
-                netlist={netlist}
-                onChangeValue={onChangeValue}
-                onRequestAI={onRequestAI}
-                onDelete={onRemoveComponent}
-                // Sélection / Survol
-                selectedItemId={selectedItemId}
-                hoveredItemId={hoveredItemId}
-                onSelect={onSelect}
-                onHover={onHover}
-                onUnhover={onUnhover}
-            />
-        </div>
+            <AnalyticComponentList />
+        </AnalyticResolutionContainer>
     );
 };
 

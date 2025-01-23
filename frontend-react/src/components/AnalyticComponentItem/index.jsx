@@ -1,145 +1,144 @@
-// src/components/AnalyticComponentItem/index.jsx
-import React, { useState } from 'react';
-import styled, { css } from 'styled-components';
-import fonts from './../../utils/style/fonts';
-
-import ACIButton from './../AnalyticComponentItemButton';
-
+import React, { useContext, useState } from 'react';
+import styled from 'styled-components';
+import colors from '../../utils/style/colors';
+import { CircuitGraphContext } from '../../utils/context';
 import {
-    VscSparkle,
-    VscTrash,
-    VscChevronUp,
-    VscChevronDown,
+    VscSymbolInterface,
+    VscTypeHierarchy,
+    VscCircuitBoard,
+    VscDebugStepInto,
+    VscDebugStepOut,
 } from 'react-icons/vsc';
+import ValueEditor from '../ComponentValueEditor';
+import { getUnitFromCellType } from '../../utils/utils';
+import { use } from 'react';
 
-import { getIconAsUrl } from '../../utils/utils';
+// Notre fonction de mapping
+function getFrenchNameForCellType(cellType) {
+    if (!cellType) return 'Composant inconnu';
+    const lowerType = cellType.toLowerCase();
 
-const VscSparkleUrl = getIconAsUrl(<VscSparkle />);
-const VscTrashUrl = getIconAsUrl(<VscTrash />);
-const VscChevronUpUrl = getIconAsUrl(<VscChevronUp />);
-const VscChevronDownUrl = getIconAsUrl(<VscChevronDown />);
+    if (lowerType.includes('resistor')) {
+        return 'Résistance';
+    }
+    if (lowerType.includes('aop')) {
+        return 'Amplificateur Opérationnel';
+    }
+    if (lowerType.includes('inductor')) {
+        return 'Inductance';
+    }
+    if (lowerType.includes('capacitor')) {
+        return 'Capacité';
+    }
 
-const ACItemContainer = styled.div`
+    return 'Composant générique';
+}
+
+const StyledListItem = styled.li`
     display: flex;
-    flex-direction: column;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    padding: 8px;
-    transition: border 0.3s, transform 0.3s;
+    flex-direction: row;
+    align-items: center;
 
-    /* Au survol, on change la bordure et on décale légèrement vers la droite */
+    margin: 8px 0;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid ${colors.lightGrey2};
+
+    border-color: ${({ isSelected }) =>
+        isSelected ? colors.primary : colors.lightGrey2};
+    transition: border-color 0.3s ease, transform 0.3s ease,
+        box-shadow 0.3s ease;
+
     ${({ isHovered }) =>
         isHovered &&
-        css`
-            border-color: #ccc;
-        `}
+        `
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    `}
 `;
 
-const HoverButtonContainer = styled.div`
-    display: flex;
-    gap: 8px;
-`;
+function AnalyticComponentItem(props) {
+    const { cell, isselected, ishovered, onHover, onUnhover, onClick } = props;
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
+    // Infos basiques
+    const cellType = cell.get('type'); // ex: "logic.Resistor"
+    const cellId = cell.id;
+    const isLink = cell.isLink();
 
-const AnalyticComponentItem = ({
-    name,
-    value,
-    symbol,
-    onChangeValue,
-    onRequestAI,
-    onDelete,
-    // Ajout pour la sélection / survol
-    isSelected = false,
-    isHovered = false,
-    onSelect,
-    onHover,
-    onUnhover,
-}) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const handleToggleExpand = () => setIsExpanded((prev) => !prev);
-    const symbolDictionary = {
-        R: 'Résistance',
-        L: 'Inductance',
-        C: 'Capacité',
-        V: 'Tension',
-        I: 'Courant',
+    // Récupération de la valeur si elle existe (ex: un condo ou une résistance).
+    // Certains composants, comme un AOP, n’en ont pas.
+    const initialValueSi = cell.has('value') ? cell.get('value') : null;
+
+    // État local pour la valeur (en unité SI)
+    const [currentValueSi, setCurrentValueSi] = useState(initialValueSi);
+
+    // Déduction de l’unité en se basant sur le cellType ("Ω", "F", "H", etc.)
+    const unit = getUnitFromCellType(cellType);
+
+    const iconSize = 24;
+    const iconToDisplay = isLink ? (
+        <VscSymbolInterface size={iconSize} />
+    ) : cellType?.includes('CircuitNode') ? (
+        <VscTypeHierarchy size={iconSize} />
+    ) : cellType?.includes('Input') ? (
+        <VscDebugStepInto size={iconSize} />
+    ) : cellType?.includes('Output') ? (
+        <VscDebugStepOut size={iconSize} />
+    ) : (
+        <VscCircuitBoard size={iconSize} />
+    );
+
+    // Nom français du composant
+    //const frenchName = getFrenchNameForCellType(cellType);
+
+    //nom complet du composant
+    let cellName = cell.getName(); // Use `let` instead of `const`
+    if (cell.get('type') === 'logic.Wire') {
+        cellName = 'Branche circuit';
+    } else if (cell.get('type') === 'logic.Ground') {
+        cellName = 'Potentiel nul';
+    } else if (cell.get('type') === 'logic.AnalyticalInput') {
+        cellName = 'Entrée analytique';
+    } else if (cell.get('type') === 'logic.AnalyticalOutput') {
+        cellName = 'Sortie analytique';
+    }
+    // Callback de mise à jour
+    const handleValueChange = (newValueSi) => {
+        setCurrentValueSi(newValueSi);
+        // Pour persister dans votre modèle JointJS, vous pouvez faire :
+        // cell.set('value', newValueSi)
     };
 
     return (
-        <ACItemContainer
-            onMouseEnter={() => onHover?.()}
-            onMouseLeave={() => onUnhover?.()}
-            onClick={() => onSelect?.()}
-            isSelected={isSelected}
-            isHovered={isHovered}
+        <StyledListItem
+            isSelected={isselected}
+            isHovered={ishovered}
+            onMouseEnter={() => onHover(cellId)}
+            onMouseLeave={() => onUnhover(cellId)}
+            onClick={() => onClick(cellId)}
         >
-            {/* Partie supérieure (nom, valeur, icônes conditionnelles) */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                }}
-            >
-                <span
-                    style={{
-                        marginRight: '14px',
-                        fontFamily: fonts.mainFont,
-                        fontSize: '16px',
-                    }}
-                >
-                    {symbolDictionary[symbol] || symbol} : {name}
-                </span>
+            {/* Icône */}
+            <div style={{ marginRight: '8px' }}>{iconToDisplay}</div>
 
-                {/* Champ de saisie de la valeur numérique */}
-                <input
-                    type="number"
-                    value={value}
-                    onChange={(e) => onChangeValue(e.target.value)}
-                    style={{ marginRight: '16px', width: '80px' }}
-                />
-
-                {/* Boutons visibles uniquement au survol */}
-                {isHovered && (
-                    <HoverButtonContainer>
-                        <ACIButton
-                            onClick={onRequestAI}
-                            logoUrl={VscSparkleUrl}
-                            size="30px"
-                        />
-                        <ACIButton
-                            onClick={onDelete}
-                            logoUrl={VscTrashUrl}
-                            size="30px"
-                        />
-                        <ACIButton
-                            onClick={handleToggleExpand}
-                            logoUrl={
-                                isExpanded ? VscChevronUpUrl : VscChevronDownUrl
-                            }
-                            size="30px"
-                            variant="variation"
-                        />
-                    </HoverButtonContainer>
-                )}
+            {/* Nom français du composant */}
+            <div style={{ marginRight: '16px', fontWeight: 'bold' }}>
+                {cellName}
             </div>
 
-            {/* Contenu additionnel, affiché si déplié */}
-            {isExpanded && (
-                <div
-                    style={{
-                        marginTop: '8px',
-                        backgroundColor: '#f9f9f9',
-                        padding: '8px',
-                        borderRadius: '4px',
-                    }}
-                >
-                    <p>Informations supplémentaires sur {name}…</p>
-                    {/* ... */}
-                </div>
+            {/*
+                Condition pour afficher le ValueEditor :
+                1) Ce n'est pas un lien
+                2) Le composant dispose d'une valeur (ex: Résistance, Condensateur, etc.)
+            */}
+            {!isLink && initialValueSi !== null && (
+                <ValueEditor
+                    valueSi={currentValueSi}
+                    unit={unit}
+                    onValueChange={handleValueChange}
+                />
             )}
-        </ACItemContainer>
+        </StyledListItem>
     );
-};
+}
 
 export default AnalyticComponentItem;

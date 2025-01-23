@@ -11,19 +11,15 @@ import 'jointjs/dist/joint.css';
 
 import JointJSWorkspace from './JointJSWorkspace';
 
-import {
-    Repeater,
-    Or,
-    Not,
-    Resistor,
-    Inductor,
-    Capacitor,
-} from './JointJSWorkspace';
+import { Resistor, Inductor, Capacitor, AOP, Ground } from './JointJSElements';
+
+import { CircuitInteractionProvider } from '../../utils/context';
 
 import {
     ThemeContext,
     CircuitGraphContext,
     PaperContext,
+    CircuitInteractionContext,
 } from '../../utils/context';
 
 import symbol_resistor from '../../assets/symbol_resistor.png';
@@ -46,8 +42,12 @@ import ChatInterface from '../../components/ChatInterface';
 import ComponentToolbox from '../../components/ComponentToolbox';
 import TemporalToolbox from '../../components/TemporalToolbox';
 import FrequentialToolbox from '../../components/FrequentialToolbox';
+import PhaseToolbox from '../../components/PhaseToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
+
+let transfer_function_str =
+    '\\frac{C_{2} L_{1} R_{1} p^{2}}{C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + L_{1} p + R_{1}}';
 
 /********************************************
  *           STYLED COMPONENTS
@@ -102,6 +102,33 @@ function useNetlist() {
     };
 
     return { netlist, addComponent, removeComponentById, setNetlist };
+}
+
+function getSmallestUnusedNameIndex(graph, symbol) {
+    // Retrieve all elements in the graph
+    const elements = graph.getElements();
+
+    // Extract the indices from names of elements with the same symbol
+    const usedIndices = elements
+        .filter((element) => element.getSymbol() === symbol) // Match symbol
+        .map((element) => {
+            const number = element.getNumber();
+            return number;
+        })
+        .filter((index) => index !== null) // Remove null values
+        .sort((a, b) => a - b); // Sort in ascending order
+
+    // Find the smallest missing integer
+    let smallestUnused = 0; // Start from 0
+    for (const index of usedIndices) {
+        if (index === smallestUnused) {
+            smallestUnused++;
+        } else {
+            break; // Exit early when the gap is found
+        }
+    }
+
+    return smallestUnused;
 }
 
 function CircuitInterface() {
@@ -244,42 +271,59 @@ function CircuitInterface() {
             saveHistory();
 
             // Déclarez une variable pour l'élément à ajouter au graphique
-            let element;
+            let newElement;
 
+            // Assuming `graph` is your JointJS graph instance
+
+            // Replace 'my-type' with the type of element you're looking for
+            const typeToCount = draggedItem.symbole;
+            const number = getSmallestUnusedNameIndex(
+                circuitGraph,
+                typeToCount
+            );
+            const newElementname = draggedItem.symbole + number;
             // Ajoutez la logique en fonction du type d'élément
             switch (draggedItem.name) {
                 case 'Résistance':
-                    element = new Resistor();
-                    element.attr('label/text', `Valeur: 100 Ω`);
+                    newElement = new Resistor();
+                    newElement.attr('label/text', `Valeur: 100 Ω`);
                     break;
 
                 case 'Inductance':
-                    element = new Inductor();
-                    element.attr('label/text', `Valeur: 1 H`);
+                    newElement = new Inductor();
+                    newElement.attr('label/text', `Valeur: 1 H`);
                     break;
 
                 case 'Condensateur':
-                    element = new Capacitor();
-                    element.attr('label/text', `Valeur: 1 F`); // Afficher la valeur par défaut du condensateur
+                    newElement = new Capacitor();
+                    newElement.attr('label/text', `Valeur: 1 F`); // Afficher la valeur par défaut du condensateur
                     break;
 
                 case 'AOP':
-                    element = new Not();
+                    newElement = new AOP();
+                    break;
+
+                case 'Ground':
+                    newElement = new Ground();
                     break;
 
                 default:
                     console.log(
                         "Type d'élément non reconnu:",
-                        draggedItem.type
+                        draggedItem.name
                     );
                     return; // Si le type n'est pas reconnu, on arrête la fonction
             }
+            //ajout du nom du composant
+            newElement.setName(newElementname);
+            newElement.setSymbol(draggedItem.symbole);
+            newElement.setNumber(number);
 
             // Positionner l'élément au bon endroit
-            element.position(x, y);
+            newElement.position(x, y);
 
             // Ajouter l'élément au graphique
-            element.addTo(circuitGraph);
+            newElement.addTo(circuitGraph);
 
             // Mettre à jour le comptage des composants
             setComponentCount((prev) => {
@@ -331,24 +375,35 @@ function CircuitInterface() {
         if (hoveredItemId === id) setHoveredItemId(null);
     };
 
-    // Sélection / survol depuis la netlist
-    // Pour AnalyticResolutionPage
-    const handleSelectFromNetlist = (id) => setSelectedItemId(id);
-    const handleHoverFromNetlist = (id) => setHoveredItemId(id);
-    const handleUnhoverFromNetlist = () => setHoveredItemId(null);
+    const [bodeResponse, setBodeResponse] = useState(null);
+    const [temporalResponse, setTemporalResponse] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
 
         try {
-            const response = await fetch('http://localhost:5000/api/circuits', {
+            //const response = await fetch(`http://127.0.0.1:5000/solver/equation/1?data=${encodeURIComponent(JSON.stringify(circuitGraph.getCells()))}`, {
+            const response = await fetch(
+                `http://127.0.0.1:5000/solver/bode/1?i=2&o=1&data=${encodeURIComponent(
+                    JSON.stringify(circuitGraph.getCells())
+                )}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json', // Utile si le serveur attend du JSON
+                    },
+                }
+            );
+
+            /*
+            const response = await fetch('http://127.0.0.1:5000/solver/equation/1', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
 
                 body: JSON.stringify(circuitGraph.getCells()), // Conversion des données en JSON
-            });
+            });*/
 
             if (!response.ok) {
                 throw new Error('Erreur lors de l’envoi des données');
@@ -357,6 +412,8 @@ function CircuitInterface() {
             const result = await response.json();
             console.log(result); // Réponse du backend
             alert('Données envoyées avec succès');
+
+            setBodeResponse(result['bode response']);
         } catch (error) {
             console.error(error);
             alert('Erreur lors de l’envoi des données');
@@ -380,7 +437,11 @@ function CircuitInterface() {
         },
         {
             name: 'Réponse fréquentielle',
-            content: <FrequentialToolbox />,
+            content: <FrequentialToolbox timeData={bodeResponse} />,
+        },
+        {
+            name: 'Réponse en phase',
+            content: <PhaseToolbox timeData={bodeResponse} />,
         },
     ];
 
@@ -398,9 +459,6 @@ function CircuitInterface() {
                     // Sélection / Survol
                     selectedItemId={selectedItemId}
                     hoveredItemId={hoveredItemId}
-                    onSelect={handleSelectFromNetlist}
-                    onHover={handleHoverFromNetlist}
-                    onUnhover={handleUnhoverFromNetlist}
                 />
             ),
         },
@@ -412,26 +470,28 @@ function CircuitInterface() {
 
     return (
         <>
-            <Header />
-            <MainHorizontalContainer>
-                {/* Menu de gauche */}
-                <LeftMenu>
-                    <TabbedMenu pages={leftMenuPages} theme={theme} />
-                </LeftMenu>
+            <CircuitInteractionProvider>
+                <Header />
+                <MainHorizontalContainer>
+                    {/* Menu de gauche */}
+                    <LeftMenu>
+                        <TabbedMenu pages={leftMenuPages} theme={theme} />
+                    </LeftMenu>
 
-                {/* Contenu principal (top tab + workspace) */}
-                <MainVerticalContainer>
-                    <TabbedMenu pages={topMenuPages} theme={theme} />
+                    {/* Contenu principal (top tab + workspace) */}
+                    <MainVerticalContainer>
+                        <TabbedMenu pages={topMenuPages} theme={theme} />
 
-                    <JointWorkspaceContainer>
-                        <JointJSWorkspace
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                        />
-                        {/*<JointJSWorkspace /> Exemple with Paper Component*/}
-                    </JointWorkspaceContainer>
-                </MainVerticalContainer>
-            </MainHorizontalContainer>
+                        <JointWorkspaceContainer>
+                            <JointJSWorkspace
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
+                            />
+                            {/*<JointJSWorkspace />*/}
+                        </JointWorkspaceContainer>
+                    </MainVerticalContainer>
+                </MainHorizontalContainer>
+            </CircuitInteractionProvider>
         </>
     );
 }

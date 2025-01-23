@@ -57,17 +57,8 @@ const ScrollWrapper = styled.div`
     width: 96vh;
     overflow-x: auto;
     padding-bottom: 24px; /* Espace sous les éléments pour laisser de la place en bas */
-    scrollbar-width: thin;
-
     &::-webkit-scrollbar {
-        height: 8px; /* Hauteur de la barre de scroll horizontale */
-    }
-    &::-webkit-scrollbar-thumb {
-        background: ${colors.lightGrey2};
-        border-radius: 4px;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-        background: ${colors.grey};
+        display: none;
     }
 `;
 
@@ -79,7 +70,7 @@ const ScrollWrapper = styled.div`
 const HorizontalCardsRow = styled.div`
     display: flex;
     flex-wrap: nowrap;
-    gap: 16px;
+    gap: 12px;
     padding: 8px;
     align-items: flex-start;
 `;

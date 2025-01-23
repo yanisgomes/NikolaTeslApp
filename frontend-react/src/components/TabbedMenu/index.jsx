@@ -7,8 +7,8 @@ import fonts from './../../utils/style/fonts';
 const TabbedMenuWrapper = styled.div`
     display: flex;
     flex-direction: column;
+    flex: 1;
 
-    height: 100%;
     align-self: stretch;
 
     background: ${(props) =>
@@ -87,7 +87,6 @@ const Content = styled.div`
     border-top: 1px solid
         ${(props) =>
             props.theme === 'dark' ? colors.darkGrey : colors.lightGrey2};
-    min-height: 200px;
 `;
 
 const TabbedMenu = ({ pages, theme }) => {

@@ -10,6 +10,8 @@ import Gallery from './pages/Gallery';
 import GlobalStyle from './utils/style/GlobalStyle';
 import ProfileContainer from './components/ProfileContainer/';
 
+import setCSSVariables from './utils/style/setColors';
+
 import {
     ThemeProvider,
     CircuitGraphProvider,
@@ -19,6 +21,9 @@ import {
 import styled from 'styled-components';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Set CSS variables
+setCSSVariables();
 
 const MainContainer = styled.div`
     display: flex;
