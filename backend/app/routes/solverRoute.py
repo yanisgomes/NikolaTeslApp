@@ -303,8 +303,8 @@ def update_circuit_basic(circuit_id):
         if 'image' in data:
             circuit.image = data.get('image', circuit.image)
         if 'json' in data:
-            circuit.json = data.get('json', circuit.json)
-            netlist = Parser.json_to_netlist(circuit.json)
+            #circuit.json = data.get('json', circuit.json)
+            netlist = Parser.json_to_netlist(data.get('json'))
             circuit.netlist = netlist
         circuit.date = datetime.now(timezone.utc)
         db.session.commit()
@@ -382,8 +382,8 @@ def update_circuit_io(circuit_id):
         if 'image' in data:
             circuit.image = data.get('image', circuit.image)
         if 'json' in data:
-            circuit.json = data.get('json', circuit.json)
-            netlist = Parser.json_to_netlist(circuit.json)
+            #circuit.json = data.get('json', circuit.json)
+            netlist = Parser.json_to_netlist(data.get('json'))
             circuit.netlist = netlist
         circuit.date = datetime.now(timezone.utc)
         db.session.commit()
@@ -477,8 +477,7 @@ def update_circuit_io_numeric(circuit_id):
         if 'image' in data:
             circuit.image = data.get('image', circuit.image)
         if 'json' in data:
-            circuit.json = data.get('json', circuit.json)
-            netlist = Parser.json_to_netlist(circuit.json)
+            netlist = Parser.json_to_netlist(data.get('json'))
             circuit.netlist = netlist
         circuit.date = datetime.now(timezone.utc)
         db.session.commit()
