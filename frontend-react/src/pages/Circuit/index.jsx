@@ -51,9 +51,6 @@ import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; //
 import { getIconAsUrl } from '../../utils/utils';
 import { VscZoomIn, VscZoomOut } from 'react-icons/vsc';
 
-import { getIconAsUrl } from '../../utils/utils';
-import { VscZoomIn, VscZoomOut } from 'react-icons/vsc';
-
 /*
 let ResolutionResponse = {
     auteur: 'Basile',
