@@ -17,7 +17,10 @@ const Container = styled.div`
     flex-grow: 1;
     padding-top: 16px;
     margin-top: 16px;
-    max-height: 45vh;
+
+    min-height: 20vh;
+    max-height: 35vh;
+
     overflow-y: auto;
     overflow-x: hidden;
 

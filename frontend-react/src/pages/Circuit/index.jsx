@@ -426,6 +426,7 @@ function CircuitInterface() {
 
         try {
             //const response = await fetch(`http://127.0.0.1:5000/solver/equation/1?data=${encodeURIComponent(JSON.stringify(circuitGraph.getCells()))}`, {
+            console.log(circuitGraph.getCells());
             const response = await fetch(
                 `http://127.0.0.1:5000/solver/bode/1?i=2&o=1&data=${encodeURIComponent(
                     JSON.stringify(circuitGraph.getCells())

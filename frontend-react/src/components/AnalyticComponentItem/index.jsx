@@ -11,28 +11,8 @@ import {
 } from 'react-icons/vsc';
 import ValueEditor from '../ComponentValueEditor';
 import { getUnitFromCellType } from '../../utils/utils';
-import { use } from 'react';
 
-// Notre fonction de mapping
-function getFrenchNameForCellType(cellType) {
-    if (!cellType) return 'Composant inconnu';
-    const lowerType = cellType.toLowerCase();
-
-    if (lowerType.includes('resistor')) {
-        return 'Résistance';
-    }
-    if (lowerType.includes('aop')) {
-        return 'Amplificateur Opérationnel';
-    }
-    if (lowerType.includes('inductor')) {
-        return 'Inductance';
-    }
-    if (lowerType.includes('capacitor')) {
-        return 'Capacité';
-    }
-
-    return 'Composant générique';
-}
+import LatexComponent from '../LatexComponent';
 
 const StyledListItem = styled.li`
     display: flex;
@@ -56,6 +36,40 @@ const StyledListItem = styled.li`
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
     `}
 `;
+
+const StyledItemName = styled.div`
+    font-weight: bold;
+    margin-right: 16px;
+`;
+
+function renderName(cell) {
+    const cellType = cell.get('type');
+    if (
+        cellType !== 'logic.Wire' &&
+        cellType !== 'logic.AOP' &&
+        cellType !== 'logic.AnalyticalInput' &&
+        cellType !== 'logic.AnalyticalOutput' &&
+        cellType !== 'logic.Ground'
+    ) {
+        return (
+            <LatexComponent
+                latex={`${cell.get('symbol')}_${cell.get('number')}`}
+            />
+        );
+    }
+    if (cell.get('type') === 'logic.Wire') {
+        return <p>Branche circuit</p>;
+    } else if (cell.get('type') === 'logic.AOP') {
+        return <p>Amplificateur Opérationnel {cell.get('number')}</p>;
+    } else if (cell.get('type') === 'logic.Ground') {
+        return <p>Potentiel nul</p>;
+    } else if (cell.get('type') === 'logic.AnalyticalInput') {
+        return <p>Entrée analytique</p>;
+    } else if (cell.get('type') === 'logic.AnalyticalOutput') {
+        return <p>Sortie analytique</p>;
+    }
+    return null;
+}
 
 function AnalyticComponentItem(props) {
     const { cell, isselected, ishovered, onHover, onUnhover, onClick } = props;
@@ -92,16 +106,7 @@ function AnalyticComponentItem(props) {
     //const frenchName = getFrenchNameForCellType(cellType);
 
     //nom complet du composant
-    let cellName = cell.getName(); // Use `let` instead of `const`
-    if (cell.get('type') === 'logic.Wire') {
-        cellName = 'Branche circuit';
-    } else if (cell.get('type') === 'logic.Ground') {
-        cellName = 'Potentiel nul';
-    } else if (cell.get('type') === 'logic.AnalyticalInput') {
-        cellName = 'Entrée analytique';
-    } else if (cell.get('type') === 'logic.AnalyticalOutput') {
-        cellName = 'Sortie analytique';
-    }
+
     // Callback de mise à jour
     const handleValueChange = (newValueSi) => {
         setCurrentValueSi(newValueSi);
@@ -121,9 +126,9 @@ function AnalyticComponentItem(props) {
             <div style={{ marginRight: '8px' }}>{iconToDisplay}</div>
 
             {/* Nom français du composant */}
-            <div style={{ marginRight: '16px', fontWeight: 'bold' }}>
-                {cellName}
-            </div>
+            <StyledItemName style={{ marginRight: '16px', fontWeight: 'bold' }}>
+                {renderName(cell)}
+            </StyledItemName>
 
             {/*
                 Condition pour afficher le ValueEditor :
