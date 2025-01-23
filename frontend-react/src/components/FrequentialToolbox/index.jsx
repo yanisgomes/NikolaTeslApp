@@ -107,7 +107,7 @@ const FrequentialToolbox = ({ timeData, onPlay, onSpark }) => {
                      * s’adapte automatiquement au resize du parent.
                      */
                     useResizeHandler
-                    style={{ width: '100%', height: '180px' }}
+                    style={{ width: '100%', height: '175px' }}
                     config={{
                         responsive: true,
                         displaylogo: false,

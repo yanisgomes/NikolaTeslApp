@@ -528,11 +528,11 @@ function CircuitInterface() {
                         <TabbedMenu pages={topMenuPages} theme={theme} />
 
                         <JointWorkspaceContainer>
+                            <h2>Yo !</h2>
                             <JointJSWorkspace
                                 onDrop={handleDrop}
                                 onDragOver={handleDragOver}
                             />
-                            {/*<JointJSWorkspace />*/}
                         </JointWorkspaceContainer>
                     </MainVerticalContainer>
                 </MainHorizontalContainer>
