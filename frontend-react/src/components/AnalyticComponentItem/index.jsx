@@ -53,14 +53,14 @@ function renderName(cell) {
     ) {
         return (
             <LatexComponent
-                latex={`${cell.get('symbol')}_${cell.get('number')}`}
+                latex={`${cell.get('symbol')}_${cell.getNumber()}`}
             />
         );
     }
     if (cell.get('type') === 'logic.Wire') {
         return <p>Branche circuit</p>;
     } else if (cell.get('type') === 'logic.AOP') {
-        return <p>Amplificateur Opérationnel {cell.get('number')}</p>;
+        return <p>Amplificateur Opérationnel {cell.getNumber()}</p>;
     } else if (cell.get('type') === 'logic.Ground') {
         return <p>Potentiel nul</p>;
     } else if (cell.get('type') === 'logic.AnalyticalInput') {
