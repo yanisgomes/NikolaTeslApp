@@ -61,18 +61,18 @@ const PhaseToolbox = ({ timeData, onPlay, onSpark }) => {
     const plotData = [
         {
             x: timeData?.frequency_list || [],
-            y: timeData?.magnitude_list || [],
+            y: timeData?.phase_list || [],
             type: 'scatter',
             mode: 'lines',
             line: { color: colors.primary },
-            name: 'Réponse temporelle',
+            name: 'Réponse en phase',
         },
     ];
 
     // On retire le titre Plotly (title) puisque tu préfères seulement le h2 externe.
     const layout = {
         xaxis: { title: 'Fréquence (s)' },
-        yaxis: { title: 'Gain (db)' },
+        yaxis: { title: 'phase (°)' },
         margin: { t: 0, r: 0, l: 0, b: 0 }, // Marges réduites
         paper_bgcolor: colors.backgroundLight,
         plot_bgcolor: colors.backgroundLight,
@@ -82,7 +82,7 @@ const PhaseToolbox = ({ timeData, onPlay, onSpark }) => {
         <Container>
             {/* Partie haute : Titre + Boutons */}
             <HeaderRow>
-                <h2>Réponse fréquentielle</h2>
+                <h2>Réponse en phase</h2>
                 <ButtonGroup>
                     <ACIButton
                         onClick={onPlay}

@@ -1,6 +1,6 @@
 from solver import *
 from LLMcall import *
-from backend.parser123 import *
+from parser123 import *
 from simulator import *
 from circuit import *
 from collections import defaultdict
@@ -42,7 +42,7 @@ for sol in solver.solutions:
     print(f"{sp.latex(sol)} = {sp.latex(solver.solutions[sol])}")
 
 print("--- Transfer Functions ---")
-transferFunction = solver.getTransferFunction('3', '2')
+transferFunction = solver.getLatexTF('3', '2')
 print(f"Transfer Function: {transferFunction}")
 
 # Call the API
@@ -72,14 +72,14 @@ plt.figure()
 plt.subplot(2, 1, 1)
 plt.semilogx(w, mag)
 plt.title('Magnitude Response')
-plt.xlabel('Frequency (rad/s)')
+plt.xlabel('Pulsation (rad/s)')
 plt.ylabel('Magnitude')
 plt.grid()
 
 plt.subplot(2, 1, 2)
 plt.semilogx(w, phase)
 plt.title('Phase Response')
-plt.xlabel('Frequency (rad/s)')
+plt.xlabel('Pulsation (rad/s)')
 plt.ylabel('Phase (degrees)')
 plt.grid()
 

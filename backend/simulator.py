@@ -52,6 +52,7 @@ class Simulator:
             x = np.insert(x, 0, 0)
             logging.info("Finished getting step response.")
             return t, x, y
+            #return np.zeros(3),np.zeros(3),np.zeros(3)
         except Exception as e:
             logging.error(f"Error getting step response: {e}")
             raise
@@ -71,6 +72,7 @@ class Simulator:
             w, mag, phase = bode(self.sys)
             logging.info("Finished getting frequency response.")
             return w, mag, phase
+            #return np.zeros(3),np.zeros(3),np.zeros(3)
         except Exception as e:
             logging.error(f"Error getting frequency response: {e}")
             raise

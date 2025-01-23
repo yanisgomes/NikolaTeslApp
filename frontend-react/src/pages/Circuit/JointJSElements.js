@@ -1,4 +1,12 @@
 import * as joint from 'jointjs';
+import { name } from 'plotly.js/lib/scatter';
+
+import { VscDebugStepInto, VscDebugStepOut } from 'react-icons/vsc';
+
+import { getIconAsUrl } from '../../utils/utils';
+
+const VscDebugStepIntoUrl = getIconAsUrl(<VscDebugStepInto />);
+const VscDebugStepOutUrl = getIconAsUrl(<VscDebugStepOut />);
 
 // =====================================
 // 1) CLASSE DE BASE Composant
@@ -18,12 +26,163 @@ export const Composant = joint.dia.Element.define(
                 magnet: true,
             },
         },
+        name: 'Composant', // Default name
+        symbol: '*', // Default symbol
+        number: 0,
     },
     {
         useCSSSelectors: true,
         operation: function () {
             return true;
         },
+        setName: function (newName) {
+            this.name = newName;
+        },
+        getName: function () {
+            return this.name;
+        },
+        setSymbol: function (newSymbol) {
+            this.symbol = newSymbol;
+        },
+        getSymbol: function () {
+            return this.symbol;
+        },
+        getNumber: function () {
+            return this.number;
+        },
+        setNumber: function (newNumber) {
+            this.number = newNumber;
+        },
+    }
+);
+
+export const AnalyticalInput = Composant.define(
+    'logic.AnalyticalInput',
+    {
+        size: { width: 40, height: 40 },
+        attrs: {
+            '.body': { fill: 'lightblue' },
+            '.icon': {
+                'xlink:href': VscDebugStepIntoUrl,
+                width: 16,
+                height: 16,
+                refX: '50%',
+                refY: '50%',
+                x: -8,
+                y: -5,
+            },
+        },
+        ports: {
+            items: [{ group: 'singlePort', id: 'port' }],
+            groups: {
+                singlePort: {
+                    position: {
+                        name: 'bottom',
+                        args: { x: '50%' },
+                    },
+                    attrs: {
+                        circle: { magnet: true, fill: 'transparent', r: 4 },
+                    },
+                },
+            },
+        },
+    },
+    {
+        markup: `
+            <g class="rotatable">
+                <g class="scalable">
+                    <image class="icon"/>
+                </g>
+                <text class="label"/>
+            </g>
+        `,
+    }
+);
+
+export const AnalyticalOutput = Composant.define(
+    'logic.AnalyticalOutput',
+    {
+        size: { width: 40, height: 40 },
+        attrs: {
+            '.body': { fill: 'lightgreen' },
+            '.icon': {
+                'xlink:href': VscDebugStepOutUrl,
+                width: 16,
+                height: 16,
+                refX: '50%',
+                refY: '50%',
+                x: -8,
+                y: -5,
+            },
+        },
+        ports: {
+            items: [{ group: 'singlePort', id: 'port' }],
+            groups: {
+                singlePort: {
+                    position: {
+                        name: 'bottom',
+                        args: { x: '50%' },
+                    },
+                    attrs: {
+                        circle: { magnet: true, fill: 'transparent', r: 4 },
+                    },
+                },
+            },
+        },
+    },
+    {
+        markup: `
+            <g class="rotatable">
+                <g class="scalable">
+                    <image class="icon"/>
+                </g>
+                <text class="label"/>
+            </g>
+        `,
+    }
+);
+
+export const Ground = Composant.define(
+    'logic.Ground',
+    {
+        size: { width: 40, height: 40 },
+        attrs: {
+            '.body': { fill: 'brown' },
+            '.icon': {
+                'xlink:href':
+                    'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIENyZWF0ZWQgd2l0aCBJbmtzY2FwZSAoaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvKSAtLT4NCg0KPHN2Zw0KICAgd2lkdGg9IjQ1LjQ5OTk5NiINCiAgIGhlaWdodD0iMzEuNSINCiAgIHZpZXdCb3g9IjAgMCAxMi4wMzg1NDQgOC4zMzQzODAzIg0KICAgdmVyc2lvbj0iMS4xIg0KICAgaWQ9InN2ZzEiDQogICBpbmtzY2FwZTpleHBvcnQtZmlsZW5hbWU9InN5bWJvbF9nbmQuc3ZnIg0KICAgaW5rc2NhcGU6ZXhwb3J0LXhkcGk9IjYyLjYzODI0OCINCiAgIGlua3NjYXBlOmV4cG9ydC15ZHBpPSI2Mi42MzgyNDgiDQogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSINCiAgIHhtbG5zOnNvZGlwb2RpPSJodHRwOi8vc29kaXBvZGkuc291cmNlZm9yZ2UubmV0L0RURC9zb2RpcG9kaS0wLmR0ZCINCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyINCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPg0KICA8c29kaXBvZGk6bmFtZWR2aWV3DQogICAgIGlkPSJuYW1lZHZpZXcxIg0KICAgICBwYWdlY29sb3I9IiNmZmZmZmYiDQogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2Ig0KICAgICBib3JkZXJvcGFjaXR5PSIxLjAiDQogICAgIGlua3NjYXBlOnNob3dwYWdlc2hhZG93PSIyIg0KICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMC4wIg0KICAgICBpbmtzY2FwZTpwYWdlY2hlY2tlcmJvYXJkPSIwIg0KICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiNkMWQxZDEiDQogICAgIGlua3NjYXBlOmRvY3VtZW50LXVuaXRzPSJtbSIgLz4NCiAgPGRlZnMNCiAgICAgaWQ9ImRlZnMxIiAvPg0KICA8Zw0KICAgICBpbmtzY2FwZTpsYWJlbD0iQ2FscXVlIDEiDQogICAgIGlua3NjYXBlOmdyb3VwbW9kZT0ibGF5ZXIiDQogICAgIGlkPSJsYXllcjEiDQogICAgIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0wLjA1NzY1ODU4LC0wLjA3MzkxNzkyKSI+DQogICAgPGcNCiAgICAgICBpZD0iZzIzOTYiDQogICAgICAgdHJhbnNmb3JtPSJtYXRyaXgoMC4yNjQ1ODMzMywwLDAsMC4yNjQ1ODMzMywtNDQuNDQxODEsLTQ5LjAwODM4KSINCiAgICAgICBzdHlsZT0iZGlzcGxheTppbmxpbmUiPg0KICAgICAgPHBhdGgNCiAgICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiDQogICAgICAgICBpZD0icGF0aDM5ODAiDQogICAgICAgICBkPSJtIDIxMS45MzY5NywyMDEuMjU3OSBoIC00MiINCiAgICAgICAgIHN0eWxlPSJkaXNwbGF5OmlubGluZTtmaWxsOm5vbmU7c3Ryb2tlOiMwMDAwMDA7c3Ryb2tlLXdpZHRoOjMuNTtzdHJva2UtbGluZWNhcDpzcXVhcmU7c3Ryb2tlLWxpbmVqb2luOm1pdGVyO3N0cm9rZS1taXRlcmxpbWl0OjQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS1vcGFjaXR5OjEiDQogICAgICAgICBzb2RpcG9kaTpub2RldHlwZXM9ImNjIiAvPg0KICAgICAgPHBhdGgNCiAgICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiDQogICAgICAgICBpZD0icGF0aDM5ODQiDQogICAgICAgICBkPSJtIDE5MC45MzY5NywxODcuMjU3OSB2IDE0Ig0KICAgICAgICAgc3R5bGU9ImRpc3BsYXk6aW5saW5lO2ZpbGw6bm9uZTtzdHJva2U6IzAwMDAwMDtzdHJva2Utd2lkdGg6My41O3N0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDo0O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxIg0KICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4NCiAgICAgIDxwYXRoDQogICAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIg0KICAgICAgICAgaWQ9InBhdGgzOTk0Ig0KICAgICAgICAgZD0ibSAyMDQuOTM2OTcsMjA4LjI1NzkgaCAtMjgiDQogICAgICAgICBzdHlsZT0iZGlzcGxheTppbmxpbmU7ZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozLjU7c3Ryb2tlLWxpbmVjYXA6c3F1YXJlO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDo0O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxIg0KICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4NCiAgICAgIDxwYXRoDQogICAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIg0KICAgICAgICAgaWQ9InBhdGgzOTk2Ig0KICAgICAgICAgZD0ibSAxOTcuOTM2OTcsMjE1LjI1NzkgaCAtMTQiDQogICAgICAgICBzdHlsZT0iZGlzcGxheTppbmxpbmU7ZmlsbDpub25lO3N0cm9rZTojMDAwMDAwO3N0cm9rZS13aWR0aDozLjU7c3Ryb2tlLWxpbmVjYXA6c3F1YXJlO3N0cm9rZS1saW5lam9pbjptaXRlcjtzdHJva2UtbWl0ZXJsaW1pdDo0O3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utb3BhY2l0eToxIg0KICAgICAgICAgc29kaXBvZGk6bm9kZXR5cGVzPSJjYyIgLz4NCiAgICA8L2c+DQogIDwvZz4NCjwvc3ZnPg0K',
+                width: 16,
+                height: 16,
+                refX: '50%',
+                refY: '50%',
+                x: -8,
+                y: -8,
+            },
+        },
+        ports: {
+            items: [{ group: 'singlePort', id: 'port' }],
+            groups: {
+                singlePort: {
+                    position: {
+                        name: 'top',
+                        args: { x: '50%' },
+                    },
+                    attrs: {
+                        circle: { magnet: true, fill: 'transparent', r: 4 },
+                    },
+                },
+            },
+        },
+    },
+    {
+        markup: `
+            <g class="rotatable">
+                <g class="scalable">
+                    <image class="icon"/>
+                </g>
+                <text class="label"/>
+            </g>
+        `,
     }
 );
 
@@ -87,14 +246,14 @@ export const Resistor = Dipole.define(
             label: { text: '100Ω', fill: 'black' },
             '.input': {
                 ref: '.body',
-                'ref-x': -2,
+                'ref-x': -1.7,
                 'ref-y': 0.5,
                 magnet: true,
                 port: 'in',
             },
             '.output': {
                 ref: '.body',
-                'ref-dx': 2,
+                'ref-dx': 1.7,
                 'ref-y': 0.5,
                 magnet: true,
                 port: 'out',
@@ -127,14 +286,14 @@ export const Inductor = Dipole.define(
             '.input': {
                 ref: '.body',
                 'ref-x': -2,
-                'ref-y': 0.6,
+                'ref-y': 0.5,
                 magnet: true,
                 port: 'in',
             },
             '.output': {
                 ref: '.body',
                 'ref-dx': 2,
-                'ref-y': 0.6,
+                'ref-y': 0.5,
                 magnet: true,
                 port: 'out',
             },
@@ -165,14 +324,14 @@ export const Capacitor = Dipole.define(
             label: { text: '1µF', fill: 'black' },
             '.input': {
                 ref: '.body',
-                'ref-x': -2,
+                'ref-x': -1,
                 'ref-y': 0.5,
                 magnet: true,
                 port: 'in',
             },
             '.output': {
                 ref: '.body',
-                'ref-dx': 2,
+                'ref-dx': 1,
                 'ref-y': 0.5,
                 magnet: true,
                 port: 'out',
@@ -243,12 +402,13 @@ export const Wire = joint.dia.Link.define(
     {
         attrs: {
             '.connection': { 'stroke-width': 2 },
-            '.marker-vertex': { r: 7 },
+            '.marker-vertex': { r: 4 },
         },
+        name: 'fil',
 
         // Ici on force un router manhattan par exemple
         router: { name: 'manhattan' },
-        connector: { name: 'normal', args: { radius: 10 } },
+        connector: { name: 'normal', args: { radius: 4 } },
     },
     {
         useCSSSelectors: true,
@@ -260,15 +420,18 @@ export const Wire = joint.dia.Link.define(
 
         vertexMarkup: [
             '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-            '<circle class="marker-vertex" idx="<%= idx %>" r="10" />',
-            '<g class="marker-vertex-remove-group">',
-            '<path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
-            '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+            '   <circle class="marker-vertex" idx="<%= idx %>" r="10" />',
+            '   <g class="marker-vertex-remove-group">',
+            '       <path class="marker-vertex-remove-area" idx="<%= idx %>" d="M16,5.333c-7.732,0-14,4.701-14,10.5c0,1.982,0.741,3.833,2.016,5.414L2,25.667l5.613-1.441c2.339,1.317,5.237,2.107,8.387,2.107c7.732,0,14-4.701,14-10.5C30,10.034,23.732,5.333,16,5.333z" transform="translate(5, -33)"/>',
+            '   <path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
             '<title>Remove vertex.</title>',
             '</path>',
             '</g>',
             '</g>',
         ].join(''),
+        getName: function () {
+            return this.name;
+        },
     }
 );
 

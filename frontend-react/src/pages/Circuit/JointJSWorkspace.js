@@ -2,6 +2,8 @@ import * as joint from 'jointjs';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import styled from 'styled-components';
 
+import colors from '../../utils/style/colors';
+
 import symbol_resistor from '../../assets/symbol_resistor.png';
 
 import {
@@ -12,7 +14,14 @@ import {
 
 import { symbol } from 'prop-types';
 
-import { CircuitNode, Resistor, Wire } from './JointJSElements';
+import {
+    CircuitNode,
+    Resistor,
+    Wire,
+    AnalyticalInput,
+    AnalyticalOutput,
+    Ground,
+} from './JointJSElements';
 
 // =====================================
 // 7) FONCTIONS UTILES (intersection, panning, zoom, etc.)
@@ -65,7 +74,7 @@ const enablePanning = (paper) => {
 };
 
 const enableZoom = (paper) => {
-    const zoomStep = 0.1;
+    const zoomStep = 0.01;
     const minZoom = 0.5;
     const maxZoom = 2;
 
@@ -139,6 +148,168 @@ function JointJSWorkspace(props) {
             defaultLink: () => new Wire(),
         });
 
+        // Create initial AnalyticalInput
+        const input = new AnalyticalInput();
+        input.position(150, 30);
+        input.addTo(graph);
+
+        // Create initial AnalyticalOutput
+        const output = new AnalyticalOutput();
+        output.position(750, 30);
+        output.addTo(graph);
+
+        // Create initial Ground
+        const ground = new Ground();
+        ground.position(450, 350);
+        ground.addTo(graph);
+
+        // ========== Définition du rotateTool ==========
+        const rotateTool = new joint.elementTools.Button({
+            markup: [
+                {
+                    tagName: 'circle',
+                    selector: 'button',
+                    attributes: {
+                        r: 10,
+                        fill: '#FFFFFF',
+                        stroke: '#000000',
+                        'stroke-width': 2,
+                        cursor: 'pointer',
+                    },
+                },
+                {
+                    tagName: 'text',
+                    textContent: '↻',
+                    selector: 'icon',
+                    attributes: {
+                        fill: '#000000',
+                        'font-size': 14,
+                        'text-anchor': 'middle',
+                        'pointer-events': 'none',
+                        y: '0.3em',
+                    },
+                },
+            ],
+            x: '100%',
+            y: '100%',
+            offset: { x: 0, y: -0 },
+            action: function (evt, elementView, toolView) {
+                elementView.model.rotate(90, false);
+            },
+        });
+
+        // ========== Définition du removeTool ==========
+        const removeTool = new joint.elementTools.Button({
+            markup: [
+                {
+                    tagName: 'circle',
+                    selector: 'button',
+                    attributes: {
+                        r: 10,
+                        fill: colors.tertiary,
+                        stroke: '#000000',
+                        'stroke-width': 2,
+                        cursor: 'pointer',
+                    },
+                },
+                {
+                    tagName: 'text',
+                    textContent: '×', // Vous pouvez mettre n’importe quel caractère
+                    selector: 'icon',
+                    attributes: {
+                        fill: '#ffffff',
+                        'font-size': 14,
+                        'text-anchor': 'middle',
+                        'pointer-events': 'none',
+                        y: '0.3em',
+                    },
+                },
+            ],
+
+            // Position du bouton (en bas à droite ici, par exemple)
+            x: '100%',
+            y: '0%',
+            offset: { x: 0, y: 0 },
+
+            // Action déclenchée au clic : on supprime l’élément.
+            action: function (evt, elementView, toolView) {
+                const element = elementView.model;
+                element.remove();
+            },
+        });
+
+        paper.on('cell:mouseover', (cellView) => {
+            const hoveredId = cellView.model.id;
+            setHoveredElementId(hoveredId);
+        });
+        paper.on('cell:mouseout', (cellView) => {
+            setHoveredElementId(null);
+        });
+        paper.on('cell:pointerclick', (cellView) => {
+            const selectedId = cellView.model.id;
+            setSelectedElementId(selectedId);
+
+            if (cellView.model.isElement()) {
+                // ===============================
+                // Cas : c'est un élément
+                // ===============================
+                const element = cellView.model;
+                if (
+                    element instanceof AnalyticalInput ||
+                    element instanceof AnalyticalOutput
+                ) {
+                    const toolsView = new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Boundary({ padding: 4 }),
+                            rotateTool,
+                        ],
+                    });
+                    cellView.addTools(toolsView);
+                } else {
+                    const toolsView = new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Boundary({ padding: 4 }),
+                            rotateTool,
+                            removeTool,
+                        ],
+                    });
+                    cellView.addTools(toolsView);
+                }
+            } else if (cellView.model.isLink()) {
+                // ===============================
+                // Cas : c'est un lien
+                // ===============================
+
+                // On définit les différents tools pour le lien :
+                const segmentsTool = new joint.linkTools.Segments();
+                const sourceArrowheadTool =
+                    new joint.linkTools.SourceArrowhead();
+                const targetArrowheadTool =
+                    new joint.linkTools.TargetArrowhead();
+                const sourceAnchorTool = new joint.linkTools.SourceAnchor();
+                const targetAnchorTool = new joint.linkTools.TargetAnchor();
+                const boundaryTool = new joint.linkTools.Boundary();
+                const removeToolLink = new joint.linkTools.Remove({
+                    distance: '50%', // optionnel, on peut changer la position du bouton
+                });
+
+                const linkToolsView = new joint.dia.ToolsView({
+                    tools: [
+                        segmentsTool,
+                        sourceArrowheadTool,
+                        targetArrowheadTool,
+                        sourceAnchorTool,
+                        targetAnchorTool,
+                        boundaryTool,
+                        removeToolLink,
+                    ],
+                });
+
+                // On attache ces tools au link cliqué
+                cellView.addTools(linkToolsView);
+            }
+        });
+
         // Exemple : double-clic sur une résistance pour changer la valeur
         paper.on('cell:pointerdblclick', function (cellView) {
             const cell = cellView.model;
@@ -158,19 +329,10 @@ function JointJSWorkspace(props) {
             }
         });
 
-        paper.on('cell:mouseover', (cellView) => {
-            const hoveredId = cellView.model.id;
-            setHoveredElementId(hoveredId);
-        });
-        paper.on('cell:mouseout', (cellView) => {
-            setHoveredElementId(null);
-        });
-        paper.on('cell:pointerclick', (cellView) => {
-            const selectedId = cellView.model.id;
-            setSelectedElementId(selectedId);
-        });
         paper.on('blank:pointerclick', () => {
             setSelectedElementId(null);
+
+            paper.hideTools();
         });
 
         // =====================================
@@ -245,6 +407,10 @@ function JointJSWorkspace(props) {
                 }
             });
         });
+
+        // =================================================
+        // GESTION DU MARKER QUI APPARAÎT SUR LE SURVOL D'UN LIEN
+        // =================================================
 
         setCircuitGraph(graph);
 

@@ -1,35 +1,18 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors';
-
+import { CircuitGraphContext } from '../../utils/context';
 import {
     VscSymbolInterface,
     VscTypeHierarchy,
     VscCircuitBoard,
+    VscDebugStepInto,
+    VscDebugStepOut,
 } from 'react-icons/vsc';
 import ValueEditor from '../ComponentValueEditor';
 import { getUnitFromCellType } from '../../utils/utils';
 
-// Notre fonction de mapping
-function getFrenchNameForCellType(cellType) {
-    if (!cellType) return 'Composant inconnu';
-    const lowerType = cellType.toLowerCase();
-
-    if (lowerType.includes('resistor')) {
-        return 'Résistance';
-    }
-    if (lowerType.includes('aop')) {
-        return 'Amplificateur Opérationnel';
-    }
-    if (lowerType.includes('inductor')) {
-        return 'Inductance';
-    }
-    if (lowerType.includes('capacitor')) {
-        return 'Capacité';
-    }
-
-    return 'Composant générique';
-}
+import LatexComponent from '../LatexComponent';
 
 const StyledListItem = styled.li`
     display: flex;
@@ -54,9 +37,43 @@ const StyledListItem = styled.li`
     `}
 `;
 
-function AnalyticComponentItem(props) {
-    const { cell, isSelected, isHovered, onHover, onUnhover, onClick } = props;
+const StyledItemName = styled.div`
+    font-weight: bold;
+    margin-right: 16px;
+`;
 
+function renderName(cell) {
+    const cellType = cell.get('type');
+    if (
+        cellType !== 'logic.Wire' &&
+        cellType !== 'logic.AOP' &&
+        cellType !== 'logic.AnalyticalInput' &&
+        cellType !== 'logic.AnalyticalOutput' &&
+        cellType !== 'logic.Ground'
+    ) {
+        return (
+            <LatexComponent
+                latex={`${cell.get('symbol')}_${cell.get('number')}`}
+            />
+        );
+    }
+    if (cell.get('type') === 'logic.Wire') {
+        return <p>Branche circuit</p>;
+    } else if (cell.get('type') === 'logic.AOP') {
+        return <p>Amplificateur Opérationnel {cell.get('number')}</p>;
+    } else if (cell.get('type') === 'logic.Ground') {
+        return <p>Potentiel nul</p>;
+    } else if (cell.get('type') === 'logic.AnalyticalInput') {
+        return <p>Entrée analytique</p>;
+    } else if (cell.get('type') === 'logic.AnalyticalOutput') {
+        return <p>Sortie analytique</p>;
+    }
+    return null;
+}
+
+function AnalyticComponentItem(props) {
+    const { cell, isselected, ishovered, onHover, onUnhover, onClick } = props;
+    const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     // Infos basiques
     const cellType = cell.get('type'); // ex: "logic.Resistor"
     const cellId = cell.id;
@@ -72,17 +89,23 @@ function AnalyticComponentItem(props) {
     // Déduction de l’unité en se basant sur le cellType ("Ω", "F", "H", etc.)
     const unit = getUnitFromCellType(cellType);
 
-    // Gestion de l'icône
+    const iconSize = 24;
     const iconToDisplay = isLink ? (
-        <VscSymbolInterface />
+        <VscSymbolInterface size={iconSize} />
     ) : cellType?.includes('CircuitNode') ? (
-        <VscTypeHierarchy />
+        <VscTypeHierarchy size={iconSize} />
+    ) : cellType?.includes('Input') ? (
+        <VscDebugStepInto size={iconSize} />
+    ) : cellType?.includes('Output') ? (
+        <VscDebugStepOut size={iconSize} />
     ) : (
-        <VscCircuitBoard />
+        <VscCircuitBoard size={iconSize} />
     );
 
     // Nom français du composant
-    const frenchName = getFrenchNameForCellType(cellType);
+    //const frenchName = getFrenchNameForCellType(cellType);
+
+    //nom complet du composant
 
     // Callback de mise à jour
     const handleValueChange = (newValueSi) => {
@@ -93,8 +116,8 @@ function AnalyticComponentItem(props) {
 
     return (
         <StyledListItem
-            isSelected={isSelected}
-            isHovered={isHovered}
+            isSelected={isselected}
+            isHovered={ishovered}
             onMouseEnter={() => onHover(cellId)}
             onMouseLeave={() => onUnhover(cellId)}
             onClick={() => onClick(cellId)}
@@ -103,9 +126,9 @@ function AnalyticComponentItem(props) {
             <div style={{ marginRight: '8px' }}>{iconToDisplay}</div>
 
             {/* Nom français du composant */}
-            <div style={{ marginRight: '16px', fontWeight: 'bold' }}>
-                {frenchName}
-            </div>
+            <StyledItemName style={{ marginRight: '16px', fontWeight: 'bold' }}>
+                {renderName(cell)}
+            </StyledItemName>
 
             {/*
                 Condition pour afficher le ValueEditor :
