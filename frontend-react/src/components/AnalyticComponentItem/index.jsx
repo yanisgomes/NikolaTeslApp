@@ -53,7 +53,7 @@ function renderName(cell) {
     ) {
         return (
             <LatexComponent
-                latex={`${cell.get('symbol')}_${cell.get('number')}`}
+                latex={`${cell.get('symbol')}_${cell.getNumber()}`}
             />
         );
     }
