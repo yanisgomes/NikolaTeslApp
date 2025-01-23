@@ -493,7 +493,7 @@ function CircuitInterface() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: {JSON.stringify({
+                    body: JSON.stringify({
                         data: circuitGraph.getCells(),
                     }),
                 }
