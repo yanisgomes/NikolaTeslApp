@@ -1,17 +1,77 @@
 // src/components/AnalyticResolutionPage/index.jsx
 import React, { useContext } from 'react';
-import AnalyticComponentList from '../AnalyticComponentList';
 import styled from 'styled-components';
 
 import ACIButton from './../AnalyticComponentItemButton';
 import { getIconAsUrl } from '../../utils/utils';
 import { VscSymbolOperator } from 'react-icons/vsc';
 
-import { CircuitGraphContext, PaperContext } from '../../utils/context';
+import {
+    CircuitGraphContext,
+    PaperContext,
+    CircuitInteractionContext,
+} from '../../utils/context';
 
-import LatexComponent from '../LatexComponentCard';
+import LatexComponent from '../LatexComponent';
+import { mathJaxOptionsDefault } from '../LatexComponent';
+
+import colors from '../../utils/style/colors';
+
+import AnalyticComponentItem from '../AnalyticComponentItem';
 
 const VscSymbolOperatorUrl = getIconAsUrl(<VscSymbolOperator />);
+
+const PageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 8px;
+`;
+
+const StyledContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    border: 1px solid ${colors.lightGrey2};
+    border-radius: 8px;
+    padding: 8px;
+`;
+
+const ScrollContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    min-height: 20vh;
+    max-height: 25vh;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    &::-webkit-scrollbar {
+        width: 4px; /* Adjust the width to make it extra thin */
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: ${colors.lightGrey2}; /* Customize the thumb color */
+        border-radius: 2px; /* Optional: round the corners */
+    }
+`;
+
+const List = styled.ul`
+    list-style-type: none;
+    padding: 0;
+
+    &::-webkit-scrollbar {
+        width: 4px; /* Adjust the width to make it extra thin */
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: ${colors.primary}; /* Customize the thumb color */
+        border-radius: 2px; /* Optional: round the corners */
+    }
+`;
 
 const TitleContainer = styled.div`
     display: flex;
@@ -19,65 +79,108 @@ const TitleContainer = styled.div`
     justify-content: space-between;
 `;
 
-const AnalyticResolutionContainer = styled.div`
-    padding: 0px;
+const TransferFunctionContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    margin-bottom: 16px;
+
+    overflow-x: hidden;
+    overflow-y: hidden;
+
+    &::-webkit-scrollbar {
+        height: 4px; /* Adjust the width to make it extra thin */
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: ${colors.lightGrey2}; /* Customize the thumb color */
+        border-radius: 2px; /* Optional: round the corners */
+    }
 `;
 
-function CircuitDetails({ data }) {
-    return (
-        <div className="circuit-details">
-            {/* Fonction de transfert */}
-            <h2>Fonction de Transfert</h2>
-            <div className="transfer-function">
-                <LatexComponent
-                    latex={`\\text{H(s)} = ${data.transfer_function}`}
-                />
-            </div>
-
-            {/* Liste des explications et des équations */}
-            <h3>Explications et Équations</h3>
-            <ul className="explanations-list">
-                {data.explanations.map((explanation, index) => (
-                    <li key={index} className="explanation-item">
-                        <p>{explanation}</p>
-                        <LatexComponent latex={data.equations[index]} />
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-}
+const StyledTitle = styled.h5`
+    margin-bottom: 8px;
+    font-weight: bold;
+`;
 
 const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
+    
+    const {
+        hoveredElementId,
+        setHoveredElementId,
+        selectedElementId,
+        setSelectedElementId,
+    } = useContext(CircuitInteractionContext);
+
+    // On récupère toutes les cellules du graphe
+    const cells = circuitGraph.getCells(); // Array of joint.dia.Cell
+
+    const transferFunction = ResolutionResponse?.transfer_function || '';
+    const explanations = ResolutionResponse?.explanations || '';
+    const equations = ResolutionResponse?.equations || '';
     return (
-        <AnalyticResolutionContainer>
+        <PageContainer>
             <TitleContainer>
-                <h2>Résolution détaillée</h2>
+                <h2>Fonction de transfert</h2>
                 <ACIButton
                     onClick={onResolutionSubmit}
                     logoUrl={VscSymbolOperatorUrl}
                     size="40px"
                 />
             </TitleContainer>
-            <div
-                style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    marginTop: '8px',
-                    height: '25vh',
-                }}
-            >
-                <p>
-                    Voici l’expression de la fonction de transfert du circuit :
-                </p>
-                <CircuitDetails data={ResolutionResponse} />
-            </div>
 
-            <AnalyticComponentList />
-        </AnalyticResolutionContainer>
+            <TransferFunctionContainer>
+                <LatexComponent
+                    latex={`\\Large{H(s) = ${transferFunction}}`}
+                />
+            </TransferFunctionContainer>
+
+            <StyledContainer>
+                <StyledTitle>Équations</StyledTitle>
+                {explanations.length > 0 ? (<ScrollContainer>
+                    {/* Liste des explications et des équations */}
+
+                    <ul>
+                        {explanations.map(
+                            (explanation, index) => (
+                                <li key={index}>
+                                    <p>{explanation}</p>
+                                    <LatexComponent
+                                        latex={
+                                            equations[index]  || ''
+                                        }
+                                    />
+                                </li>
+                            )
+                        )}
+                    </ul>
+                </ScrollContainer>) : (<p>Circuit non résolu</p>)}
+            </StyledContainer>
+
+            <StyledContainer>
+                <StyledTitle>Circuit</StyledTitle>
+                <ScrollContainer>
+                    <List>
+                        {cells.map((cell) => (
+                            <AnalyticComponentItem
+                                key={cell.id}
+                                cell={cell}
+                                isselected={cell.id === selectedElementId}
+                                ishovered={cell.id === hoveredElementId}
+                                onHover={() => setHoveredElementId(cell.id)}
+                                onUnhover={() => setHoveredElementId(null)}
+                                onClick={() => setSelectedElementId(cell.id)}
+                            />
+                        ))}
+                    </List>
+                </ScrollContainer>
+                
+            </StyledContainer>
+            
+        </PageContainer>
     );
 };
 

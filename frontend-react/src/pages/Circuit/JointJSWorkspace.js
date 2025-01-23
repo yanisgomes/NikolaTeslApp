@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import styled from 'styled-components';
 
 import colors from '../../utils/style/colors';
+import { getSmallestUnusedNameIndex } from '../../utils/hooks';
 
 import symbol_resistor from '../../assets/symbol_resistor.png';
 
@@ -37,7 +38,8 @@ function getIntersection(p1, p2, p3, p4) {
         ((p1.y - p2.y) * (p4.x - p1.x) - (p1.x - p2.x) * (p4.y - p1.y)) / det;
 
     // On vérifie que l'intersection se fait entre 0 et 1 sur les deux segments
-    if (lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1) {
+    // CHANGER LA SENSIBILITE EN JOUANT SUR LES SEUILS
+    if (lambda > 0 && lambda < 1.0 && gamma > 0 && gamma < 1.0) {
         return {
             x: p1.x + lambda * (p2.x - p1.x),
             y: p1.y + lambda * (p2.y - p1.y),
@@ -89,6 +91,97 @@ const enableZoom = (paper) => {
     });
 };
 
+// Convertir un lien (de type manhatan) en segments
+/*
+const getSegments = (wire) => {
+
+    const target = wire.get('target');
+    // On ne fait quelque chose que si la cible est un "point libre" (pas un id déjà existant)
+    if (!target || target.id) return;
+
+    const sourceCoords = wire.source().id
+        ? wire.graph.getCell(wire.source().id).position()
+        : wire.source();
+    const targetCoords = target; // position x,y
+
+    const vertices = wire.vertices();
+
+    console.log("vertices", vertices,"source", sourceCoords, "target", targetCoords);
+    // Convertir les points en segments
+    const points = [
+        { x: sourceCoords.x, y: sourceCoords.y },
+        ...vertices,
+        { x: targetCoords.x, y: targetCoords.y },
+    ];
+
+    const segments = [];
+    for (let i = 0; i < points.length - 1; i++) {
+        segments.push({ p1: points[i], p2: points[i + 1] });
+    }
+    return segments;
+};*/
+/*
+function getSegments(wire) {
+    const router = wire.get('router');
+    console.log(router);
+    
+    const paths = router.args.paths;
+    const segments = [];
+    
+    for (let i = 1; i < paths.length; i++) {
+        segments.push({
+            start: paths[i - 1],
+            end: paths[i]
+        });
+    }
+    
+    return segments;
+}*/
+
+function getSegments(link, paper) {
+    // Obtenir le chemin SVG du lien
+    const linkElement = link.findView(paper).el;
+    const pathData = linkElement.querySelector('path').getAttribute('d');
+    
+    // Analyser le chemin (parsing des commandes SVG)
+    const coordinates = [];
+    const pathCommands = pathData.split(/(?=[A-Za-z])/); // Divise la chaîne en commandes SVG (M, L, etc.)
+
+    let currentPosition = { x: 0, y: 0 };
+
+    pathCommands.forEach(command => {
+        const type = command[0];
+        const args = command.slice(1).trim().split(/[\s,]+/).map(Number);
+
+        if (type === 'M') { // Move to
+            currentPosition = { x: args[0], y: args[1] };
+        } else if (type === 'L') { // Line to
+            const newPoint = { x: args[0], y: args[1] };
+            coordinates.push({ start: currentPosition, end: newPoint });
+            currentPosition = newPoint;
+        } // Vous pouvez ajouter d'autres types de commandes si nécessaire
+    });
+    return coordinates;
+}
+
+// Vérifier si deux wires s'intersectent
+function wiresIntersect(wire1, wire2, paper) {
+    const segments1 = getSegments(wire1, paper);
+    const segments2 = getSegments(wire2, paper);
+    console.log("segment1", segments1, "segment2",segments2);
+    // Tester chaque paire de segments
+    if (segments1 !== undefined && segments2 !== undefined) {
+        for (const segment1 of segments1) {
+            for (const segment2 of segments2) {
+                if (getIntersection(segment1.start, segment1.end, segment2.start, segment2.end)) {
+                    return getIntersection(segment1.start, segment1.end, segment2.start, segment2.end); // Intersection trouvée
+                }
+            }
+        }
+    };
+    return false; // Aucune intersection
+}
+
 // =====================================
 // 8) CRÉATION DU NŒUD (via CircuitNode)
 // =====================================
@@ -97,6 +190,8 @@ function createNode(graph, position) {
     const node = new CircuitNode();
     node.position(position.x, position.y);
     node.resize(20, 20);
+    const newNumber = getSmallestUnusedNameIndex(graph, node.getSymbol());
+    node.setNumber(newNumber);
 
     // Optionnel: donner un nom (ex. un identifiant unique ou "N1", "N2", etc.)
     // node.setName('Nœud');
@@ -339,6 +434,7 @@ function JointJSWorkspace(props) {
         // LOGIQUE DE CRÉATION AUTOMATIQUE DES NŒUDS
         // =====================================
         // Quand la cible d'un lien change, on vérifie les intersections
+
         graph.on('change:target', function (link) {
             const target = link.get('target');
             // On ne fait quelque chose que si la cible est un "point libre" (pas un id déjà existant)
@@ -360,12 +456,18 @@ function JointJSWorkspace(props) {
                     ? graph.getCell(otherLink.target().id).position()
                     : otherLink.target();
 
+                /*
                 const intersection = getIntersection(
                     sourcePosition,
                     targetPosition,
                     otherSourcePosition,
                     otherTargetPosition
-                );
+                );*/
+
+                
+                const intersection = wiresIntersect(link, otherLink, paper);
+                console.log(intersection);
+                
 
                 if (intersection) {
                     // On regarde si un nœud existe déjà près de l'intersection

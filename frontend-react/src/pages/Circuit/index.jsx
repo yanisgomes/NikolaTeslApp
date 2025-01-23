@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
+import { getSmallestUnusedNameIndex } from '../../utils/hooks';
 
 import './logic.css';
 
@@ -46,6 +47,7 @@ import PhaseToolbox from '../../components/PhaseToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
+/*
 let ResolutionResponse = {
     auteur: 'Basile',
     bode_data: {
@@ -91,7 +93,7 @@ let ResolutionResponse = {
     transfer_function:
         '\\frac{C_{2} L_{1} R_{1} p^{2}}{C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + L_{1} p + R_{1}}',
 };
-
+*/
 /********************************************
  *           STYLED COMPONENTS
  ********************************************/
@@ -145,33 +147,6 @@ function useNetlist() {
     };
 
     return { netlist, addComponent, removeComponentById, setNetlist };
-}
-
-function getSmallestUnusedNameIndex(graph, symbol) {
-    // Retrieve all elements in the graph
-    const elements = graph.getElements();
-
-    // Extract the indices from names of elements with the same symbol
-    const usedIndices = elements
-        .filter((element) => element.getSymbol() === symbol) // Match symbol
-        .map((element) => {
-            const number = element.getNumber();
-            return number;
-        })
-        .filter((index) => index !== null) // Remove null values
-        .sort((a, b) => a - b); // Sort in ascending order
-
-    // Find the smallest missing integer
-    let smallestUnused = 0; // Start from 0
-    for (const index of usedIndices) {
-        if (index === smallestUnused) {
-            smallestUnused++;
-        } else {
-            break; // Exit early when the gap is found
-        }
-    }
-
-    return smallestUnused;
 }
 
 function CircuitInterface() {
@@ -420,12 +395,15 @@ function CircuitInterface() {
 
     const [bodeResponse, setBodeResponse] = useState(null);
     const [temporalResponse, setTemporalResponse] = useState(null);
+    const [ResolutionResponse, setResolutionResponse] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
 
         try {
             //const response = await fetch(`http://127.0.0.1:5000/solver/equation/1?data=${encodeURIComponent(JSON.stringify(circuitGraph.getCells()))}`, {
+            console.log(circuitGraph.getCells());
+            /*
             const response = await fetch(
                 `http://127.0.0.1:5000/solver/bode/1?i=2&o=1&data=${encodeURIComponent(
                     JSON.stringify(circuitGraph.getCells())
@@ -435,6 +413,19 @@ function CircuitInterface() {
                     headers: {
                         'Content-Type': 'application/json', // Utile si le serveur attend du JSON
                     },
+                }
+            );*/
+
+            const response = await fetch(
+                `http://127.0.0.1:5000/config/io-numeric/1`, 
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json', 
+                    },
+                    body: JSON.stringify({
+                        data: circuitGraph.getCells(), 
+                    }), 
                 }
             );
 
@@ -451,12 +442,13 @@ function CircuitInterface() {
             if (!response.ok) {
                 throw new Error('Erreur lors de l’envoi des données');
             }
-
             const result = await response.json();
             console.log(result); // Réponse du backend
             alert('Données envoyées avec succès');
+            setBodeResponse(result["bode_data"]);
+            setTemporalResponse(result['step_data']);
+            setResolutionResponse(result);
 
-            setBodeResponse(result['bode response']);
         } catch (error) {
             console.error(error);
             alert('Erreur lors de l’envoi des données');
@@ -476,7 +468,7 @@ function CircuitInterface() {
         },
         {
             name: 'Réponse temporelle',
-            content: <TemporalToolbox />,
+            content: <TemporalToolbox timeData={temporalResponse} />,
         },
         {
             name: 'Réponse fréquentielle',
@@ -527,11 +519,11 @@ function CircuitInterface() {
                         <TabbedMenu pages={topMenuPages} theme={theme} />
 
                         <JointWorkspaceContainer>
+                            <h2>Yo !</h2>
                             <JointJSWorkspace
                                 onDrop={handleDrop}
                                 onDragOver={handleDragOver}
                             />
-                            {/*<JointJSWorkspace />*/}
                         </JointWorkspaceContainer>
                     </MainVerticalContainer>
                 </MainHorizontalContainer>
