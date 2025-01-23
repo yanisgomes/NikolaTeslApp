@@ -61,6 +61,13 @@ const StyledGlobalStyle = createGlobalStyle`
         background-color: ${({ isDarkMode }) =>
             isDarkMode ? colors.darkBackground : colors.lightBackground};
     }
+    h5 {
+        font-family: ${fonts.mainFont};
+        color: ${({ isDarkMode }) =>
+            isDarkMode ? colors.darkText : colors.lightText};
+        background-color: ${({ isDarkMode }) =>
+            isDarkMode ? colors.darkBackground : colors.lightBackground};
+    }
     span {
         font-family: ${fonts.mainFont};
         color: ${({ isDarkMode }) =>
