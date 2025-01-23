@@ -7,6 +7,7 @@ from parser123 import Parser
 from circuit import Circuit
 from simulator import Simulator
 import json
+from LLMcall import *
 
 solver_bp = Blueprint('solver', __name__, url_prefix='/solver')
 
@@ -531,6 +532,9 @@ def update_circuit_io_numeric(circuit_id):
 
     db.session.commit()
 
+    prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations, solver.explanations)
+    response = query_LLM(prompt)
+
     return jsonify({
         "message": "Circuit updated (basic).",
         "id": circuit_db.id,
@@ -545,5 +549,6 @@ def update_circuit_io_numeric(circuit_id):
         "solutions": json.loads(circuit_db.solutions),
         "transfer_function": circuit_db.transfer_function,
         "bode_data": json.loads(circuit_db.bode_data) if circuit_db.bode_data else None,
-        "step_data": json.loads(circuit_db.step_data) if circuit_db.step_data else None
+        "step_data": json.loads(circuit_db.step_data) if circuit_db.step_data else None,
+        "LLM_response": response
     }), 200
