@@ -92,14 +92,14 @@
 }
 
 .joint-element circle {
-    fill: #fff;
+    fill: #000;
     stroke: #000;
     stroke-opacity: 0;
     stroke-width: 1px;
 }
 
 .joint-element:hover circle {
-    fill: #fff;
+    fill: #000;
     stroke: #000;
     stroke-opacity: 1;
     stroke-width: 2px;

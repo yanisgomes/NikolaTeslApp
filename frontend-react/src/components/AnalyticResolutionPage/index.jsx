@@ -131,7 +131,7 @@ const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
 
             <TransferFunctionContainer>
                 <LatexComponent
-                    latex={`\\Large{H(s) = ${ResolutionResponse.transfer_function}}`}
+                    latex={`\\Large{H(p) = \frac{S(p)}{E(p)} = ${ResolutionResponse.transfer_function}}`}
                 />
             </TransferFunctionContainer>
 

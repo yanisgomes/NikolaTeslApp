@@ -74,22 +74,6 @@ const enablePanning = (paper) => {
     });
 };
 
-const enableZoom = (paper) => {
-    const zoomStep = 0.01;
-    const minZoom = 0.5;
-    const maxZoom = 2;
-
-    paper.on('blank:mousewheel', (evt, x, y, delta) => {
-        const currentScale = paper.scale();
-        const newScale = Math.min(
-            Math.max(currentScale.sx + delta * zoomStep, minZoom),
-            maxZoom
-        );
-        // Zoom autour du pointeur
-        paper.scale(newScale, newScale, x, y);
-    });
-};
-
 // =====================================
 // 8) CRÉATION DU NŒUD (via CircuitNode)
 // =====================================
@@ -418,7 +402,6 @@ function JointJSWorkspace(props) {
         setCircuitGraph(graph);
 
         // Active le zoom et le panning
-        enableZoom(paper);
         enablePanning(paper);
 
         setPaper(paper);

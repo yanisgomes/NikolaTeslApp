@@ -15,7 +15,7 @@ const Container = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
-    max-height: 300px;
+    max-height: 320px;
 `;
 
 const ToolboxHeaderContainer = styled.div`
@@ -34,7 +34,7 @@ const FilterSelect = styled.select`
     font-size: 16px;
     padding: 8px 8px;
     border: 1px solid ${colors.lightGrey2};
-    border-radius: 6px;
+    border-radius: 8px;
     background-color: ${colors.backgroundLight};
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 
@@ -56,6 +56,7 @@ const FilterSelect = styled.select`
  */
 const ScrollWrapper = styled.div`
     padding-top: 8px;
+    padding-bottom: 8px;
     width: 97vh;
     overflow-x: auto;
     &::-webkit-scrollbar {

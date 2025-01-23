@@ -37,6 +37,7 @@ import symbol_voltmeter from '../../assets/symbol_voltmeter.png';
 import symbol_amperometer from '../../assets/symbol_amperometer.png';
 
 import Header from '../../components/Header';
+import ACIButton from '../../components/AnalyticComponentItemButton';
 import TabbedMenu from '../../components/TabbedMenu/';
 import CircuitToolbar from '../../components/CircuitToolbar';
 import ChatInterface from '../../components/ChatInterface';
@@ -46,6 +47,9 @@ import FrequentialToolbox from '../../components/FrequentialToolbox';
 import PhaseToolbox from '../../components/PhaseToolbox';
 
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
+
+import { getIconAsUrl } from '../../utils/utils';
+import { VscZoomIn, VscZoomOut } from 'react-icons/vsc';
 
 let ResolutionResponse = {
     auteur: 'Basile',
@@ -130,6 +134,39 @@ const JointWorkspaceContainer = styled.div`
     border-radius: 16px;
     padding: 8px;
     border: 1px solid ${colors.lightGrey2};
+`;
+
+const CircuitToolbarContainer = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 8px;
+`;
+
+const CircuitToolbarButtonContainer = styled.div`
+    display: flex;
+    gap: 8px;
+`;
+
+const StyledInput = styled.input`
+    font-size: 2em;
+    font-weight: bold;
+    color: ${colors.lightText};
+    border: 1px solid ${colors.lightBackground};
+
+    border-radius: 8px;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    outline: none;
+
+    &:hover {
+        border-color: ${colors.lightGrey2};
+    }
+
+    &:focus {
+        border-color: ${colors.primary};
+        box-shadow: 0 0 5px ${colors.primary};
+    }
 `;
 
 function useNetlist() {
@@ -261,6 +298,39 @@ function CircuitInterface() {
     // Sélection / Survol
     const [selectedItemId, setSelectedItemId] = useState(null);
     const [hoveredItemId, setHoveredItemId] = useState(null);
+
+    const changeScale = (delta) => {
+        const zoomStep = 0.02;
+        const minZoom = 0.5;
+        const maxZoom = 2;
+        const currentScale = paper.scale();
+        const newScale = Math.min(
+            Math.max(currentScale.sx + delta * zoomStep, minZoom),
+            maxZoom
+        );
+
+        // Calculate the barycenter of the elements on the paper
+        const elements = paper.model.getElements();
+        if (elements.length === 0) return;
+
+        const bbox = elements.reduce(
+            (acc, el) => acc.union(el.getBBox()),
+            elements[0].getBBox()
+        );
+
+        const bary_x = bbox.x;
+        const bary_y = bbox.y;
+
+        paper.scale(newScale, newScale, bary_x, bary_y);
+    };
+
+    const handleZoomIn = () => {
+        changeScale(5);
+    };
+
+    const handleZoomOut = () => {
+        changeScale(-5);
+    };
 
     // GESTION DU DRAG & DROP
     const handleDrop = (e) => {
@@ -502,7 +572,24 @@ function CircuitInterface() {
                         <TabbedMenu pages={topMenuPages} theme={theme} />
 
                         <JointWorkspaceContainer>
-                            <h2>Yo !</h2>
+                            <CircuitToolbarContainer>
+                                <StyledInput
+                                    type="text"
+                                    placeholder="Nom du circuit"
+                                />
+                                <CircuitToolbarButtonContainer>
+                                    <ACIButton
+                                        onClick={handleZoomIn}
+                                        logoUrl={getIconAsUrl(<VscZoomIn />)}
+                                        size="40px"
+                                    />
+                                    <ACIButton
+                                        onClick={handleZoomOut}
+                                        logoUrl={getIconAsUrl(<VscZoomOut />)}
+                                        size="40px"
+                                    />
+                                </CircuitToolbarButtonContainer>
+                            </CircuitToolbarContainer>
                             <JointJSWorkspace
                                 onDrop={handleDrop}
                                 onDragOver={handleDragOver}
