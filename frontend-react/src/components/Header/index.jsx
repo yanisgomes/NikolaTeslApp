@@ -11,13 +11,7 @@ const StyledHeader = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 0;
-
-    border-bottom: 2px solid
-        ${(props) =>
-            props.theme === 'dark'
-                ? colors.lightBackground
-                : colors.darkBackground};
+    padding: 4px 24px;
 `;
 
 const StyledImage = styled.img`
@@ -68,9 +62,7 @@ const TitleWrapper = styled.div`
 
 const TitleApp = styled.h2`
     color: ${(props) =>
-        props.theme === 'light'
-            ? colors.darkBackgroundSecondary
-            : colors.backgroundLight};
+        props.theme === 'light' ? colors.lightText : colors.backgroundLight};
 `;
 
 const ButtonWrapper = styled.div`
@@ -98,9 +90,6 @@ function Header() {
                     </StyledLink>
                     <StyledLink to="/galerie/" theme={theme}>
                         Galerie
-                    </StyledLink>
-                    <StyledLink to="/freelances" theme={theme}>
-                        Profils
                     </StyledLink>
                     <StyledLink to="/circuit/" theme={theme} $isFullLink>
                         Créer un circuit
