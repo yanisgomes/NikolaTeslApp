@@ -106,7 +106,7 @@ const StyledTitle = styled.h5`
 
 const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
-    const { paper, setCircuitPaper } = useContext(PaperContext);
+    const { paper, setPaper } = useContext(PaperContext);
 
     const {
         hoveredElementId,
@@ -118,6 +118,9 @@ const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
     // On récupère toutes les cellules du graphe
     const cells = circuitGraph.getCells(); // Array of joint.dia.Cell
 
+    const transferFunction = ResolutionResponse?.transfer_function || '';
+    const explanations = ResolutionResponse?.explanations || '';
+    const equations = ResolutionResponse?.equations || '';
     return (
         <PageContainer>
             <TitleContainer>
@@ -130,31 +133,29 @@ const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
             </TitleContainer>
 
             <TransferFunctionContainer>
-                <LatexComponent
-                    latex={`\\Large{H(p) = \frac{S(p)}{E(p)} = ${ResolutionResponse.transfer_function}}`}
-                />
+                <LatexComponent latex={`\\Large{H(s) = ${transferFunction}}`} />
             </TransferFunctionContainer>
 
             <StyledContainer>
                 <StyledTitle>Équations</StyledTitle>
-                <ScrollContainer>
-                    {/* Liste des explications et des équations */}
+                {explanations.length > 0 ? (
+                    <ScrollContainer>
+                        {/* Liste des explications et des équations */}
 
-                    <ul>
-                        {ResolutionResponse.explanations.map(
-                            (explanation, index) => (
+                        <ul>
+                            {explanations.map((explanation, index) => (
                                 <li key={index}>
                                     <p>{explanation}</p>
                                     <LatexComponent
-                                        latex={
-                                            ResolutionResponse.equations[index]
-                                        }
+                                        latex={equations[index] || ''}
                                     />
                                 </li>
-                            )
-                        )}
-                    </ul>
-                </ScrollContainer>
+                            ))}
+                        </ul>
+                    </ScrollContainer>
+                ) : (
+                    <p>Circuit non résolu</p>
+                )}
             </StyledContainer>
 
             <StyledContainer>

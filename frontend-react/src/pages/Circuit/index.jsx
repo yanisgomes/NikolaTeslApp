@@ -51,6 +51,10 @@ import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; //
 import { getIconAsUrl } from '../../utils/utils';
 import { VscZoomIn, VscZoomOut } from 'react-icons/vsc';
 
+import { getIconAsUrl } from '../../utils/utils';
+import { VscZoomIn, VscZoomOut } from 'react-icons/vsc';
+
+/*
 let ResolutionResponse = {
     auteur: 'Basile',
     bode_data: {
@@ -96,7 +100,7 @@ let ResolutionResponse = {
     transfer_function:
         '\\frac{C_{2} L_{1} R_{1} p^{2}}{C_{1} L_{1} R_{1} p^{2} + C_{2} L_{1} R_{1} p^{2} + L_{1} p + R_{1}}',
 };
-
+*/
 /********************************************
  *           STYLED COMPONENTS
  ********************************************/
@@ -464,6 +468,7 @@ function CircuitInterface() {
 
     const [bodeResponse, setBodeResponse] = useState(null);
     const [temporalResponse, setTemporalResponse] = useState(null);
+    const [ResolutionResponse, setResolutionResponse] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // Empêche le rechargement de la page
@@ -471,6 +476,7 @@ function CircuitInterface() {
         try {
             //const response = await fetch(`http://127.0.0.1:5000/solver/equation/1?data=${encodeURIComponent(JSON.stringify(circuitGraph.getCells()))}`, {
             console.log(circuitGraph.getCells());
+            /*
             const response = await fetch(
                 `http://127.0.0.1:5000/solver/bode/1?i=2&o=1&data=${encodeURIComponent(
                     JSON.stringify(circuitGraph.getCells())
@@ -480,6 +486,19 @@ function CircuitInterface() {
                     headers: {
                         'Content-Type': 'application/json', // Utile si le serveur attend du JSON
                     },
+                }
+            );*/
+
+            const response = await fetch(
+                `http://127.0.0.1:5000/config/io-numeric/1`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        data: circuitGraph.getCells(),
+                    }),
                 }
             );
 
@@ -496,12 +515,12 @@ function CircuitInterface() {
             if (!response.ok) {
                 throw new Error('Erreur lors de l’envoi des données');
             }
-
             const result = await response.json();
             console.log(result); // Réponse du backend
             alert('Données envoyées avec succès');
-
-            setBodeResponse(result['bode response']);
+            setBodeResponse(result['bode_data']);
+            setTemporalResponse(result['step_data']);
+            setResolutionResponse(result);
         } catch (error) {
             console.error(error);
             alert('Erreur lors de l’envoi des données');
@@ -521,7 +540,7 @@ function CircuitInterface() {
         },
         {
             name: 'Réponse temporelle',
-            content: <TemporalToolbox />,
+            content: <TemporalToolbox timeData={temporalResponse} />,
         },
         {
             name: 'Réponse fréquentielle',

@@ -14,12 +14,7 @@ import sys
 
 netlist = '''
 * https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
-Vin 3 0 Symbolic      
-R 3 2 1000
-R 1 0 1000
-C1 1 0 1u
-C2 2 1 10u
-L1 1 0 0.001
+R0 1 3 100\nL0 2 1 0.001\nC0 0 1 0.001\n Vin 3 0
 .end
 '''
 # Parse the netlist

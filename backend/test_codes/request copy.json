@@ -1,0 +1,366 @@
+[
+    {
+        \"type\": \"logic.AnalyticalInput\",
+        \"size\": {
+            \"width\": 40,
+            \"height\": 40
+        },
+        \"ports\": {
+            \"items\": [
+                {
+                    \"group\": \"singlePort\",
+                    \"id\": \"port\"
+                }
+            ],
+            \"groups\": {
+                \"singlePort\": {
+                    \"position\": {
+                        \"name\": \"bottom\",
+                        \"args\": {
+                            \"x\": \"50%\"
+                        }
+                    },
+                    \"attrs\": {
+                        \"circle\": {
+                            \"magnet\": true,
+                            \"fill\": \"transparent\",
+                            \"r\": 4
+                        }
+                    }
+                }
+            }
+        },
+        \"name\": \"Composant\",
+        \"symbol\": \"*\",
+        \"number\": 0,
+        \"position\": {
+            \"x\": 150,
+            \"y\": 30
+        },
+        \"angle\": 0,
+        \"id\": \"c5bd5dc9-4d09-4f13-8bf7-cd4ddec82483\",
+        \"z\": 1,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.AnalyticalOutput\",
+        \"size\": {
+            \"width\": 40,
+            \"height\": 40
+        },
+        \"ports\": {
+            \"items\": [
+                {
+                    \"group\": \"singlePort\",
+                    \"id\": \"port\"
+                }
+            ],
+            \"groups\": {
+                \"singlePort\": {
+                    \"position\": {
+                        \"name\": \"bottom\",
+                        \"args\": {
+                            \"x\": \"50%\"
+                        }
+                    },
+                    \"attrs\": {
+                        \"circle\": {
+                            \"magnet\": true,
+                            \"fill\": \"transparent\",
+                            \"r\": 4
+                        }
+                    }
+                }
+            }
+        },
+        \"name\": \"Composant\",
+        \"symbol\": \"*\",
+        \"number\": 0,
+        \"position\": {
+            \"x\": 750,
+            \"y\": 30
+        },
+        \"angle\": 0,
+        \"id\": \"21e95736-7c78-4918-b241-ce19d212772d\",
+        \"z\": 2,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.Ground\",
+        \"size\": {
+            \"width\": 40,
+            \"height\": 40
+        },
+        \"ports\": {
+            \"items\": [
+                {
+                    \"group\": \"singlePort\",
+                    \"id\": \"port\"
+                }
+            ],
+            \"groups\": {
+                \"singlePort\": {
+                    \"position\": {
+                        \"name\": \"top\",
+                        \"args\": {
+                            \"x\": \"50%\"
+                        }
+                    },
+                    \"attrs\": {
+                        \"circle\": {
+                            \"magnet\": true,
+                            \"fill\": \"transparent\",
+                            \"r\": 4
+                        }
+                    }
+                }
+            }
+        },
+        \"name\": \"Composant\",
+        \"symbol\": \"*\",
+        \"number\": 0,
+        \"position\": {
+            \"x\": 450,
+            \"y\": 350
+        },
+        \"angle\": 0,
+        \"id\": \"98f05fa4-d948-4a43-9f1f-5cd2849da627\",
+        \"z\": 3,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.Resistor\",
+        \"size\": {
+            \"width\": 60,
+            \"height\": 35
+        },
+        \"value\": 100,
+        \"symbol\": \"R\",
+        \"name\": \"Composant\",
+        \"number\": 0,
+        \"position\": {
+            \"x\": 300,
+            \"y\": 160
+        },
+        \"angle\": 0,
+        \"id\": \"8a830ddf-60b2-494e-b073-d6ff44f455fd\",
+        \"z\": 4,
+        \"attrs\": {
+            \"label\": {
+                \"text\": \"Valeur: 100 Ω\"
+            }
+        }
+    },
+    {
+        \"type\": \"logic.Inductor\",
+        \"size\": {
+            \"width\": 100,
+            \"height\": 40
+        },
+        \"value\": 0.001,
+        \"symbol\": \"L\",
+        \"name\": \"Composant\",
+        \"number\": 0,
+        \"position\": {
+            \"x\": 620,
+            \"y\": 140
+        },
+        \"angle\": 0,
+        \"id\": \"582a7d66-3eec-4ea1-a840-096566b74772\",
+        \"z\": 5,
+        \"attrs\": {
+            \"label\": {
+                \"text\": \"Valeur: 1 H\"
+            }
+        }
+    },
+    {
+        \"type\": \"logic.Capacitor\",
+        \"size\": {
+            \"width\": 70,
+            \"height\": 80
+        },
+        \"value\": 0.001,
+        \"symbol\": \"C\",
+        \"name\": \"Composant\",
+        \"number\": 0,
+        \"position\": {
+            \"x\": 440,
+            \"y\": 220
+        },
+        \"angle\": 90,
+        \"id\": \"802c4c32-47a8-4728-a1fb-79412e8696e7\",
+        \"z\": 6,
+        \"attrs\": {
+            \"label\": {
+                \"text\": \"Valeur: 1 F\"
+            }
+        }
+    },
+    {
+        \"type\": \"logic.Wire\",
+        \"name\": \"fil\",
+        \"router\": {
+            \"name\": \"manhattan\"
+        },
+        \"connector\": {
+            \"name\": \"normal\",
+            \"args\": {
+                \"radius\": 4
+            }
+        },
+        \"source\": {
+            \"id\": \"8a830ddf-60b2-494e-b073-d6ff44f455fd\",
+            \"port\": \"out\",
+            \"selector\": \"> g:nth-child(1) > circle:nth-child(3)\"
+        },
+        \"target\": {
+            \"id\": \"543ea9e4-06bb-4ca3-a30f-2adeb5356fe8\"
+        },
+        \"id\": \"56a99d51-32c3-45f2-929f-e593783daa7b\",
+        \"z\": 7,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.Wire\",
+        \"name\": \"fil\",
+        \"router\": {
+            \"name\": \"manhattan\"
+        },
+        \"connector\": {
+            \"name\": \"normal\",
+            \"args\": {
+                \"radius\": 4
+            }
+        },
+        \"source\": {
+            \"id\": \"582a7d66-3eec-4ea1-a840-096566b74772\",
+            \"port\": \"out\",
+            \"selector\": \"> g:nth-child(1) > circle:nth-child(3)\"
+        },
+        \"target\": {
+            \"id\": \"21e95736-7c78-4918-b241-ce19d212772d\",
+            \"magnet\": \"circle\",
+            \"port\": \"port\"
+        },
+        \"id\": \"68bac846-aac8-4087-aa27-6a2f51da983c\",
+        \"z\": 8,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.Wire\",
+        \"name\": \"fil\",
+        \"router\": {
+            \"name\": \"manhattan\"
+        },
+        \"connector\": {
+            \"name\": \"normal\",
+            \"args\": {
+                \"radius\": 4
+            }
+        },
+        \"source\": {
+            \"id\": \"8a830ddf-60b2-494e-b073-d6ff44f455fd\",
+            \"port\": \"in\",
+            \"selector\": \"> g:nth-child(1) > circle:nth-child(2)\"
+        },
+        \"target\": {
+            \"id\": \"c5bd5dc9-4d09-4f13-8bf7-cd4ddec82483\",
+            \"magnet\": \"circle\",
+            \"port\": \"port\"
+        },
+        \"id\": \"0dbdbe0d-eaef-4e4a-af32-4f6aaec9d0be\",
+        \"z\": 9,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.Wire\",
+        \"name\": \"fil\",
+        \"router\": {
+            \"name\": \"manhattan\"
+        },
+        \"connector\": {
+            \"name\": \"normal\",
+            \"args\": {
+                \"radius\": 4
+            }
+        },
+        \"source\": {
+            \"id\": \"802c4c32-47a8-4728-a1fb-79412e8696e7\",
+            \"port\": \"out\",
+            \"selector\": \"> g:nth-child(1) > circle:nth-child(3)\"
+        },
+        \"target\": {
+            \"id\": \"98f05fa4-d948-4a43-9f1f-5cd2849da627\",
+            \"magnet\": \"circle\",
+            \"port\": \"port\"
+        },
+        \"id\": \"1e46d6e2-496d-4de2-b858-2547239ba670\",
+        \"z\": 10,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.Wire\",
+        \"name\": \"fil\",
+        \"router\": {
+            \"name\": \"manhattan\"
+        },
+        \"connector\": {
+            \"name\": \"normal\",
+            \"args\": {
+                \"radius\": 4
+            }
+        },
+        \"source\": {
+            \"id\": \"802c4c32-47a8-4728-a1fb-79412e8696e7\",
+            \"port\": \"in\",
+            \"selector\": \"> g:nth-child(1) > circle:nth-child(2)\"
+        },
+        \"target\": {
+            \"id\": \"543ea9e4-06bb-4ca3-a30f-2adeb5356fe8\"
+        },
+        \"id\": \"b09d7201-33df-46ec-b6f0-24cf1e9cf8d9\",
+        \"z\": 11,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.CircuitNode\",
+        \"name\": \"\",
+        \"size\": {
+            \"width\": 20,
+            \"height\": 20
+        },
+        \"position\": {
+            \"x\": 460,
+            \"y\": 160
+        },
+        \"angle\": 0,
+        \"id\": \"543ea9e4-06bb-4ca3-a30f-2adeb5356fe8\",
+        \"z\": 12,
+        \"attrs\": {}
+    },
+    {
+        \"type\": \"logic.Wire\",
+        \"name\": \"fil\",
+        \"router\": {
+            \"name\": \"manhattan\"
+        },
+        \"connector\": {
+            \"name\": \"normal\",
+            \"args\": {
+                \"radius\": 4
+            }
+        },
+        \"source\": {
+            \"id\": \"543ea9e4-06bb-4ca3-a30f-2adeb5356fe8\"
+        },
+        \"target\": {
+            \"id\": \"582a7d66-3eec-4ea1-a840-096566b74772\",
+            \"port\": \"in\",
+            \"selector\": \"> g:nth-child(1) > circle:nth-child(2)\"
+        },
+        \"id\": \"61be27a1-42fa-474e-a621-07705591a8a1\",
+        \"z\": 13,
+        \"attrs\": {}
+    }
+]

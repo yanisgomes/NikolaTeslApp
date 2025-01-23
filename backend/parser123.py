@@ -25,7 +25,7 @@ class Parser:
     @staticmethod
     def json_to_netlist(json_data):
         """
-        Converts the JSON data to a netlist string.
+        Converts the JSON data of PUT incoming requests to a netlist string.
 
         Args:
             json_data (dict): The JSON data to be converted.
@@ -40,12 +40,12 @@ class Parser:
             if isinstance(json_data, str):
                 json_data = json.loads(json_data)
 
-            link_dict, noeud_dict, components_dict = Parser.extract_dictionaries(json_data)
-            # Preprocess link_dict to split component-to-component links
-            new_links, noeud_dict = Parser.preprocess_links(link_dict, noeud_dict, components_dict)
-            # Now build netlist with no direct component-to-component links:
+            wire_dict, noeud_dict, components_dict = Parser.extract_dictionaries(json_data)
+            # Preprocess wire_dict to split component-to-component wires
+            new_wires, noeud_dict = Parser.preprocess_wires(wire_dict, noeud_dict, components_dict)
+            # Now build netlist with no direct component-to-component wires:
             try:
-                netlist = Parser.build_netlist(new_links, noeud_dict, components_dict)
+                netlist = Parser.build_netlist(new_wires, noeud_dict, components_dict)
                 print("Netlist:\n", netlist)
             except ValueError as e:
                 print("Error building netlist:", e)
@@ -211,52 +211,73 @@ class Parser:
     @staticmethod 
     def extract_dictionaries(data):
         """
-        Extracts the link, noeud, and components dictionaries from the JSON data.
+        Extracts the wire, noeud, and components dictionaries from the JSON data.
         Used in the json_to_netlist method.
         """
-        link_dict = {}
+        wire_dict = {}
         noeud_dict = {}
         components_dict = {}
 
         for element in data:
             elem_type = element.get("type")
-            if elem_type == "link":
-                link_dict[element["id"]] = element
-            elif elem_type == "noeud":
-                noeud_dict[element["id"]] = element
+            if elem_type == "logic.Wire":
+                wire_dict[element["id"]] = element
+            elif elem_type == "logic.CircuitNode":
+                noeud_dict[element["id"]] = {"id": element["id"], "name": str(element["number"])}
             else:
                 components_dict[element["id"]] = element
 
-        return link_dict, noeud_dict, components_dict
+        return wire_dict, noeud_dict, components_dict
 
     @staticmethod
-    def preprocess_links(link_dict, noeud_dict, components_dict):
+    def preprocess_wires(wire_dict, noeud_dict, components_dict):
         """
-        Preprocess link_dict so that there are no direct component-to-component links.
-        If a direct link is found, create or reuse an intermediate node.
+        Preprocess wire_dict so that there are no direct component-to-component wires.
+        If a direct wire is found, create or reuse an intermediate node.
         Used in the json_to_netlist method.
         """
 
-        link_nodes = {}  # Will map a pair of component IDs to a node ID
-        new_links = {}
+        wire_nodes = {}  # Will map a pair of component IDs to a node ID
+        new_wires = {}
 
         # We may need an incremental way to create new node IDs or names
         # For example, start from the current count of noeuds:
-        next_node_index = len(noeud_dict)
+        next_node_index = len(noeud_dict)+1
 
-        # We'll iterate over original links, building new ones in new_links
-        for link_key, link_value in link_dict.items():
-            source_id = link_value["source"]["id"]
-            target_id = link_value["target"]["id"]
+        # create the node 0 for the ground
+        noeud_dict["0"] = {"id": "0", "name": "0"}
 
+        # We'll iterate over original wires, building new ones in new_wires
+        for wire_key, wire_value in wire_dict.items():
+            source_id = wire_value["source"]["id"]
+            target_id = wire_value["target"]["id"]
+            if source_id in components_dict :
+                if components_dict[source_id]["type"] == "logic.Ground":
+                    source_id = "0"
+                    new_wires[wire_key] = { # add a wire from the ground to the other component
+                        "source": {"id": source_id},
+                        "target": {"id": target_id}
+                    }
+                    continue
+            if target_id in components_dict :
+                if components_dict[target_id]["type"] == "logic.Ground":
+                    target_id = "0"
+                    new_wires[wire_key] = { # add a wire from the ground to the other component
+                        "source": {"id": source_id},
+                        "target": {"id": target_id}
+                    }
+                    continue
+                
+            # Check if source and target are components
+            # NB : if the component is a ground, we replaced its id by 0 so it will not be in components_dict
             source_is_comp = source_id in components_dict
             target_is_comp = target_id in components_dict
 
             if source_is_comp and target_is_comp:
-                # We have a direct component-to-component link
+                # We have a direct component-to-component wire
                 pair = tuple(sorted([source_id, target_id]))  # Use sorted so (A,B) == (B,A)
 
-                if pair not in link_nodes:
+                if pair not in wire_nodes:
                     # Create a new node
                     new_node_name = f"{next_node_index}"
                     next_node_index += 1
@@ -265,65 +286,89 @@ class Parser:
                         "id": new_node_name,
                         "name": new_node_name
                     }
-                    link_nodes[pair] = new_node_name
+                    wire_nodes[pair] = new_node_name
 
                 # Retrieve or newly created node name
-                node_id = link_nodes[pair]
+                node_id = wire_nodes[pair]
 
-                # Create two new links in new_links
-                #  e.g. linkA: source=component, target=node
-                #  e.g. linkB: source=node,      target=component
-                linkA_key = f"{link_key}_A"
-                linkB_key = f"{link_key}_B"
+                # Create two new wires in new_wires
+                #  e.g. wireA: source=component, target=node
+                #  e.g. wireB: source=node,      target=component
+                wireA_key = f"{wire_key}_A"
+                wireB_key = f"{wire_key}_B"
                 
-                new_links[linkA_key] = {
+                new_wires[wireA_key] = {
                     "source": {"id": source_id},
                     "target": {"id": node_id}
                 }
-                new_links[linkB_key] = {
+                new_wires[wireB_key] = {
                     "source": {"id": node_id},
                     "target": {"id": target_id}
                 }
 
             else:
                 # No change needed: either source or target is already a node
-                new_links[link_key] = link_value
+                new_wires[wire_key] = wire_value
 
-        return new_links, noeud_dict
+        return new_wires, noeud_dict
 
     @staticmethod
-    def build_netlist(link_dict, noeud_dict, components_dict):
+    # TODO do a function getInputOutputNodes : les noeuds entree/sortie ne devraient pas etre obtenus ici
+    # TODO la gestion avec les neoud_dict, wire_dict etc est très inefficace
+    def build_netlist(wire_dict, noeud_dict, components_dict):
         """
         Build a netlist string from the dictionaries.
         Used in the json_to_netlist method.
         """
         netlist = ""
+        inputNode, outputNode = None, None
         compute_numeric = True
         for comp_id, component in components_dict.items():
-            name = component["name"]
-            if "valeur" in component:
-                value = component["valeur"]
-            else:
-                compute_numeric = False
-                logging.warning(f"Component '{name}' has no value specified.")
-            nodes = []
+            if component["type"] == "logic.AnalyticalInput":
+                for lk_key, lk_value in wire_dict.items():
+                    source_id = lk_value["source"]["id"]
+                    target_id = lk_value["target"]["id"]
+                    # If the wire is linked to input node
+                    if source_id == comp_id and target_id in noeud_dict:
+                        inputNode = noeud_dict[target_id]["name"]
+                    elif target_id == comp_id and source_id in noeud_dict:
+                        inputNode = noeud_dict[source_id]["name"]
+                netlist += f"Vin {inputNode} 0 SYMBOLIC\n"
+            elif component["type"] == "logic.AnalyticalOutput":
+                for lk_key, lk_value in wire_dict.items():
+                    source_id = lk_value["source"]["id"]
+                    target_id = lk_value["target"]["id"]
+                    # If the wire is linked to output node
+                    if source_id == comp_id and target_id in noeud_dict:
+                        outputNode = noeud_dict[target_id]["name"]
+                    elif target_id == comp_id and source_id in noeud_dict:
+                        outputNode = noeud_dict[source_id]["name"]
+            elif component["type"] in ["logic.Capacitor", "logic.Inductor", "logic.Resistor"] :
+                name = component["symbol"] + str(component["number"])
+                if "value" in component:
+                    value = component["value"]
+                else:
+                    compute_numeric = False
+                    logging.warning(f"Component '{name}' has no value specified.")
+                nodes = []
+                
+                for lk_key, lk_value in wire_dict.items():
+                    source_id = lk_value["source"]["id"]
+                    target_id = lk_value["target"]["id"]
 
-            for lk_key, lk_value in link_dict.items():
-                source_id = lk_value["source"]["id"]
-                target_id = lk_value["target"]["id"]
+                    # If the wire belongs to this component
+                    if source_id == comp_id and target_id in noeud_dict:
+                        nodes.append(noeud_dict[target_id]["name"])
+                    elif target_id == comp_id and source_id in noeud_dict:
+                        nodes.append(noeud_dict[source_id]["name"])
 
-                # If the link belongs to this component
-                if source_id == comp_id and target_id in noeud_dict:
-                    nodes.append(noeud_dict[target_id]["name"])
-                elif target_id == comp_id and source_id in noeud_dict:
-                    nodes.append(noeud_dict[source_id]["name"])
-
-            # If a component doesn't have 2 or more nodes, log or raise error
-            if len(nodes) < 2:
-                raise ValueError(f"Component '{name}' not connected to 2 or more elements.")
-            if compute_numeric:
-                netlist += f"{name} {nodes[0]} {nodes[1]} {value}\n"
-            else:
-                netlist += f"{name} {nodes[0]} {nodes[1]}\n"
-
-        return netlist
+                # If a component doesn't have 2 or more nodes, log or raise error
+                if len(nodes) < 2:
+                    raise ValueError(f"Component '{name}' not connected to 2 or more elements.")
+                if compute_numeric:
+                    netlist += f"{name} {nodes[0]} {nodes[1]} {value}\n"
+                else:
+                    netlist += f"{name} {nodes[0]} {nodes[1]}\n"
+            else :
+                continue
+        return netlist, inputNode, outputNode
