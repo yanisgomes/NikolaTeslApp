@@ -487,13 +487,13 @@ function CircuitInterface() {
             );*/
 
             const response = await fetch(
-                `http://127.0.0.1:5000/config/io-numeric/1`,
+                `http://127.0.0.1:5000/solver/config/io-numeric/1`,
                 {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
+                    body: {JSON.stringify({
                         data: circuitGraph.getCells(),
                     }),
                 }

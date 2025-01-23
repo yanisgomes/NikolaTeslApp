@@ -477,8 +477,8 @@ def update_circuit_io_numeric(circuit_id):
             circuit.netlist = data.get('netlist', circuit.netlist)
         if 'image' in data:
             circuit.image = data.get('image', circuit.image)
-        if 'json' in data:
-            netlist, extractedInputNode, extractedOutputNode = Parser.json_to_netlist(data.get('json'))
+        if 'data' in data:
+            netlist, extractedInputNode, extractedOutputNode = Parser.json_to_netlist(data.get('data'))
             if extractedInputNode and extractedOutputNode:
                 inputNode = extractedInputNode
                 outputNode = extractedOutputNode
@@ -532,8 +532,8 @@ def update_circuit_io_numeric(circuit_id):
 
     db.session.commit()
 
-    prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations, solver.explanations)
-    response = query_LLM(prompt)
+    #prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations, solver.explanations)
+    #response = query_LLM(prompt)
 
     return jsonify({
         "message": "Circuit updated (basic).",
@@ -550,5 +550,5 @@ def update_circuit_io_numeric(circuit_id):
         "transfer_function": circuit_db.transfer_function,
         "bode_data": json.loads(circuit_db.bode_data) if circuit_db.bode_data else None,
         "step_data": json.loads(circuit_db.step_data) if circuit_db.step_data else None,
-        "LLM_response": response
+        #"LLM_response": response
     }), 200
