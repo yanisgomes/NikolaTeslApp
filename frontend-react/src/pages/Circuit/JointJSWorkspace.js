@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import styled from 'styled-components';
 
 import colors from '../../utils/style/colors';
+import { getSmallestUnusedNameIndex } from '../../utils/hooks';
 
 import symbol_resistor from '../../assets/symbol_resistor.png';
 
@@ -97,6 +98,8 @@ function createNode(graph, position) {
     const node = new CircuitNode();
     node.position(position.x, position.y);
     node.resize(20, 20);
+    const newNumber = getSmallestUnusedNameIndex(graph, node.getSymbol());
+    node.setNumber(newNumber);
 
     // Optionnel: donner un nom (ex. un identifiant unique ou "N1", "N2", etc.)
     // node.setName('Nœud');

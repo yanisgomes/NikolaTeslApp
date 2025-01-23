@@ -504,7 +504,8 @@ export const CircuitNode = joint.shapes.standard.Circle.define(
     'logic.CircuitNode',
     {
         // L'attribut "name" au sens du circuit
-        name: '',
+        number: 0,
+        symbol: 'N',
         // Dimensions du node
         size: { width: 20, height: 20 },
         // on paramètre l'apparence
@@ -530,6 +531,15 @@ export const CircuitNode = joint.shapes.standard.Circle.define(
         },
         getName: function () {
             return this.get('name');
+        },
+        getSymbol: function () {
+            return this.get('symbol');
+        },
+        getNumber: function () {
+            return this.number;
+        },
+        setNumber: function (newNumber) {
+            this.number = newNumber;
         },
     },
     {

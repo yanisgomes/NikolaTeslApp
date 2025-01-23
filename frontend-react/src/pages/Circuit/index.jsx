@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import colors from '../../utils/style/colors';
 import fonts from './../../utils/style/fonts';
+import { getSmallestUnusedNameIndex } from '../../utils/hooks';
 
 import './logic.css';
 
@@ -145,33 +146,6 @@ function useNetlist() {
     };
 
     return { netlist, addComponent, removeComponentById, setNetlist };
-}
-
-function getSmallestUnusedNameIndex(graph, symbol) {
-    // Retrieve all elements in the graph
-    const elements = graph.getElements();
-
-    // Extract the indices from names of elements with the same symbol
-    const usedIndices = elements
-        .filter((element) => element.getSymbol() === symbol) // Match symbol
-        .map((element) => {
-            const number = element.getNumber();
-            return number;
-        })
-        .filter((index) => index !== null) // Remove null values
-        .sort((a, b) => a - b); // Sort in ascending order
-
-    // Find the smallest missing integer
-    let smallestUnused = 0; // Start from 0
-    for (const index of usedIndices) {
-        if (index === smallestUnused) {
-            smallestUnused++;
-        } else {
-            break; // Exit early when the gap is found
-        }
-    }
-
-    return smallestUnused;
 }
 
 function CircuitInterface() {
