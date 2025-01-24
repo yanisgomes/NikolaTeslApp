@@ -466,27 +466,27 @@ def update_circuit_io_numeric(circuit_id):
         return jsonify({"message": "Les données doivent être au format JSON."}), 400
 
     # Update circuit fields
-    try:
-        if 'nom' in data:
-            circuit.nom = data.get('nom', circuit.nom)
-        if 'description' in data:
-            circuit.description = data.get('description', circuit.description)
-        if 'auteur' in data:
-            circuit.auteur = data.get('auteur', circuit.auteur)
-        if ('netlist' in data) and (not 'json' in data):
-            circuit.netlist = data.get('netlist', circuit.netlist)
-        if 'image' in data:
-            circuit.image = data.get('image', circuit.image)
-        if 'data' in data:
-            netlist, extractedInputNode, extractedOutputNode = Parser.json_to_netlist(data.get('data'))
-            if extractedInputNode and extractedOutputNode:
-                inputNode = extractedInputNode
-                outputNode = extractedOutputNode
-            circuit.netlist = netlist
-        circuit.date = datetime.now(timezone.utc)
-        db.session.commit()
-    except Exception as e:
-        return jsonify({"error": "Failed to update circuit", "details": str(e)}), 500
+    # try:
+    #     if 'nom' in data:
+    #         circuit.nom = data.get('nom', circuit.nom)
+    #     if 'description' in data:
+    #         circuit.description = data.get('description', circuit.description)
+    #     if 'auteur' in data:
+    #         circuit.auteur = data.get('auteur', circuit.auteur)
+    #     if ('netlist' in data) and (not 'json' in data):
+    #         circuit.netlist = data.get('netlist', circuit.netlist)
+    #     if 'image' in data:
+    #         circuit.image = data.get('image', circuit.image)
+    #     if 'data' in data:
+    #         netlist, extractedInputNode, extractedOutputNode = Parser.json_to_netlist(data.get('data'))
+    #         if extractedInputNode and extractedOutputNode:
+    #             inputNode = extractedInputNode
+    #             outputNode = extractedOutputNode
+    #         circuit.netlist = netlist
+    #     circuit.date = datetime.now(timezone.utc)
+    #     db.session.commit()
+    # except Exception as e:
+    #     return jsonify({"error": "Failed to update circuit", "details": str(e)}), 500
     
     circuit_db = Circuit_db.query.get_or_404(circuit_id)
 
@@ -502,7 +502,7 @@ def update_circuit_io_numeric(circuit_id):
 
     # Transfer Function (symbolic)
     if inputNode and outputNode:
-        circuit_db.transfer_function = solver.transferFunction_to_string(inputNode, outputNode)
+        circuit_db.transfer_function = solver.getLatexTF(inputNode, outputNode)
         # Numeric TF and Bode, Step responses
         num, denom = solver.getNumericalTransferFunction(inputNode, outputNode)
         simulator = Simulator(circuit, num, denom)

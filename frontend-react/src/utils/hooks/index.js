@@ -57,7 +57,7 @@ export function getSmallestUnusedNameIndex(graph, symbol) {
         .sort((a, b) => a - b); // Sort in ascending order
 
     // Find the smallest missing integer
-    let smallestUnused = 0; // Start from 0
+    let smallestUnused = 1; // Start from 0
     for (const index of usedIndices) {
         if (index === smallestUnused) {
             smallestUnused++;
