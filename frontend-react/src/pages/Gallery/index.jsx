@@ -17,9 +17,31 @@ const MainContainer = styled.main`
     flex-direction: column;
     align-items: center;
     width: 100%;
-    padding: 24px 24px;
+    padding: 0px 24px;
     justify-content: space-between;
 `;
+
+// Style du titre principal
+const StyledTitle = styled.h1`
+    text-align: left;
+    color: ${colors.text};
+    font-size: 3.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    transition: all 0.4s ease-in-out;
+
+    /* Au survol, on applique un effet de texte en dégradé */
+    &:hover {
+        background: linear-gradient(
+            90deg,
+            ${colors.primary},
+            ${colors.secondary}
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+`;
+
 
 const MainText = styled.h2`
     color: ${colors.text};
@@ -121,11 +143,17 @@ function Gallery() {
 
     if (error) {
         return (
-            <>
+            <MainContainer>
                 <Header />
+                {/* Nouveau titre moderne */}
+                <div style={{ alignItems: 'left' }}>
+                    <StyledTitle>
+                        Galerie des circuits
+                    </StyledTitle>
+                </div>
                 <span>Il y a un problème</span>
                 <Footer />
-            </>
+            </MainContainer>
         );
     }
 
@@ -133,14 +161,13 @@ function Gallery() {
     return (
         <MainContainer>
             <Header />
+            {/* Nouveau titre moderne */}
+            <div style={{ alignItems: 'left' }}>
+                <StyledTitle>
+                    Galerie des circuits
+                </StyledTitle>
+            </div>
             <div>
-                <h1 style={{ textAlign: 'center', color: '#34495e' }}>
-                    Galerie de Circuits
-                </h1>
-                <p style={{ textAlign: 'center', color: '#7f8c8d' }}>
-                    Parcourez les circuits disponibles dans la collection.
-                </p>
-
                 {isLoading ? (
                     <div style={{ textAlign: 'center', marginTop: '50px' }}>
                         <Loader />
@@ -168,9 +195,8 @@ function Gallery() {
                                     <strong>Netlist :</strong>
                                     <pre
                                         style={{
-                                            background: '#f9f9f9',
                                             padding: '10px',
-                                            borderRadius: '5px',
+                                            borderRadius: '16px',
                                         }}
                                     >
                                         {circuit.netlist}
@@ -181,6 +207,7 @@ function Gallery() {
                     </GridContainer>
                 )}
             </div>
+            <Footer />
         </MainContainer>
     );
 }
