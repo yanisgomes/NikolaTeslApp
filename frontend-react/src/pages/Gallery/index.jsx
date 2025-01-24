@@ -61,10 +61,11 @@ const StyledImage = styled.img`
 
 // Ajout de Hugo :
 const GridContainer = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    display: flex; /* Utilisation de Flexbox */
+    flex-wrap: wrap; /* Autorise le retour à la ligne */
+    gap: 20px; /* Espace entre les éléments */
     padding: 20px;
+    justify-content: center; /* Centre les éléments sur la ligne */
     background-color: #f5f5f5;
 `;
 
