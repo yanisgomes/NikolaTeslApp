@@ -6,6 +6,8 @@ import ACIButton from './../AnalyticComponentItemButton';
 import { getIconAsUrl } from '../../utils/utils';
 import { VscSymbolOperator } from 'react-icons/vsc';
 
+import { Loader } from '../../utils/Loader.js';
+
 import {
     CircuitGraphContext,
     PaperContext,
@@ -104,7 +106,11 @@ const StyledTitle = styled.h5`
     font-weight: bold;
 `;
 
-const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
+const AnalyticResolutionPage = ({
+    isSubmitLoading,
+    onResolutionSubmit,
+    ResolutionResponse,
+}) => {
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
 
@@ -132,31 +138,47 @@ const AnalyticResolutionPage = ({ onResolutionSubmit, ResolutionResponse }) => {
                 />
             </TitleContainer>
 
-            <TransferFunctionContainer>
-                <LatexComponent latex={`\\Large{H(s) = ${transferFunction}}`} />
-            </TransferFunctionContainer>
+            {isSubmitLoading ? (
+                <div style={{ textAlign: 'center', marginTop: '50px' }}>
+                    <Loader />
+                </div>
+            ) : (
+                <TransferFunctionContainer>
+                    {transferFunction ? (
+                        <LatexComponent
+                            latex={`\\Large{H(s) = \\frac{S(p)}{E(p)} = ${transferFunction}}`}
+                        />
+                    ) : (
+                        <LatexComponent
+                            latex={`\\Large{H(s) = \\frac{S(p)}{E(p)}}`}
+                        />
+                    )}
+                </TransferFunctionContainer>
+            )}
 
-            <StyledContainer>
-                <StyledTitle>Équations</StyledTitle>
-                {explanations.length > 0 ? (
-                    <ScrollContainer>
-                        {/* Liste des explications et des équations */}
+            {explanations.length > 0 ? (
+                <StyledContainer>
+                    <StyledTitle>Équations</StyledTitle>
+                    {explanations.length > 0 ? (
+                        <ScrollContainer>
+                            {/* Liste des explications et des équations */}
 
-                        <ul>
-                            {explanations.map((explanation, index) => (
-                                <li key={index}>
-                                    <p>{explanation}</p>
-                                    <LatexComponent
-                                        latex={equations[index] || ''}
-                                    />
-                                </li>
-                            ))}
-                        </ul>
-                    </ScrollContainer>
-                ) : (
-                    <p>Circuit non résolu</p>
-                )}
-            </StyledContainer>
+                            <ul>
+                                {explanations.map((explanation, index) => (
+                                    <li key={index}>
+                                        <p>{explanation}</p>
+                                        <LatexComponent
+                                            latex={equations[index] || ''}
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        </ScrollContainer>
+                    ) : (
+                        <p>Circuit non résolu</p>
+                    )}
+                </StyledContainer>
+            ) : null}
 
             <StyledContainer>
                 <StyledTitle>Circuit</StyledTitle>

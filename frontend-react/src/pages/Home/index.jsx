@@ -3,6 +3,11 @@ import { ThemeContext } from '../../utils/context/';
 import styled from 'styled-components';
 import colors from '../../utils/style/colors.js';
 
+import { Link } from 'react-router-dom';
+import fonts from '../../utils/style/fonts';
+
+import LatexComponent from '../../components/LatexComponent';
+
 // ------ Import des images (exemple) ------
 import backgroundImg from '../../assets/background-electricity.jpg';
 import imgHome from '../../assets/fonction-transfert-home.png';
@@ -14,16 +19,31 @@ import Footer from '../../components/Footer/index.jsx';
 
 // ------ STYLED COMPONENTS ------
 
+const MainContainer = styled.main`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 0px 24px;
+    justify-content: space-between;
+`;
+
 // Container qui gère l'image de fond + un overlay dégradé
 const BackgroundContainer = styled.div`
     position: relative;
-    width: 100%;
-    min-height: 100vh;
+    z-index: 1;
+    width: 70%;
+    height: 60vh;
     background: url(${backgroundImg}) center/cover no-repeat;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+
+    transition: transform 0.3s ease-in-out;
+    &:hover {
+        transform: scale(1.04);
+    }
 
     // overlay dégradé pour uniformiser et rendre le texte plus lisible
     &::before {
@@ -44,45 +64,30 @@ const BackgroundContainer = styled.div`
 
 // Conteneur principal pour placer le contenu au-dessus de l’overlay
 const HeroContainer = styled.div`
-    position: relative;
-    z-index: 1;
-    width: 80%;
-    max-width: 1200px;
-    margin: 40px auto;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
-
-    @media (max-width: 768px) {
-        flex-direction: column;
-    }
-`;
-
-// Effet tilt 3D au survol
-const TiltWrapper = styled.div`
-    perspective: 1000px;
-    transition: transform 0.3s ease-in-out;
-    &:hover {
-        transform: scale(1.03);
-    }
-
-    // L'image subit la rotation dans un conteneur interne
-    div {
-        transition: transform 0.3s ease-in-out;
-    }
-    &:hover div {
-        transform: rotateX(5deg) rotateY(5deg);
-    }
 `;
 
 // Style du titre principal
 const StyledTitle = styled.h1`
+    text-align: left;
     color: ${colors.text};
-    font-size: 2.5rem;
+    font-size: 3.5rem;
+    margin-top: 2rem;
     margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px #00000055;
+    transition: all 0.4s ease-in-out;
+
+    /* Au survol, on applique un effet de texte en dégradé */
+    &:hover {
+        background: linear-gradient(
+            90deg,
+            ${colors.primary},
+            ${colors.secondary}
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 `;
 
 // Style du sous-titre / phrase d’accroche
@@ -113,26 +118,26 @@ const StyledList = styled.ul`
 
 // Bouton avec un dégradé animé
 const GradientButton = styled.button`
-    background: linear-gradient(90deg, ${colors.primary}, ${colors.secondary});
-    background-size: 200%;
+    z-index: 0!!;
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
+    background-size: 300%;
     color: ${colors.backgroundLight};
     border: none;
     padding: 0.8rem 1.5rem;
     font-size: 1rem;
     border-radius: 25px;
     cursor: pointer;
-    transition: background-position 0.5s;
+    transition: background-position 0.5s, box-shadow 0.3s;
 
     &:hover {
         background-position: right center;
-        box-shadow: 0 0 10px ${colors.primary};
     }
 `;
 
 // Image principale (par ex. schéma ou illustration)
 const StyledImageMain = styled.img`
     max-width: 450px;
-    width: 50vw;
+    width: 50vh;
     object-fit: contain;
 `;
 
@@ -143,69 +148,86 @@ const StyledImageTesla = styled.img`
     object-fit: contain;
 `;
 
+const StyledLinkForButton = styled(Link)`
+    padding: 12px;
+    text-decoration: none;
+
+    font-family: ${fonts.mainFont};
+    font-size: 18px;
+    font-weight: bold;
+    margin-left: 20px;
+    color: ${(props) =>
+        props.theme === 'dark' ? colors.darkBackgroundSecondary : '#ffffff'};
+
+    &:hover {
+        color: ${colors.secondary};
+    }
+
+    ${(props) =>
+        props.$isFullLink &&
+        `color: white;
+        border-radius: 30px;
+        background-color: ${colors.primary};
+        text-decoration: none;
+
+        &:hover {
+            color: white;
+            background-color: #ffffff;
+        }
+        `}
+`;
+
+const LatexButton = styled.button`
+    z-index: 0!!;
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
+    background-size: 300%;
+    color: ${colors.backgroundLight};
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-position 0.5s, box-shadow 0.3s;
+
+    &:hover {
+        background-position: right center;
+    }
+`;
+
+const LatexComponentContainer = styled.div`
+    border-radius: 25px;
+    background-color: '#ffffff';
+    padding: 4px;
+`;
+
 function Home() {
     const { theme } = useContext(ThemeContext);
 
     return (
-        <>
+        <MainContainer>
             <Header />
 
+            {/* Nouveau titre moderne */}
+            <div style={{ alignItems: 'left' }}>
+                <StyledTitle>
+                    Solveur analytique pour l’électronique.
+                    <br />
+                    Dessiner. Brancher. Exprimer.
+                </StyledTitle>
+            </div>
+
             <BackgroundContainer>
-                <HeroContainer>
-                    {/* Bloc Texte + CTA */}
-                    <TextContainer>
-                        <StyledTitle>
-                            Déclenchez l'éclair de génie !
-                        </StyledTitle>
-                        <StyledSubtitle>
-                            Plongez dans un univers d’exploration électrique et
-                            découvrez comment réaliser des circuits en un clin
-                            d’œil.
-                        </StyledSubtitle>
-
-                        <StyledList>
-                            <li>
-                                Interface interactive et intuitive pour
-                                visualiser vos idées
-                            </li>
-                            <li>
-                                Approche ludique des phénomènes électriques et
-                                électroniques
-                            </li>
-                            <li>
-                                Formalisation mathématique détaillée pour
-                                approfondir vos circuits
-                            </li>
-                        </StyledList>
-
-                        {/* Boutons d'appel à l'action */}
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <GradientButton>
-                                Créer un nouveau circuit
-                            </GradientButton>
-                            <GradientButton>
-                                Découvrir les fonctionnalités
-                            </GradientButton>
-                        </div>
-                    </TextContainer>
-
-                    {/* Bloc Illustration / Tesla */}
-                    <TiltWrapper>
-                        <div>
-                            <StyledImageTesla
-                                src={imgTesla}
-                                alt="Illustration Nikola Tesla"
-                            />
-                        </div>
-                    </TiltWrapper>
-
-                    {/* Image supplémentaire (facultative) */}
-                    <StyledImageMain src={imgHome} alt="Schéma de circuit" />
-                </HeroContainer>
+                <LatexButton as={StyledLinkForButton} to="/circuit/">
+                    <LatexComponentContainer>
+                        <LatexComponent
+                            latex={`\\Large{H(s) = \\frac{S(p)}{E(p)}} ?`}
+                        />
+                    </LatexComponentContainer>
+                </LatexButton>
             </BackgroundContainer>
 
             <Footer />
-        </>
+        </MainContainer>
     );
 }
 

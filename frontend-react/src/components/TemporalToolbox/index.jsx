@@ -83,11 +83,6 @@ const TemporalToolbox = ({ timeData, onPlay, onSpark }) => {
                 <h2>Réponse temporelle</h2>
                 <ButtonGroup>
                     <ACIButton
-                        onClick={onPlay}
-                        logoUrl={PlayIconUrl}
-                        size="40px"
-                    />
-                    <ACIButton
                         onClick={onSpark}
                         logoUrl={SparkIconUrl}
                         size="40px"

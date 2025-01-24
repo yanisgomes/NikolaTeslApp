@@ -71,8 +71,8 @@ const FrequentialToolbox = ({ timeData, onPlay, onSpark }) => {
 
     // On retire le titre Plotly (title) puisque tu préfères seulement le h2 externe.
     const layout = {
-        xaxis: { title: 'Fréquence (s)' },
-        yaxis: { title: 'Gain (db)' },
+        xaxis: { title: 'Fréquence (Hz)' },
+        yaxis: { title: 'Gain (dB)' },
         margin: { t: 0, r: 0, l: 0, b: 0 }, // Marges réduites
         paper_bgcolor: colors.backgroundLight,
         plot_bgcolor: colors.backgroundLight,
@@ -84,11 +84,6 @@ const FrequentialToolbox = ({ timeData, onPlay, onSpark }) => {
             <HeaderRow>
                 <h2>Réponse fréquentielle</h2>
                 <ButtonGroup>
-                    <ACIButton
-                        onClick={onPlay}
-                        logoUrl={PlayIconUrl}
-                        size="40px"
-                    />
                     <ACIButton
                         onClick={onSpark}
                         logoUrl={SparkIconUrl}

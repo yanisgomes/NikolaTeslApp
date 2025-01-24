@@ -46,10 +46,17 @@ import TemporalToolbox from '../../components/TemporalToolbox';
 import FrequentialToolbox from '../../components/FrequentialToolbox';
 import PhaseToolbox from '../../components/PhaseToolbox';
 
+import TutorialModal from '../../components/TutorialModal';
+
 import AnalyticResolutionPage from '../../components/AnalyticResolutionPage'; // <-- Page analytique
 
 import { getIconAsUrl } from '../../utils/utils';
-import { VscZoomIn, VscZoomOut } from 'react-icons/vsc';
+import {
+    VscZoomIn,
+    VscZoomOut,
+    VscQuestion,
+    VscDiscard,
+} from 'react-icons/vsc';
 
 /*
 let ResolutionResponse = {
@@ -101,6 +108,11 @@ let ResolutionResponse = {
 /********************************************
  *           STYLED COMPONENTS
  ********************************************/
+
+const MainContainer = styled.div`
+    padding: 0px 24px;
+`;
+
 const MainHorizontalContainer = styled.div`
     display: flex;
     flex-direction: row;
@@ -190,6 +202,17 @@ function CircuitInterface() {
     const { theme } = useContext(ThemeContext);
     const { circuitGraph, setCircuitGraph } = useContext(CircuitGraphContext);
     const { paper, setPaper } = useContext(PaperContext);
+    const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+
+    // Au montage du composant, on ouvre la fenêtre
+    useEffect(() => {
+        setIsTutorialOpen(true);
+    }, []);
+
+    // Fonction pour fermer la fenêtre
+    const handleCloseTutorial = () => {
+        setIsTutorialOpen(false);
+    };
 
     // GESTION NETLIST
     const { netlist, addComponent, removeComponentById, setNetlist } =
@@ -267,27 +290,6 @@ function CircuitInterface() {
             symbole: 'GND',
             tag: 'others',
         },
-        {
-            id: 11,
-            src: symbol_switch,
-            name: 'Interrupteur',
-            symbole: 'S',
-            tag: 'others',
-        },
-        {
-            id: 13,
-            src: symbol_voltmeter,
-            name: 'Voltmètre',
-            symbole: 'V',
-            tag: 'others',
-        },
-        {
-            id: 14,
-            src: symbol_amperometer,
-            name: 'Ampèremètre',
-            symbole: 'A',
-            tag: 'others',
-        },
     ]);
 
     // PLACED ITEMS (Workspace)
@@ -332,6 +334,12 @@ function CircuitInterface() {
     const handleZoomOut = () => {
         changeScale(-5);
     };
+
+    const handleHelp = () => {
+        setIsTutorialOpen(true);
+    };
+
+    const handleDiscard = () => {};
 
     // GESTION DU DRAG & DROP
     const handleDrop = (e) => {
@@ -467,7 +475,10 @@ function CircuitInterface() {
     const [temporalResponse, setTemporalResponse] = useState(null);
     const [ResolutionResponse, setResolutionResponse] = useState(null);
 
+    const [isSubmitLoading, setIsSubmitLoading] = useState(false);
+
     const handleSubmit = async (e) => {
+        setIsSubmitLoading(true);
         e.preventDefault(); // Empêche le rechargement de la page
 
         try {
@@ -510,10 +521,13 @@ function CircuitInterface() {
             });*/
 
             if (!response.ok) {
+                setIsSubmitLoading(false);
                 throw new Error('Erreur lors de l’envoi des données');
             }
+
             const result = await response.json();
             console.log(result); // Réponse du backend
+            setIsSubmitLoading(false);
             alert('Données envoyées avec succès');
             setBodeResponse(result['bode_data']);
             setTemporalResponse(result['step_data']);
@@ -521,6 +535,7 @@ function CircuitInterface() {
         } catch (error) {
             console.error(error);
             alert('Erreur lors de l’envoi des données');
+            setIsSubmitLoading(false);
         }
     };
 
@@ -557,6 +572,7 @@ function CircuitInterface() {
                 <AnalyticResolutionPage
                     netlist={netlist}
                     onChangeValue={handleChangeValue}
+                    isSubmitLoading={isSubmitLoading}
                     onResolutionSubmit={handleSubmit}
                     onRequestAI={handleRequestAI}
                     onRemoveComponent={handleRemoveComponent}
@@ -574,9 +590,14 @@ function CircuitInterface() {
     ];
 
     return (
-        <>
+        <MainContainer>
+            <Header />
             <CircuitInteractionProvider>
-                <Header />
+                <TutorialModal
+                    isOpen={isTutorialOpen}
+                    onClose={handleCloseTutorial}
+                />
+
                 <MainHorizontalContainer>
                     {/* Menu de gauche */}
                     <LeftMenu>
@@ -595,6 +616,11 @@ function CircuitInterface() {
                                 />
                                 <CircuitToolbarButtonContainer>
                                     <ACIButton
+                                        onClick={handleDiscard}
+                                        logoUrl={getIconAsUrl(<VscDiscard />)}
+                                        size="40px"
+                                    />
+                                    <ACIButton
                                         onClick={handleZoomIn}
                                         logoUrl={getIconAsUrl(<VscZoomIn />)}
                                         size="40px"
@@ -602,6 +628,11 @@ function CircuitInterface() {
                                     <ACIButton
                                         onClick={handleZoomOut}
                                         logoUrl={getIconAsUrl(<VscZoomOut />)}
+                                        size="40px"
+                                    />
+                                    <ACIButton
+                                        onClick={handleHelp}
+                                        logoUrl={getIconAsUrl(<VscQuestion />)}
                                         size="40px"
                                     />
                                 </CircuitToolbarButtonContainer>
@@ -614,7 +645,7 @@ function CircuitInterface() {
                     </MainVerticalContainer>
                 </MainHorizontalContainer>
             </CircuitInteractionProvider>
-        </>
+        </MainContainer>
     );
 }
 

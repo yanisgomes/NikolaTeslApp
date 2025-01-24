@@ -238,7 +238,7 @@ function JointJSWorkspace(props) {
             model: graph,
             width: '100vh',
             height: '45vh',
-            gridSize: 20,
+            gridSize: 10,
             drawGrid: true,
             snapLinks: false,
             defaultLink: () => new Wire(),

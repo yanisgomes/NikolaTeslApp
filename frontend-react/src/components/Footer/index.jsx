@@ -8,9 +8,8 @@ const FooterContainer = styled.footer`
     align-items: center;
     justify-content: space-between;
     flex: 0 0 auto;
-    margin-bottom: 20px;
-    margin-top: 10px;
-    padding: 0 20px;
+    padding: 16px 0;
+    width: 100%;
 `;
 
 const CompanyInfo = styled.div`
@@ -22,13 +21,13 @@ const CompanyInfo = styled.div`
 
 const StyledImage = styled.img`
     border-radius: 5%;
-    width: 4%;
+    width: 5%;
     transition: transform 0.2s ease-in-out;
     cursor: pointer;
     &:hover {
         transform: scale(1.15);
     }
-    margin-right: 2px;
+    margin-right: 16px;
 `;
 
 const GitHubLink = styled.a`
@@ -42,8 +41,8 @@ const GitHubLink = styled.a`
     }
 
     & > svg {
-        width: 24px;
-        height: 24px;
+        width: 32px;
+        height: 32px;
     }
 `;
 
