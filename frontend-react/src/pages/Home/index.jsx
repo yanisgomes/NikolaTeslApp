@@ -33,7 +33,7 @@ const BackgroundContainer = styled.div`
     position: relative;
     z-index: 1;
     width: 70%;
-    height: 60vh;
+    height: 61vh;
     background: url(${backgroundImg}) center/cover no-repeat;
     display: flex;
     flex-direction: column;
@@ -155,7 +155,6 @@ const StyledLinkForButton = styled(Link)`
     font-family: ${fonts.mainFont};
     font-size: 18px;
     font-weight: bold;
-    margin-left: 20px;
     color: ${(props) =>
         props.theme === 'dark' ? colors.darkBackgroundSecondary : '#ffffff'};
 
@@ -178,14 +177,14 @@ const StyledLinkForButton = styled(Link)`
 `;
 
 const LatexButton = styled.button`
-    z-index: 0!!;
+    z-index: 0;
     background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
     background-size: 300%;
     color: ${colors.backgroundLight};
     border: none;
-    padding: 0.8rem 1.5rem;
+    padding: 0.8rem 0.8rem;
     font-size: 1rem;
-    border-radius: 25px;
+    border-radius: 130px;
     cursor: pointer;
     transition: background-position 0.5s, box-shadow 0.3s;
 
@@ -195,9 +194,9 @@ const LatexButton = styled.button`
 `;
 
 const LatexComponentContainer = styled.div`
-    border-radius: 25px;
+    border-radius: 112px;
     background-color: '#ffffff';
-    padding: 4px;
+    padding: 66px 26px;
 `;
 
 function Home() {
@@ -220,7 +219,7 @@ function Home() {
                 <LatexButton as={StyledLinkForButton} to="/circuit/">
                     <LatexComponentContainer>
                         <LatexComponent
-                            latex={`\\Large{H(s) = \\frac{S(p)}{E(p)}} ?`}
+                            latex={`\\Huge{H(s) = \\frac{S(p)}{E(p)}} ?`}
                         />
                     </LatexComponentContainer>
                 </LatexButton>
