@@ -466,27 +466,27 @@ def update_circuit_io_numeric(circuit_id):
         return jsonify({"message": "Les données doivent être au format JSON."}), 400
 
     # Update circuit fields
-    try:
-        if 'nom' in data:
-            circuit.nom = data.get('nom', circuit.nom)
-        if 'description' in data:
-            circuit.description = data.get('description', circuit.description)
-        if 'auteur' in data:
-            circuit.auteur = data.get('auteur', circuit.auteur)
-        if ('netlist' in data) and (not 'json' in data):
-            circuit.netlist = data.get('netlist', circuit.netlist)
-        if 'image' in data:
-            circuit.image = data.get('image', circuit.image)
-        if 'json' in data:
-            netlist, extractedInputNode, extractedOutputNode = Parser.json_to_netlist(data.get('json'))
-            if extractedInputNode and extractedOutputNode:
-                inputNode = extractedInputNode
-                outputNode = extractedOutputNode
-            circuit.netlist = netlist
-        circuit.date = datetime.now(timezone.utc)
-        db.session.commit()
-    except Exception as e:
-        return jsonify({"error": "Failed to update circuit", "details": str(e)}), 500
+    # try:
+    #     if 'nom' in data:
+    #         circuit.nom = data.get('nom', circuit.nom)
+    #     if 'description' in data:
+    #         circuit.description = data.get('description', circuit.description)
+    #     if 'auteur' in data:
+    #         circuit.auteur = data.get('auteur', circuit.auteur)
+    #     if ('netlist' in data) and (not 'json' in data):
+    #         circuit.netlist = data.get('netlist', circuit.netlist)
+    #     if 'image' in data:
+    #         circuit.image = data.get('image', circuit.image)
+    #     if 'data' in data:
+    #         netlist, extractedInputNode, extractedOutputNode = Parser.json_to_netlist(data.get('data'))
+    #         if extractedInputNode and extractedOutputNode:
+    #             inputNode = extractedInputNode
+    #             outputNode = extractedOutputNode
+    #         circuit.netlist = netlist
+    #     circuit.date = datetime.now(timezone.utc)
+    #     db.session.commit()
+    # except Exception as e:
+    #     return jsonify({"error": "Failed to update circuit", "details": str(e)}), 500
     
     circuit_db = Circuit_db.query.get_or_404(circuit_id)
 
@@ -502,7 +502,7 @@ def update_circuit_io_numeric(circuit_id):
 
     # Transfer Function (symbolic)
     if inputNode and outputNode:
-        circuit_db.transfer_function = solver.transferFunction_to_string(inputNode, outputNode)
+        circuit_db.transfer_function = solver.getLatexTF(inputNode, outputNode)
         # Numeric TF and Bode, Step responses
         num, denom = solver.getNumericalTransferFunction(inputNode, outputNode)
         simulator = Simulator(circuit, num, denom)
@@ -532,8 +532,8 @@ def update_circuit_io_numeric(circuit_id):
 
     db.session.commit()
 
-    prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations, solver.explanations)
-    response = query_LLM(prompt)
+    #prompt = build_prompt(netlist, solver.solutions, solver.analyticTransferFunction, solver.equations, solver.explanations)
+    #response = query_LLM(prompt)
 
     return jsonify({
         "message": "Circuit updated (basic).",
@@ -550,5 +550,23 @@ def update_circuit_io_numeric(circuit_id):
         "transfer_function": circuit_db.transfer_function,
         "bode_data": json.loads(circuit_db.bode_data) if circuit_db.bode_data else None,
         "step_data": json.loads(circuit_db.step_data) if circuit_db.step_data else None,
-        "LLM_response": response
+        #"LLM_response": response
     }), 200
+
+
+
+@solver_bp.route('/config/test', methods=['PUT'])
+def test():
+    # Read JSON data from file
+    relative_path = os.path.join('backend', 'data', 'response.json')
+    # Construct the relative path
+    relative_path = os.path.join('backend', 'data', 'response.json')
+    
+    # Optionally, get the absolute path (useful for debugging)
+    absolute_path = os.path.abspath(relative_path)
+    try:
+        with open('C:/Users/Lenovo/Documents/GitHub/NikolaTeslApp/backend/data/response.json', 'r') as file:
+            file_data = json.load(file)
+    except Exception as e:
+        return jsonify({"error": "Failed to read JSON file", "details": str(e)}), 500
+    return file_data

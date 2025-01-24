@@ -498,7 +498,7 @@ function CircuitInterface() {
             );*/
 
             const response = await fetch(
-                `http://127.0.0.1:5000/config/io-numeric/1`,
+                'http://127.0.0.1:5000/solver/config/test', /*ou `http://127.0.0.1:5000/solver/config/io-numeric/1?i=3&o=2`*/
                 {
                     method: 'PUT',
                     headers: {

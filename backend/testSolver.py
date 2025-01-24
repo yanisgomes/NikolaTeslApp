@@ -14,7 +14,7 @@ import sys
 
 netlist = '''
 * https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
-R0 1 3 100\nL0 2 1 0.001\nC0 0 1 0.001\n Vin 3 0
+Vin 3 0 \n R1 3 1 1000 \n C1 1 0 1000 \n L1 1 2 1E-6
 .end
 '''
 # Parse the netlist

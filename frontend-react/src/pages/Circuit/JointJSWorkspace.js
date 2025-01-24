@@ -508,6 +508,27 @@ function JointJSWorkspace(props) {
                 }
             });
         });
+        graph.on('change:target', function (link) {
+            const target = link.get('target');
+            if (!target || target.id) {
+                // Get the source and target of the newly created link
+                const sourceCell = graph.getCell(link.source().id);
+                const targetCell = graph.getCell(link.target().id);
+
+                const sourceType = sourceCell.get('type');
+                const targetType = targetCell.getSymbol();
+                // Check if the source or target is the ground element
+                if (sourceType === 'logic.Ground') {
+                    console.log('Link connects to ground at source.');
+                    if (targetType === 'N') {
+                        targetCell.setNumber(0);
+                        console.log('Link connects to ground at target.');
+                    }
+                }
+            } else {
+                return;
+            }
+        });
 
         // =================================================
         // GESTION DU MARKER QUI APPARAÎT SUR LE SURVOL D'UN LIEN
