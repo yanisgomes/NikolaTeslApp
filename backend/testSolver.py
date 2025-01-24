@@ -1,6 +1,6 @@
 from solver import *
 from LLMcall import *
-from backend.parser123 import *
+from parser123 import *
 from simulator import *
 from circuit import *
 from collections import defaultdict
@@ -14,12 +14,7 @@ import sys
 
 netlist = '''
 * https://lpsa.swarthmore.edu/Systems/Electrical/mna/MNA6.html
-Vin 3 0 Symbolic      
-R 3 2 1000
-R 1 0 1000
-C1 1 0 1u
-C2 2 1 10u
-L1 1 0 0.001
+Vin 3 0 \n R1 3 1 1000 \n C1 1 0 1000 \n L1 1 2 1E-6
 .end
 '''
 # Parse the netlist
@@ -42,7 +37,7 @@ for sol in solver.solutions:
     print(f"{sp.latex(sol)} = {sp.latex(solver.solutions[sol])}")
 
 print("--- Transfer Functions ---")
-transferFunction = solver.getTransferFunction('3', '2')
+transferFunction = solver.getLatexTF('3', '2')
 print(f"Transfer Function: {transferFunction}")
 
 # Call the API
@@ -72,14 +67,14 @@ plt.figure()
 plt.subplot(2, 1, 1)
 plt.semilogx(w, mag)
 plt.title('Magnitude Response')
-plt.xlabel('Frequency (rad/s)')
+plt.xlabel('Pulsation (rad/s)')
 plt.ylabel('Magnitude')
 plt.grid()
 
 plt.subplot(2, 1, 2)
 plt.semilogx(w, phase)
 plt.title('Phase Response')
-plt.xlabel('Frequency (rad/s)')
+plt.xlabel('Pulsation (rad/s)')
 plt.ylabel('Phase (degrees)')
 plt.grid()
 

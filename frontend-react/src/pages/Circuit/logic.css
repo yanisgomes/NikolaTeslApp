@@ -35,7 +35,7 @@
 }
 
 .link-tools .tool-remove:hover path {
-    stroke: none;
+    stroke: var(--tertiary);
 }
 
 .marker-arrowhead,
@@ -49,7 +49,7 @@
 .marker-arrowhead:hover,
 .marker-vertex:hover {
     fill: #ecf0f1;
-    stroke: var(--primary);
+    stroke: var(--tertiary);
 }
 
 .marker-vertex-remove-area {
@@ -86,15 +86,41 @@
     transition: all 0.2s;
 }
 
+.joint-element .body:hover {
+    fill: var(--primary);
+    stroke: var(--primary);
+}
+
 .joint-element circle {
-    fill: #fff;
-    stroke: #7f8c8d;
-    stroke-opacity: 0.5;
+    fill: #000;
+    stroke: #000;
+    stroke-opacity: 0;
+    stroke-width: 1px;
+}
+
+.joint-element:hover circle {
+    fill: #000;
+    stroke: #000;
+    stroke-opacity: 1;
+    stroke-width: 2px;
+}
+
+.joint-element circle2 {
+    fill: #000;
+    stroke: #000;
+    stroke-opacity: 0;
+    stroke-width: 1px;
+}
+
+.joint-element:hover circle2 {
+    fill: #000;
+    stroke: #000;
+    stroke-opacity: 1;
     stroke-width: 2px;
 }
 
 .joint-element text {
-    fill: #fff;
+    fill: #000;
 }
 
 .joint-link.live > .connection {
@@ -108,12 +134,13 @@
 
 .joint-element.live .body {
     fill: var(--primary);
-    stroke: var(--primary);
+    stroke: var(--secondary);
 }
 
 .joint-element.live text {
     fill: #ffffff;
 }
+
 .wire {
     stroke: #4b4f6a;
 }

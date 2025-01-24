@@ -12,11 +12,12 @@ const rotate = keyframes`
 `;
 
 export const Loader = styled.div`
-  padding: 10px;
-  border: 6px solid ${colors.primary};
-  border-bottom-color: transparent;
-  border-radius: 22px;
-  animation: ${rotate} 1s infinite linear;
-  height: 0;
-  width: 0;
+    display: inline-block;
+    padding: 10px;
+    border: 6px solid ${colors.primary};
+    border-bottom-color: transparent;
+    border-radius: 20px;
+    animation: ${rotate} 1s infinite linear;
+    height: 0;
+    width: 0;
 `;

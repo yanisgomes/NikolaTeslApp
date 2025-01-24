@@ -12,13 +12,13 @@ import { Link } from 'react-router-dom';
 import Header from '../../components/Header/index.jsx';
 import Footer from '../../components/Footer/index.jsx';
 
-const MainContainer = styled.div`
+const MainContainer = styled.main`
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    gap: 0px;
-    margin-bottom: 50px;
+    width: 100%;
+    padding: 24px 24px;
+    justify-content: space-between;
 `;
 
 const MainText = styled.h2`
@@ -130,7 +130,7 @@ function Gallery() {
 
     // Hugo : Modification de la page pour afficher les circuits de la galerie
     return (
-        <>
+        <MainContainer>
             <Header />
             <div>
                 <h1 style={{ textAlign: 'center', color: '#34495e' }}>
@@ -142,7 +142,7 @@ function Gallery() {
 
                 {isLoading ? (
                     <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                        <Loader /> {/* Assurez-vous que Loader est défini */}
+                        <Loader />
                     </div>
                 ) : (
                     <GridContainer>
@@ -180,7 +180,7 @@ function Gallery() {
                     </GridContainer>
                 )}
             </div>
-        </>
+        </MainContainer>
     );
 }
 

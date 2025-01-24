@@ -158,7 +158,10 @@ class Solver:
         logging.info(f"Calculating transfer function from {inputNode} to {outputNode}.")
         self.analyticTransferFunction = sympy.simplify(self.solutions[self.nodeVoltages[outputNode]] / self.solutions[self.nodeVoltages[inputNode]])
         logging.info("Finished calculating transfer function.")
-        return self.analyticTransferFunction
+        return  self.analyticTransferFunction
+    
+    def getLatexTF(self, inputNode, outputNode):
+        return sympy.latex(self.getTransferFunction(inputNode, outputNode))
     
     def getNumericalTransferFunction(self, inputNode, outputNode):
         """

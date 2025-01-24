@@ -60,19 +60,19 @@ const PhaseToolbox = ({ timeData, onPlay, onSpark }) => {
     // Prépare les “traces” Plotly.
     const plotData = [
         {
-            x: timeData?.frequency_list || [],
-            y: timeData?.magnitude_list || [],
+            x: timeData?.freq || [],
+            y: timeData?.phase || [],
             type: 'scatter',
             mode: 'lines',
             line: { color: colors.primary },
-            name: 'Réponse temporelle',
+            name: 'Réponse en phase',
         },
     ];
 
     // On retire le titre Plotly (title) puisque tu préfères seulement le h2 externe.
     const layout = {
-        xaxis: { title: 'Fréquence (s)' },
-        yaxis: { title: 'Gain (db)' },
+        xaxis: { title: 'Fréquence (Hz)' },
+        yaxis: { title: 'Phase (°)' },
         margin: { t: 0, r: 0, l: 0, b: 0 }, // Marges réduites
         paper_bgcolor: colors.backgroundLight,
         plot_bgcolor: colors.backgroundLight,
@@ -82,13 +82,8 @@ const PhaseToolbox = ({ timeData, onPlay, onSpark }) => {
         <Container>
             {/* Partie haute : Titre + Boutons */}
             <HeaderRow>
-                <h2>Réponse fréquentielle</h2>
+                <h2>Réponse en phase</h2>
                 <ButtonGroup>
-                    <ACIButton
-                        onClick={onPlay}
-                        logoUrl={PlayIconUrl}
-                        size="40px"
-                    />
                     <ACIButton
                         onClick={onSpark}
                         logoUrl={SparkIconUrl}
@@ -107,7 +102,7 @@ const PhaseToolbox = ({ timeData, onPlay, onSpark }) => {
                      * s’adapte automatiquement au resize du parent.
                      */
                     useResizeHandler
-                    style={{ width: '100%', height: '180px' }}
+                    style={{ width: '100%', height: '175px' }}
                     config={{
                         responsive: true,
                         displaylogo: false,

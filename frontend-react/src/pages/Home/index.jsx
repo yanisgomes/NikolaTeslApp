@@ -1,101 +1,233 @@
 import React, { useContext } from 'react';
 import { ThemeContext } from '../../utils/context/';
+import styled from 'styled-components';
+import colors from '../../utils/style/colors.js';
+
+import { Link } from 'react-router-dom';
+import fonts from '../../utils/style/fonts';
+
+import LatexComponent from '../../components/LatexComponent';
+
+// ------ Import des images (exemple) ------
+import backgroundImg from '../../assets/background-electricity.jpg';
 import imgHome from '../../assets/fonction-transfert-home.png';
 import imgTesla from '../../assets/nikola-tesla-cartoon.png';
-import Footer from '../../components/Footer/index.jsx';
-import Header from '../../components/Header/index.jsx';
-import colors from '../../utils/style/colors.js';
-import styled from 'styled-components';
 
-const HorizontalContainer = styled.div`
+// ------ Import des composants existants ------
+import Header from '../../components/Header/index.jsx';
+import Footer from '../../components/Footer/index.jsx';
+
+// ------ STYLED COMPONENTS ------
+
+const MainContainer = styled.main`
     display: flex;
-    flex: 1 0 auto;
-    flex-direction: row;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 0px 24px;
+    justify-content: space-between;
+`;
+
+// Container qui gère l'image de fond + un overlay dégradé
+const BackgroundContainer = styled.div`
+    position: relative;
+    z-index: 1;
+    width: 70%;
+    height: 61vh;
+    background: url(${backgroundImg}) center/cover no-repeat;
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 50px;
-    border-radius: 30px;
-    background-color: ${colors.backgroundLight};
-    transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+
+    transition: transform 0.3s ease-in-out;
     &:hover {
-        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-        transform: scale(1.01);
+        transform: scale(1.04);
+    }
+
+    // overlay dégradé pour uniformiser et rendre le texte plus lisible
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: linear-gradient(
+            135deg,
+            ${colors.backgroundLight}aa,
+            ${colors.primary}66
+        );
+        z-index: 0;
     }
 `;
 
-const VerticalContainer = styled.div`
+// Conteneur principal pour placer le contenu au-dessus de l’overlay
+const HeroContainer = styled.div`
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    flex-direction: row;
     align-items: center;
-    height: 100%;
-    width: 40%;
-    background-color: ${colors.backgroundLight};
-    padding: 20px;
-    height: 80%;
 `;
 
-const StyledTitle = styled.h2`
+// Style du titre principal
+const StyledTitle = styled.h1`
+    text-align: left;
     color: ${colors.text};
-    background-color: ${colors.backgroundLight};
+    font-size: 3.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    transition: all 0.4s ease-in-out;
+
+    /* Au survol, on applique un effet de texte en dégradé */
+    &:hover {
+        background: linear-gradient(
+            90deg,
+            ${colors.primary},
+            ${colors.secondary}
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 `;
 
+// Style du sous-titre / phrase d’accroche
+const StyledSubtitle = styled.h2`
+    color: ${colors.text};
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+`;
+
+// Container pour les textes + CTAs
+const TextContainer = styled.div`
+    flex: 1;
+    padding: 1rem;
+`;
+
+// Exemple de liste ou descriptif
 const StyledList = styled.ul`
+    margin-bottom: 1.5rem;
     li {
         color: ${colors.text};
-        background-color: ${colors.backgroundLight};
-        margin-bottom: 10px;
-        font-size: 1.2em;
+        margin-bottom: 0.75rem;
+        font-size: 1.1em;
         &:hover {
             color: ${colors.primary};
         }
     }
 `;
 
-const StyledButton = styled.button`
-    width: 50%;
+// Bouton avec un dégradé animé
+const GradientButton = styled.button`
+    z-index: 0!!;
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
+    background-size: 300%;
+    color: ${colors.backgroundLight};
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-position 0.5s, box-shadow 0.3s;
+
+    &:hover {
+        background-position: right center;
+    }
 `;
 
+// Image principale (par ex. schéma ou illustration)
 const StyledImageMain = styled.img`
-    width: 60vh;
+    max-width: 450px;
+    width: 50vh;
+    object-fit: contain;
 `;
 
+// Image de Tesla ou autre visuel
 const StyledImageTesla = styled.img`
-    height: 30vh;
+    max-height: 400px;
     margin-bottom: 2vh;
+    object-fit: contain;
 `;
 
-function App() {
+const StyledLinkForButton = styled(Link)`
+    padding: 12px;
+    text-decoration: none;
+
+    font-family: ${fonts.mainFont};
+    font-size: 18px;
+    font-weight: bold;
+    color: ${(props) =>
+        props.theme === 'dark' ? colors.darkBackgroundSecondary : '#ffffff'};
+
+    &:hover {
+        color: ${colors.secondary};
+    }
+
+    ${(props) =>
+        props.$isFullLink &&
+        `color: white;
+        border-radius: 30px;
+        background-color: ${colors.primary};
+        text-decoration: none;
+
+        &:hover {
+            color: white;
+            background-color: #ffffff;
+        }
+        `}
+`;
+
+const LatexButton = styled.button`
+    z-index: 0;
+    background: linear-gradient(135deg, ${colors.primary}, ${colors.secondary});
+    background-size: 300%;
+    color: ${colors.backgroundLight};
+    border: none;
+    padding: 0.8rem 0.8rem;
+    font-size: 1rem;
+    border-radius: 130px;
+    cursor: pointer;
+    transition: background-position 0.5s, box-shadow 0.3s;
+
+    &:hover {
+        background-position: right center;
+    }
+`;
+
+const LatexComponentContainer = styled.div`
+    border-radius: 112px;
+    background-color: '#ffffff';
+    padding: 66px 26px;
+`;
+
+function Home() {
     const { theme } = useContext(ThemeContext);
+
     return (
-        <>
+        <MainContainer>
             <Header />
-            <HorizontalContainer>
-                <VerticalContainer>
-                    <StyledTitle>Déclenchez l'éclair de génie !</StyledTitle>
-                    <StyledList>
-                        <li>
-                            Explorez les phénomènes électriques grâce à une
-                            interface interactive et intuitive qui donne vie aux
-                            concepts.
-                        </li>
-                        <li>
-                            Plongez au cœur des circuits électroniques pour en
-                            comprendre la phyique
-                        </li>
-                        <li>
-                            Concevez vos propres circuits et obtenez leur
-                            formalisation mathématique détaillées
-                        </li>
-                    </StyledList>
-                    <StyledImageTesla src={imgTesla} alt="404" />
-                    <StyledButton>Créer un nouveau circuit</StyledButton>
-                </VerticalContainer>
-                <StyledImageMain src={imgHome} alt="404" />
-            </HorizontalContainer>
+
+            {/* Nouveau titre moderne */}
+            <div style={{ alignItems: 'left' }}>
+                <StyledTitle>
+                    Solveur analytique pour l’électronique.
+                    <br />
+                    Dessiner. Brancher. Exprimer.
+                </StyledTitle>
+            </div>
+
+            <BackgroundContainer>
+                <LatexButton as={StyledLinkForButton} to="/circuit/">
+                    <LatexComponentContainer>
+                        <LatexComponent
+                            latex={`\\Huge{H(s) = \\frac{S(p)}{E(p)}} ?`}
+                        />
+                    </LatexComponentContainer>
+                </LatexButton>
+            </BackgroundContainer>
+
             <Footer />
-        </>
+        </MainContainer>
     );
 }
 
-export default App;
+export default Home;

@@ -15,6 +15,7 @@ const Container = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
+    max-height: 320px;
 `;
 
 const ToolboxHeaderContainer = styled.div`
@@ -31,9 +32,9 @@ const FilterContainer = styled.div``;
  */
 const FilterSelect = styled.select`
     font-size: 16px;
-    padding: 8px 12px;
+    padding: 8px 8px;
     border: 1px solid ${colors.lightGrey2};
-    border-radius: 6px;
+    border-radius: 8px;
     background-color: ${colors.backgroundLight};
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 
@@ -54,9 +55,10 @@ const FilterSelect = styled.select`
  * On conserve le style de scrollbar que vous aviez.
  */
 const ScrollWrapper = styled.div`
-    width: 96vh;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    width: 97vh;
     overflow-x: auto;
-    padding-bottom: 24px; /* Espace sous les éléments pour laisser de la place en bas */
     &::-webkit-scrollbar {
         display: none;
     }
@@ -71,7 +73,6 @@ const HorizontalCardsRow = styled.div`
     display: flex;
     flex-wrap: nowrap;
     gap: 12px;
-    padding: 8px;
     align-items: flex-start;
 `;
 

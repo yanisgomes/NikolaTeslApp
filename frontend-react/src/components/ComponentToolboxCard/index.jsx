@@ -22,13 +22,14 @@ const tagColors = {
 const CardContainer = styled.div`
     position: relative;
     min-width: 180px;
-    min-height: 140px;
+    min-height: 130px;
     width: 180px;
     margin: 0 0px;
     background-color: ${colors.backgroundLight};
     border: 1px solid ${colors.lightGrey2};
-    color: ${colors.primary};
     border-radius: 8px;
+    color: ${colors.primary};
+
     display: flex;
     flex-direction: column;
     align-items: center;

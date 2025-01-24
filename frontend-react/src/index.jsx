@@ -29,8 +29,6 @@ const MainContainer = styled.div`
     display: flex;
     flex-direction: column;
     height: 100vh; // 100% de la hauteur de la fenêtre
-    padding-left: 30px;
-    padding-right: 30px;
 `;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -51,10 +49,6 @@ root.render(
                                 <Route
                                     path="/circuit/" //path="/circuit/"
                                     element={<Circuit />}
-                                />
-                                <Route
-                                    path="/profile/:id"
-                                    element={<ProfileContainer />}
                                 />
                             </Routes>
                         </MainContainer>

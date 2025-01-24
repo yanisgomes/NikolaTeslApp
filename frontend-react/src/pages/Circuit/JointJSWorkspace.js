@@ -2,6 +2,9 @@ import * as joint from 'jointjs';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import styled from 'styled-components';
 
+import colors from '../../utils/style/colors';
+import { getSmallestUnusedNameIndex } from '../../utils/hooks';
+
 import symbol_resistor from '../../assets/symbol_resistor.png';
 
 import {
@@ -12,7 +15,14 @@ import {
 
 import { symbol } from 'prop-types';
 
-import { CircuitNode, Resistor, Wire } from './JointJSElements';
+import {
+    CircuitNode,
+    Resistor,
+    Wire,
+    AnalyticalInput,
+    AnalyticalOutput,
+    Ground,
+} from './JointJSElements';
 
 // =====================================
 // 7) FONCTIONS UTILES (intersection, panning, zoom, etc.)
@@ -28,7 +38,8 @@ function getIntersection(p1, p2, p3, p4) {
         ((p1.y - p2.y) * (p4.x - p1.x) - (p1.x - p2.x) * (p4.y - p1.y)) / det;
 
     // On vérifie que l'intersection se fait entre 0 et 1 sur les deux segments
-    if (lambda > 0 && lambda < 1 && gamma > 0 && gamma < 1) {
+    // CHANGER LA SENSIBILITE EN JOUANT SUR LES SEUILS
+    if (lambda > 0 && lambda < 1.0 && gamma > 0 && gamma < 1.0) {
         return {
             x: p1.x + lambda * (p2.x - p1.x),
             y: p1.y + lambda * (p2.y - p1.y),
@@ -63,22 +74,114 @@ const enablePanning = (paper) => {
         isPanning = false;
     });
 };
+// Convertir un lien (de type manhatan) en segments
+/*
+const getSegments = (wire) => {
 
-const enableZoom = (paper) => {
-    const zoomStep = 0.1;
-    const minZoom = 0.5;
-    const maxZoom = 2;
+    const target = wire.get('target');
+    // On ne fait quelque chose que si la cible est un "point libre" (pas un id déjà existant)
+    if (!target || target.id) return;
 
-    paper.on('blank:mousewheel', (evt, x, y, delta) => {
-        const currentScale = paper.scale();
-        const newScale = Math.min(
-            Math.max(currentScale.sx + delta * zoomStep, minZoom),
-            maxZoom
-        );
-        // Zoom autour du pointeur
-        paper.scale(newScale, newScale, x, y);
+    const sourceCoords = wire.source().id
+        ? wire.graph.getCell(wire.source().id).position()
+        : wire.source();
+    const targetCoords = target; // position x,y
+
+    const vertices = wire.vertices();
+
+    console.log("vertices", vertices,"source", sourceCoords, "target", targetCoords);
+    // Convertir les points en segments
+    const points = [
+        { x: sourceCoords.x, y: sourceCoords.y },
+        ...vertices,
+        { x: targetCoords.x, y: targetCoords.y },
+    ];
+
+    const segments = [];
+    for (let i = 0; i < points.length - 1; i++) {
+        segments.push({ p1: points[i], p2: points[i + 1] });
+    }
+    return segments;
+};*/
+/*
+function getSegments(wire) {
+    const router = wire.get('router');
+    console.log(router);
+    
+    const paths = router.args.paths;
+    const segments = [];
+    
+    for (let i = 1; i < paths.length; i++) {
+        segments.push({
+            start: paths[i - 1],
+            end: paths[i]
+        });
+    }
+    
+    return segments;
+}*/
+
+function getSegments(link, paper) {
+    // Obtenir le chemin SVG du lien
+    const linkElement = link.findView(paper).el;
+    const pathData = linkElement.querySelector('path').getAttribute('d');
+
+    // Analyser le chemin (parsing des commandes SVG)
+    const coordinates = [];
+    const pathCommands = pathData.split(/(?=[A-Za-z])/); // Divise la chaîne en commandes SVG (M, L, etc.)
+
+    let currentPosition = { x: 0, y: 0 };
+
+    pathCommands.forEach((command) => {
+        const type = command[0];
+        const args = command
+            .slice(1)
+            .trim()
+            .split(/[\s,]+/)
+            .map(Number);
+
+        if (type === 'M') {
+            // Move to
+            currentPosition = { x: args[0], y: args[1] };
+        } else if (type === 'L') {
+            // Line to
+            const newPoint = { x: args[0], y: args[1] };
+            coordinates.push({ start: currentPosition, end: newPoint });
+            currentPosition = newPoint;
+        } // Vous pouvez ajouter d'autres types de commandes si nécessaire
     });
-};
+    return coordinates;
+}
+
+// Vérifier si deux wires s'intersectent
+function wiresIntersect(wire1, wire2, paper) {
+    const segments1 = getSegments(wire1, paper);
+    const segments2 = getSegments(wire2, paper);
+    console.log('segment1', segments1, 'segment2', segments2);
+    // Tester chaque paire de segments
+    if (segments1 !== undefined && segments2 !== undefined) {
+        for (const segment1 of segments1) {
+            for (const segment2 of segments2) {
+                if (
+                    getIntersection(
+                        segment1.start,
+                        segment1.end,
+                        segment2.start,
+                        segment2.end
+                    )
+                ) {
+                    return getIntersection(
+                        segment1.start,
+                        segment1.end,
+                        segment2.start,
+                        segment2.end
+                    ); // Intersection trouvée
+                }
+            }
+        }
+    }
+    return false; // Aucune intersection
+}
 
 // =====================================
 // 8) CRÉATION DU NŒUD (via CircuitNode)
@@ -88,6 +191,8 @@ function createNode(graph, position) {
     const node = new CircuitNode();
     node.position(position.x, position.y);
     node.resize(20, 20);
+    const newNumber = getSmallestUnusedNameIndex(graph, node.getSymbol());
+    node.setNumber(newNumber);
 
     // Optionnel: donner un nom (ex. un identifiant unique ou "N1", "N2", etc.)
     // node.setName('Nœud');
@@ -133,10 +238,172 @@ function JointJSWorkspace(props) {
             model: graph,
             width: '100vh',
             height: '45vh',
-            gridSize: 20,
+            gridSize: 10,
             drawGrid: true,
             snapLinks: false,
             defaultLink: () => new Wire(),
+        });
+
+        // Create initial AnalyticalInput
+        const input = new AnalyticalInput();
+        input.position(150, 30);
+        input.addTo(graph);
+
+        // Create initial AnalyticalOutput
+        const output = new AnalyticalOutput();
+        output.position(750, 30);
+        output.addTo(graph);
+
+        // Create initial Ground
+        const ground = new Ground();
+        ground.position(450, 350);
+        ground.addTo(graph);
+
+        // ========== Définition du rotateTool ==========
+        const rotateTool = new joint.elementTools.Button({
+            markup: [
+                {
+                    tagName: 'circle',
+                    selector: 'button',
+                    attributes: {
+                        r: 10,
+                        fill: '#FFFFFF',
+                        stroke: '#000000',
+                        'stroke-width': 2,
+                        cursor: 'pointer',
+                    },
+                },
+                {
+                    tagName: 'text',
+                    textContent: '↻',
+                    selector: 'icon',
+                    attributes: {
+                        fill: '#000000',
+                        'font-size': 14,
+                        'text-anchor': 'middle',
+                        'pointer-events': 'none',
+                        y: '0.3em',
+                    },
+                },
+            ],
+            x: '100%',
+            y: '100%',
+            offset: { x: 0, y: -0 },
+            action: function (evt, elementView, toolView) {
+                elementView.model.rotate(90, false);
+            },
+        });
+
+        // ========== Définition du removeTool ==========
+        const removeTool = new joint.elementTools.Button({
+            markup: [
+                {
+                    tagName: 'circle',
+                    selector: 'button',
+                    attributes: {
+                        r: 10,
+                        fill: colors.tertiary,
+                        stroke: '#000000',
+                        'stroke-width': 2,
+                        cursor: 'pointer',
+                    },
+                },
+                {
+                    tagName: 'text',
+                    textContent: '×', // Vous pouvez mettre n’importe quel caractère
+                    selector: 'icon',
+                    attributes: {
+                        fill: '#ffffff',
+                        'font-size': 14,
+                        'text-anchor': 'middle',
+                        'pointer-events': 'none',
+                        y: '0.3em',
+                    },
+                },
+            ],
+
+            // Position du bouton (en bas à droite ici, par exemple)
+            x: '100%',
+            y: '0%',
+            offset: { x: 0, y: 0 },
+
+            // Action déclenchée au clic : on supprime l’élément.
+            action: function (evt, elementView, toolView) {
+                const element = elementView.model;
+                element.remove();
+            },
+        });
+
+        paper.on('cell:mouseover', (cellView) => {
+            const hoveredId = cellView.model.id;
+            setHoveredElementId(hoveredId);
+        });
+        paper.on('cell:mouseout', (cellView) => {
+            setHoveredElementId(null);
+        });
+        paper.on('cell:pointerclick', (cellView) => {
+            const selectedId = cellView.model.id;
+            setSelectedElementId(selectedId);
+
+            if (cellView.model.isElement()) {
+                // ===============================
+                // Cas : c'est un élément
+                // ===============================
+                const element = cellView.model;
+                if (
+                    element instanceof AnalyticalInput ||
+                    element instanceof AnalyticalOutput
+                ) {
+                    const toolsView = new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Boundary({ padding: 4 }),
+                            rotateTool,
+                        ],
+                    });
+                    cellView.addTools(toolsView);
+                } else {
+                    const toolsView = new joint.dia.ToolsView({
+                        tools: [
+                            new joint.elementTools.Boundary({ padding: 4 }),
+                            rotateTool,
+                            removeTool,
+                        ],
+                    });
+                    cellView.addTools(toolsView);
+                }
+            } else if (cellView.model.isLink()) {
+                // ===============================
+                // Cas : c'est un lien
+                // ===============================
+
+                // On définit les différents tools pour le lien :
+                const segmentsTool = new joint.linkTools.Segments();
+                const sourceArrowheadTool =
+                    new joint.linkTools.SourceArrowhead();
+                const targetArrowheadTool =
+                    new joint.linkTools.TargetArrowhead();
+                const sourceAnchorTool = new joint.linkTools.SourceAnchor();
+                const targetAnchorTool = new joint.linkTools.TargetAnchor();
+                const boundaryTool = new joint.linkTools.Boundary();
+                const removeToolLink = new joint.linkTools.Remove({
+                    distance: '50%', // optionnel, on peut changer la position du bouton
+                });
+
+                const linkToolsView = new joint.dia.ToolsView({
+                    tools: [
+                        segmentsTool,
+                        sourceArrowheadTool,
+                        targetArrowheadTool,
+                        sourceAnchorTool,
+                        targetAnchorTool,
+                        boundaryTool,
+                        removeToolLink,
+                    ],
+                });
+
+                // On attache ces tools au link cliqué
+                cellView.addTools(linkToolsView);
+            }
         });
 
         // Exemple : double-clic sur une résistance pour changer la valeur
@@ -158,25 +425,17 @@ function JointJSWorkspace(props) {
             }
         });
 
-        paper.on('cell:mouseover', (cellView) => {
-            const hoveredId = cellView.model.id;
-            setHoveredElementId(hoveredId);
-        });
-        paper.on('cell:mouseout', (cellView) => {
-            setHoveredElementId(null);
-        });
-        paper.on('cell:pointerclick', (cellView) => {
-            const selectedId = cellView.model.id;
-            setSelectedElementId(selectedId);
-        });
         paper.on('blank:pointerclick', () => {
             setSelectedElementId(null);
+
+            paper.hideTools();
         });
 
         // =====================================
         // LOGIQUE DE CRÉATION AUTOMATIQUE DES NŒUDS
         // =====================================
         // Quand la cible d'un lien change, on vérifie les intersections
+
         graph.on('change:target', function (link) {
             const target = link.get('target');
             // On ne fait quelque chose que si la cible est un "point libre" (pas un id déjà existant)
@@ -198,12 +457,16 @@ function JointJSWorkspace(props) {
                     ? graph.getCell(otherLink.target().id).position()
                     : otherLink.target();
 
+                /*
                 const intersection = getIntersection(
                     sourcePosition,
                     targetPosition,
                     otherSourcePosition,
                     otherTargetPosition
-                );
+                );*/
+
+                const intersection = wiresIntersect(link, otherLink, paper);
+                console.log(intersection);
 
                 if (intersection) {
                     // On regarde si un nœud existe déjà près de l'intersection
@@ -245,11 +508,35 @@ function JointJSWorkspace(props) {
                 }
             });
         });
+        graph.on('change:target', function (link) {
+            const target = link.get('target');
+            if (!target || target.id) {
+                // Get the source and target of the newly created link
+                const sourceCell = graph.getCell(link.source().id);
+                const targetCell = graph.getCell(link.target().id);
+
+                const sourceType = sourceCell.get('type');
+                const targetType = targetCell.getSymbol();
+                // Check if the source or target is the ground element
+                if (sourceType === 'logic.Ground') {
+                    console.log('Link connects to ground at source.');
+                    if (targetType === 'N') {
+                        targetCell.setNumber(0);
+                        console.log('Link connects to ground at target.');
+                    }
+                }
+            } else {
+                return;
+            }
+        });
+
+        // =================================================
+        // GESTION DU MARKER QUI APPARAÎT SUR LE SURVOL D'UN LIEN
+        // =================================================
 
         setCircuitGraph(graph);
 
         // Active le zoom et le panning
-        enableZoom(paper);
         enablePanning(paper);
 
         setPaper(paper);

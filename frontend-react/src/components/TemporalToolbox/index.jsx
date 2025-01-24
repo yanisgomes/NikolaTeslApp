@@ -37,14 +37,12 @@ const ButtonGroup = styled.div`
  * que le graphique ne déborde pas si le parent n’a pas de scroll vertical.
  */
 const ChartContainer = styled.div`
-    /* Tu peux adapter la hauteur max selon tes préférences.
-       Par ex. max-height: 400px; ou un height fixe. */
-    max-height: 400px;
+    max-height: 320px;
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden; /* Évite le scroll interne si on ne veut pas scroller */
+    overflow: hidden;
 `;
 
 /**
@@ -85,11 +83,6 @@ const TemporalToolbox = ({ timeData, onPlay, onSpark }) => {
                 <h2>Réponse temporelle</h2>
                 <ButtonGroup>
                     <ACIButton
-                        onClick={onPlay}
-                        logoUrl={PlayIconUrl}
-                        size="40px"
-                    />
-                    <ACIButton
                         onClick={onSpark}
                         logoUrl={SparkIconUrl}
                         size="40px"
@@ -107,7 +100,7 @@ const TemporalToolbox = ({ timeData, onPlay, onSpark }) => {
                      * s’adapte automatiquement au resize du parent.
                      */
                     useResizeHandler
-                    style={{ width: '100%', height: '180px' }}
+                    style={{ width: '100%', height: '175px' }}
                     config={{
                         responsive: true,
                         displaylogo: false,
