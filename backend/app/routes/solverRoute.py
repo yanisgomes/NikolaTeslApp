@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from ..models import Circuit_db
 from .. import db
 from datetime import datetime, timezone
@@ -563,9 +563,11 @@ def test():
     relative_path = os.path.join('backend', 'data', 'response.json')
     
     # Optionally, get the absolute path (useful for debugging)
-    absolute_path = os.path.abspath(relative_path)
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+
+
     try:
-        with open('C:/Users/Lenovo/Documents/GitHub/NikolaTeslApp/backend/data/response.json', 'r') as file:
+        with open(upload_folder+'/response.json', 'r') as file:
             file_data = json.load(file)
     except Exception as e:
         return jsonify({"error": "Failed to read JSON file", "details": str(e)}), 500
