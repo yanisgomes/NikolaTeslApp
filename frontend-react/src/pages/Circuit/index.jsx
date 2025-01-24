@@ -528,13 +528,11 @@ function CircuitInterface() {
             const result = await response.json();
             console.log(result); // Réponse du backend
             setIsSubmitLoading(false);
-            alert('Données envoyées avec succès');
             setBodeResponse(result['bode_data']);
             setTemporalResponse(result['step_data']);
             setResolutionResponse(result);
         } catch (error) {
             console.error(error);
-            alert('Erreur lors de l’envoi des données');
             setIsSubmitLoading(false);
         }
     };
