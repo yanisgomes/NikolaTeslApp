@@ -552,3 +552,21 @@ def update_circuit_io_numeric(circuit_id):
         "step_data": json.loads(circuit_db.step_data) if circuit_db.step_data else None,
         #"LLM_response": response
     }), 200
+
+
+
+@solver_bp.route('/config/test', methods=['PUT'])
+def test():
+    # Read JSON data from file
+    relative_path = os.path.join('backend', 'data', 'response.json')
+    # Construct the relative path
+    relative_path = os.path.join('backend', 'data', 'response.json')
+    
+    # Optionally, get the absolute path (useful for debugging)
+    absolute_path = os.path.abspath(relative_path)
+    try:
+        with open('C:/Users/Lenovo/Documents/GitHub/NikolaTeslApp/backend/data/response.json', 'r') as file:
+            file_data = json.load(file)
+    except Exception as e:
+        return jsonify({"error": "Failed to read JSON file", "details": str(e)}), 500
+    return file_data
